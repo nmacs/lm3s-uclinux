@@ -63,6 +63,9 @@ choice
 config CONFIG_GENERIC_ARM
 	bool "Generic Arm"
 
+config CONFIG_ARM7M
+	bool "Arm Cortex-M3"
+
 config CONFIG_ARM610
 	bool "Arm 610"
 	select ARCH_HAS_MMU
