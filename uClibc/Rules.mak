@@ -198,7 +198,6 @@ ifeq ($(TARGET_ARCH),arm)
 	CPU_CFLAGS-$(ARCH_LITTLE_ENDIAN)+=-mlittle-endian
 	CPU_CFLAGS-$(ARCH_BIG_ENDIAN)+=-mbig-endian
 	CPU_CFLAGS-$(CONFIG_GENERIC_ARM)+=
-  CPU_CFLAGS-$(CONFIG_ARM7M)+=-mtune=cortex-m3 -march=armv7-m -mthumb -DARCH_CORTEXM3
 	CPU_CFLAGS-$(CONFIG_ARM610)+=-mtune=arm610 -march=armv3
 	CPU_CFLAGS-$(CONFIG_ARM710)+=-mtune=arm710 -march=armv3
 	CPU_CFLAGS-$(CONFIG_ARM7TDMI)+=-mtune=arm7tdmi -march=armv4t
@@ -215,6 +214,8 @@ ifeq ($(TARGET_ARCH),arm)
 	CPU_CFLAGS-$(CONFIG_ARM_XSCALE)+=$(call check_gcc,-mtune=xscale,-mtune=strongarm110)
 	CPU_CFLAGS-$(CONFIG_ARM_XSCALE)+=-march=armv5te -Wa,-mcpu=xscale
  	CPU_CFLAGS-$(CONFIG_ARM_IWMMXT)+=-march=iwmmxt -Wa,-mcpu=iwmmxt -mabi=iwmmxt
+   CPU_CFLAGS-$(CONFIG_ARM_CORTEX_M3)+=-mcpu=cortex-m3 -mthumb
+   CPU_CFLAGS-$(CONFIG_ARM_CORTEX_M1)+=-mcpu=cortex-m1 -mthumb
 endif
 
 ifeq ($(TARGET_ARCH),mips)
