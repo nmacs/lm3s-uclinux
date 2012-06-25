@@ -25,11 +25,13 @@ CONFIG_OPTS += --openssldir=/etc/config
 else
 CONFIG_OPTS += --openssldir=/etc
 endif
-ifdef DISABLE_SHARED_SSL
+
+#DISABLE_SHARED_SSL := 1
+#ifdef DISABLE_SHARED_SSL
 CONFIG_OPTS += no-shared
-else
-CONFIG_OPTS += shared
-endif
+#else
+#CONFIG_OPTS += shared
+#endif
 
 CONFIG_OPTS += no-rc2
 CONFIG_OPTS += no-krb5
@@ -115,8 +117,8 @@ LDFLAGS += -L$(ROOTDIR)/lib/libssl/build
 export LDFLAGS
 
 all: build/configured
-	$(MAKE) -j1 -C build
-	$(MAKE) -j1 -C build install_sw
+	$(MAKE) -j1 -C build build_libs
+#	$(MAKE) -j1 -C build install_sw
 
 ############################################################################
 #
