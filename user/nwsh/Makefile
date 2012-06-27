@@ -1,5 +1,5 @@
 
-EXEC = nwsh
+EXEC = sh
 OBJS = nwsh.o
 
 all: $(EXEC)
