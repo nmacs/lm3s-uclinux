@@ -39,15 +39,22 @@ gz_open(FILE *compressed_file, int *pid)
 		return(NULL);
 	}
 
-    /* If we don't flush, we end up with two copies of anything pending, 
+    /* If we don't flush, we end up with two copies of anything pending,
        one from the parent, one from the child */
     fflush(stdout);
     fflush(stderr);
-
+#ifdef HAVE_FORK
 	if ((*pid = fork()) == -1) {
 		perror_msg("fork");
 		return(NULL);
 	}
+#else
+        if ((*pid = vfork()) == -1) {
+                perror_msg("fork");
+                return(NULL);
+        }
+
+#endif
 	if (*pid==0) {
 		/* child process */
 		close(unzip_pipe[0]);
@@ -71,7 +78,7 @@ gz_close(int gunzip_pid)
 		perror_msg("waitpid");
 		return -1;
 	}
-	
+
 	if (WIFSIGNALED(status)) {
 		error_msg("Unzip process killed by signal %d.\n",
 			WTERMSIG(status));
