@@ -11,7 +11,7 @@ export PATH=$TOOLCHAIN_BIN:$UBOOT_TOOLS_BIN:$CC1_PATH:$PATH
 #cp rt73.bin firmware/
 
 make clean CROSS_COMPILE=arm-uclinuxeabi-
-make V=1 CROSS_COMPILE=arm-uclinuxeabi- || exit 1
+make CROSS_COMPILE=arm-uclinuxeabi- || exit 1
 
 echo == Compiled ==
 
