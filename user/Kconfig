@@ -163,7 +163,7 @@ config USER_GETTYD_GETTYD
 config USER_MGETTY_MGETTY
 	bool "mgetty"
 	help
-	  Another getty program. Capable of operating concurrently with 
+	  Another getty program. Capable of operating concurrently with
 	  dial-out software.
 	  Approx. binary size: 80k
 
@@ -254,8 +254,8 @@ config USER_SETMAC_SETMAC
 config USER_FCONFIG_FCONFIG
 	bool "fconfig"
 	help
-	  A program that lets you manipulate your RedBoot 
-	  configuration from Linux. 
+	  A program that lets you manipulate your RedBoot
+	  configuration from Linux.
 
 
 comment "netflash tool"
@@ -961,15 +961,15 @@ config USER_APPWEB_MULTITHREAD
 	bool "AppWeb is multithreaded"
 	depends on USER_APPWEB_APPWEB
 	help
-	  Build AppWeb as a multithreaded application. This allows multiple 
+	  Build AppWeb as a multithreaded application. This allows multiple
 	  requests to be served concurrently.
 
 config USER_APPWEB_DYNAMIC
 	bool "AppWeb can dynamically load AppWeb modules"
 	depends on USER_APPWEB_APPWEB
 	help
-	  Build AppWeb with the ability to dynamically load AppWeb modules. 
-	  AppWeb modules are a convenient way to add your application code 
+	  Build AppWeb with the ability to dynamically load AppWeb modules.
+	  AppWeb modules are a convenient way to add your application code
 	  to AppWeb.
 
 config USER_ASTERISK
@@ -1023,7 +1023,7 @@ config USER_FNORD_404_REDIR
 	bool "fnord 404 redirect"
 	depends on USER_FNORD_HTTPD
 	help
-	  Automatically redirects all invalid URL requests to the main 
+	  Automatically redirects all invalid URL requests to the main
 	  cgi-bin/ webpage.
 
 config USER_BOA_SRC_BOA
@@ -1239,8 +1239,8 @@ config USER_DNSMASQ2_RESOLVE_AS_SERVER
 	bool "Add 'resolve as server IP' feature"
 	depends on USER_DNSMASQ2_DNSMASQ2
 	help
-	  Adds feature where dnsmasq2 will resolve all DNS requests to the 
-	  IP address that they came in on. For use when network isn't setup 
+	  Adds feature where dnsmasq2 will resolve all DNS requests to the
+	  IP address that they came in on. For use when network isn't setup
 	  yet and all data should be redirected to the DNS server.
 
 config USER_DROPBEAR_DROPBEAR
@@ -1280,7 +1280,7 @@ config USER_FAKEIDENTD_IDENTD
 	bool "fakeidentd"
 	help
 	  A minimal ident/auth server that replies with a fixed username.
-	  
+
 
 config USER_DDNS3_CLIENT_DDNS3
 	bool "ddns3 client"
@@ -1653,7 +1653,7 @@ config USER_IPUTILS_CLOCKDIFF
 	depends on USER_IPUTILS_IPUTILS
 	help
 	  Measures the clock difference between the local host and
-	  a remote host using either ICMP TIMESTAMP packets or the 
+	  a remote host using either ICMP TIMESTAMP packets or the
 	  IP TIMESTAMP option in a ICMP ECHO.
 
 config USER_IPUTILS_TFTPD
@@ -1672,7 +1672,7 @@ config USER_IPUTILS_TRACEPATH6
 	bool "tracepath6"
 	depends on USER_IPUTILS_IPUTILS
 	help
-	  Traces a path to a IPv6 network host discovering MTU 
+	  Traces a path to a IPv6 network host discovering MTU
 	  along the way.
 
 config USER_IPUTILS_ARPING
@@ -1793,16 +1793,16 @@ config USER_LINUXIGD_LINUXIGD
 	bool "linux-igd"
 	select LIB_LIBUPNP
 	help
-	  Linux Internet Gateway Device. A UPnP-IGD NAT-based 
-	  Daemon. 
-	  Needs libupnp (turned on automatically) and pthreads. 
+	  Linux Internet Gateway Device. A UPnP-IGD NAT-based
+	  Daemon.
+	  Needs libupnp (turned on automatically) and pthreads.
 	  Approx. total binary size (including libupnp): 350k
 
 config USER_LINUXIGD_DEFAULT
 	bool "use default configuration"
 	depends on USER_LINUXIGD_LINUXIGD
 	help
-	  Use the unmodified default configuration files for the 
+	  Use the unmodified default configuration files for the
 	  linux-igd daemon and not the snapgear customised files.
 
 config USER_MINIUPNPD
@@ -1887,15 +1887,15 @@ config USER_NESSUS_LIBRARIES
 config USER_NETCAT_NETCAT
 	bool "netcat"
 	help
-	  The netcat utility. Netcat is a fully featured 
-	  networking utility which reads and writes data 
-	  across network connections. 
+	  The netcat utility. Netcat is a fully featured
+	  networking utility which reads and writes data
+	  across network connections.
 	  Approximate size: 22k
 
 config USER_NETPERF_NETPERF
 	bool "netperf"
 	help
-	  The client piece for a network performance measuring application 
+	  The client piece for a network performance measuring application
 	  with many options.
 
 config USER_NETPERF_NETSERVER
@@ -2499,7 +2499,7 @@ config USER_LOGROTATE_LOGROTATE
 	select LIB_POPT
 	help
 	  system log rotation/backup/compression utility
-  
+
 config USER_SENDIP_SENDIP
 	bool "sendip"
 	help
@@ -2877,7 +2877,7 @@ config USER_WIRELESS_TOOLS
 	bool "wireless_tools support"
 	help
 	  Enable building of the Wireless tools.
-	  
+
 
 config USER_WIRELESS_TOOLS_IWCONFIG
 	bool "iwconfig"
@@ -3089,7 +3089,7 @@ config USER_GDB_GDBREPLAY
 	bool "gdbreplay"
 	help
 	  install gdbreplay onto target.
-	  ** NEED TO ENABLE 'PTHREADS_DEBUG_SUPPORT' in uClibc config ** 
+	  ** NEED TO ENABLE 'PTHREADS_DEBUG_SUPPORT' in uClibc config **
 
 config USER_GDB_GDBSERVER
 	bool "gdbserver"
@@ -4224,7 +4224,7 @@ config USER_TINYLOGIN_TRIVIAL_HELP
 	bool "Trivial help"
 	depends on USER_TINYLOGIN_TINYLOGIN
 	help
-	  This compiles out everything but the most 
+	  This compiles out everything but the most
 	  trivial --help usage information (i.e. reduces binary size)
 
 endmenu
@@ -4699,6 +4699,13 @@ config POOR_ENTROPY
 
 endmenu
 
+menu "Package Managers"
+
+config USER_OPKG_OPKG
+  bool "OPKG package manager"
+
+endmenu
+
 #############################################################################
 
 menu "Debug Builds"
@@ -4729,7 +4736,7 @@ config USER_TIMEPEG_TPT
 	  Timepeg monitoring tool.  This utility presents the information
 	  gathered by the timepeg code located in the kernel in a meaningful
 	  manner.
-	  
+
 
 comment "Debug libraries"
 

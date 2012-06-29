@@ -18,13 +18,14 @@ include user.mak
 dir_v = $(PRODUCTDIR)
 dir_p = $(ROOTDIR)/prop
 
-dir_y = 
+dir_y =
 dir_n =
 dir_  =
 
 dir_$(CONFIG_JFFS_FS)                       += mtd-utils
 dir_$(CONFIG_JFFS2_FS)                      += mtd-utils
 
+dir_$(CONFIG_USER_OPKG_OPKG)                += opkg
 dir_$(CONFIG_USER_AGETTY_AGETTY)            += agetty
 dir_$(CONFIG_USER_APPWEB_APPWEB)            += appWeb
 dir_$(CONFIG_USER_ARJ_ARJ)                  += arj
@@ -436,6 +437,8 @@ dir_$(CONFIG_USER_ZEBRA_RIPD_RIPD)          += zebra
 dir_$(CONFIG_USER_ZEBRA_ZEBRA_ZEBRA)        += zebra
 
 dir_y += games
+
+#dir_y += elster
 
 -include Makefile.local
 -include Makefile.auto
