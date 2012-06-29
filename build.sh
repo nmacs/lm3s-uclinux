@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 
 ROOT=`pwd`
@@ -10,7 +10,10 @@ export PATH=$TOOLCHAIN_BIN:$UBOOT_TOOLS_BIN:$CC1_PATH:$PATH
 #copy firmware
 #cp rt73.bin firmware/
 
-make clean CROSS_COMPILE=arm-uclinuxeabi-
+if [[ "$1" = "rebuild" ]]; then
+  make clean CROSS_COMPILE=arm-uclinuxeabi-
+fi
+
 make CROSS_COMPILE=arm-uclinuxeabi- || exit 1
 
 echo == Compiled ==
