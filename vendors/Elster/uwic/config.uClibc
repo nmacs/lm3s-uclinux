@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Wed Jun  6 19:06:34 2012
+# Mon Jul  2 19:34:23 2012
 #
 # TARGET_alpha is not set
 TARGET_arm=y
@@ -33,8 +33,8 @@ TARGET_ARCH="arm"
 FORCE_OPTIONS_FOR_ARCH=y
 # CONFIG_ARM_OABI is not set
 CONFIG_ARM_EABI=y
+USE_BX=y
 # CONFIG_GENERIC_ARM is not set
-CONFIG_ARM_CORTEX_M3=y
 # CONFIG_ARM610 is not set
 # CONFIG_ARM710 is not set
 # CONFIG_ARM7TDMI is not set
@@ -46,6 +46,8 @@ CONFIG_ARM_CORTEX_M3=y
 # CONFIG_ARM1136JF_S is not set
 # CONFIG_ARM1176JZ_S is not set
 # CONFIG_ARM1176JZF_S is not set
+CONFIG_ARM_CORTEX_M3=y
+# CONFIG_ARM_CORTEX_M1 is not set
 # CONFIG_ARM_SA110 is not set
 # CONFIG_ARM_SA1100 is not set
 # CONFIG_ARM_XSCALE is not set
@@ -61,7 +63,11 @@ ARCH_ANY_ENDIAN=y
 ARCH_LITTLE_ENDIAN=y
 # ARCH_WANTS_BIG_ENDIAN is not set
 ARCH_WANTS_LITTLE_ENDIAN=y
-# ARCH_HAS_MMU is not set
+ARCH_HAS_NO_MMU=y
+
+#
+# Target CPU lacks a memory management unit (MMU)
+#
 UCLIBC_HAS_FLOATS=y
 # UCLIBC_HAS_FPU is not set
 DO_C99_MATH=y
@@ -128,11 +134,10 @@ UCLIBC_HAS_CTYPE_SIGNED=y
 UCLIBC_HAS_CTYPE_UNSAFE=y
 # UCLIBC_HAS_CTYPE_CHECKED is not set
 # UCLIBC_HAS_CTYPE_ENFORCED is not set
-# UCLIBC_HAS_WCHAR is not set
+UCLIBC_HAS_WCHAR=y
 # UCLIBC_HAS_LOCALE is not set
 # UCLIBC_HAS_HEXADECIMAL_FLOATS is not set
 # UCLIBC_HAS_GLIBC_CUSTOM_PRINTF is not set
-# USE_OLD_VFPRINTF is not set
 UCLIBC_PRINTF_SCANF_POSITIONAL_ARGS=9
 # UCLIBC_HAS_SCANF_GLIBC_A_FLAG is not set
 # UCLIBC_HAS_STDIO_BUFSIZ_NONE is not set
