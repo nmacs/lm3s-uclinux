@@ -1,30 +1,31 @@
 #
-#	Makefile -- Build instructions for TI/TMS320DM270
+#	Makefile -- Build instructions for Elster uWIC
 #
 
 include $(LINUX_CONFIG)
 include $(CONFIG_CONFIG)
 include $(ARCH_CONFIG)
 
-LINUXFILE  = linux
-ROMFSFILE  = romfs.img
-INITRDFILE = initrd.img
-JFFS2FILE  = jffs2.img
+LINUXFILE           = linux.bin
+LINUXCOMPRESSEDFILE = Image.lzo
+LINUXUBOOTFILE      = Image.uboot
+UBIFSFILE           = Image.ubifs
 
-LINUXIMG   = $(IMAGEDIR)/$(LINUXFILE)
-ROMFSIMG   = $(IMAGEDIR)/$(ROMFSFILE)
-INITRDIMG  = $(IMAGEDIR)/$(INITRDFILE)
-JFFS2IMG   = $(IMAGEDIR)/$(JFFS2FILE)
+LINUXBOOTDIR       = $(ROOTDIR)/$(LINUXDIR)/arch/arm/boot
+LINUXCOMPRESSEDIMG = $(LINUXBOOTDIR)/$(LINUXCOMPRESSEDFILE)
+LINUXUBOOTIMG      = $(LINUXBOOTDIR)/$(LINUXUBOOTFILE)
+LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
+UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
 
-IMAGE      = $(IMAGEDIR)/image.bin
-ELFIMAGE   = $(IMAGEDIR)/image.elf
 
-ROMFS_DIRS = bin dev etc home lib mnt proc sys usr var tmp
+ROMFS_DIRS = bin dev etc home lib mnt proc sys usr var tmp boot
 
 clean:
+	rm -rf $(ROMFSDIR)
+	rm -rf $(IMAGEDIR)
 
-romfs:
-	[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)
+romfs: linux_image
+	[ -d $(ROMFSDIR) ] || mkdir -p $(ROMFSDIR)
 	for i in $(ROMFS_DIRS); do \
 		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
 	done
@@ -37,6 +38,7 @@ endif
 	$(ROMFSINST) /etc/inittab
 	$(ROMFSINST) /etc/opkg.conf
 	$(ROMFSINST) /etc/resolv.conf
+	$(ROMFSINST) $(LINUXUBOOTIMG) /boot/$(LINUXFILE)
 
 modules.dep:
 ifdef CONFIG_MODULES
@@ -47,23 +49,12 @@ ifdef CONFIG_MODULES
 	) > $(ROMFSDIR)/lib/modules/modules.dep
 endif
 
-$(JFFS2IMG): modules.dep
-	$(ROOTDIR)/user/mtd-utils/build/mkfs.jffs2 -o $(JFFS2IMG) -q -e 65536 -d $(ROMFSDIR)
+linux_image:
+	lzop -9 -f -o $(LINUXCOMPRESSEDIMG) $(LINUXBOOTDIR)/Image
+#	gzip --best --force --stdout $(LINUXBOOTDIR)/Image > $(LINUXCOMPRESSEDIMG)
+	mkimage -A arm -O linux -T kernel -C lzo -a 0x60008000 -e 0x60008000 -n "Linux kernel image" -d $(LINUXCOMPRESSEDIMG) $(LINUXUBOOTIMG)
 
-$(INITRDIMG): modules.dep
-	genext2fs -b 4096 -f dev.txt -d $(ROMFSDIR) $(INITRDIMG)
-	gzip -9 -f $(INITRDIMG)
-
-$(ROMFSIMG): modules.dep
-	genromfs -v -V "ROMdisk" -f $(ROMFSIMG) -d $(ROMFSDIR)
-
-.PHONY: image $(FSIMG) modules.dep
-image: $(FSIMG)
+image: romfs
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	$(CROSS_COMPILE)objcopy -O binary --remove-section=.ramvec \
-			--remove-section=.eram \
-			--set-section-flags=.romvec=CONTENTS,ALLOC,LOAD,READONLY,CODE \
-			$(ROOTDIR)/$(LINUXDIR)/linux $(IMAGEDIR)/linux.bin
-ifdef CONFIG_RAM_ATTACHED_ROMFS
-	cat $(IMAGEDIR)/linux.bin $(ROMFSIMG) > $(IMAGE)
-endif
+	cp $(LINUXUBOOTIMG) $(LINUXIMG)
+	mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0 --devtable=$(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt --root=$(ROMFSDIR) --output=$(UBIFSIMG)
