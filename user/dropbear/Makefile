@@ -25,6 +25,8 @@ HEADERS=options.h dbutil.h session.h packet.h algo.h ssh.h buffer.h kex.h \
 
 ALLOBJS=$(OBJS) $(DROPBEARKEYOBJS) $(DROPBEAROBJS)
 
+DROPBEAR=dropbear-2012.55
+
 prefix=/
 exec_prefix=${prefix}
 bindir=${exec_prefix}/bin
@@ -49,7 +51,7 @@ all: dropbearkey-host static
 
 romfs:
 	$(ROMFSINST) -e CONFIG_USER_DROPBEAR_DROPBEAR /bin/staticdropbear
-	$(ROMFSINST) -e CONFIG_USER_DROPBEAR_DROPBEAR /etc/dropbear_dss_host_key
+	#$(ROMFSINST) -e CONFIG_USER_DROPBEAR_DROPBEAR /etc/dropbear_dss_host_key
 	$(ROMFSINST) -e CONFIG_USER_DROPBEAR_DROPBEAR /etc/dropbear_rsa_host_key
 	$(ROMFSINST) -e CONFIG_USER_DROPBEAR_DROPBEAR \
 		-a "ssh     stream tcp nowait root /bin/staticdropbear -i" /etc/inetd.conf
@@ -66,8 +68,8 @@ dropbearkey-host:
 				--disable-lastlog --disable-utmp --disable-utmpx ; \
 	fi
 	./dropbearkey-host -t rsa -f dropbear_rsa_host_key
-	./dropbearkey-host -t dss -f dropbear_dss_host_key
-	
+#	./dropbearkey-host -t dss -f dropbear_dss_host_key
+
 strip: all
 	-$(STRIP) dropbear
 	-$(STRIP) dropbearkey
