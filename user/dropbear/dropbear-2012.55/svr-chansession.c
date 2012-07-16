@@ -1,19 +1,19 @@
 /*
  * Dropbear - a SSH2 server
- * 
+ *
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -123,7 +123,7 @@ static void sesssigchild_handler(int UNUSED(dummy)) {
 			/* we use this to determine how pid exited */
 			exit->exitsignal = -1;
 		}
-		
+
 		/* Make sure that the main select() loop wakes up */
 		while (1) {
 			/* isserver is just a random byte to write. We can't do anything
@@ -253,7 +253,7 @@ static int newchansess(struct Channel *channel) {
 
 }
 
-static struct logininfo* 
+static struct logininfo*
 chansess_login_alloc(struct ChanSess *chansess) {
 	struct logininfo * li;
 	li = login_alloc_entry(chansess->pid, ses.authstate.username,
@@ -314,7 +314,7 @@ static void closechansess(struct Channel *channel) {
 			svr_ses.childpids[i].chansess = NULL;
 		}
 	}
-				
+
 	m_free(chansess);
 
 	TRACE(("leave closechansess"))
@@ -412,10 +412,10 @@ static int sessionsignal(struct ChanSess *chansess) {
 		/* failed */
 		return DROPBEAR_FAILURE;
 	}
-			
+
 	if (kill(chansess->pid, sig) < 0) {
 		return DROPBEAR_FAILURE;
-	} 
+	}
 
 	return DROPBEAR_SUCCESS;
 }
@@ -430,12 +430,12 @@ static int sessionwinchange(struct ChanSess *chansess) {
 		/* haven't got a pty yet */
 		return DROPBEAR_FAILURE;
 	}
-			
+
 	termc = buf_getint(ses.payload);
 	termr = buf_getint(ses.payload);
 	termw = buf_getint(ses.payload);
 	termh = buf_getint(ses.payload);
-	
+
 	pty_change_window_size(chansess->master, termr, termc, termw, termh);
 
 	return DROPBEAR_SUCCESS;
@@ -459,7 +459,7 @@ static void get_termmodes(struct ChanSess *chansess) {
 	}
 
 	len = buf_getint(ses.payload);
-	TRACE(("term mode str %d p->l %d p->p %d", 
+	TRACE(("term mode str %d p->l %d p->p %d",
 				len, ses.payload->len , ses.payload->pos));
 	if (len != ses.payload->len - ses.payload->pos) {
 		dropbear_exit("Bad term mode string");
@@ -481,7 +481,7 @@ static void get_termmodes(struct ChanSess *chansess) {
 			continue;
 		}
 		termcode = &termcodes[(unsigned int)opcode];
-		
+
 
 		switch (termcode->type) {
 
@@ -523,7 +523,7 @@ static void get_termmodes(struct ChanSess *chansess) {
 					termio.c_cflag &= ~(termcode->mapcode);
 				}
 				break;
-				
+
 		}
 	}
 	if (tcsetattr(chansess->master, TCSANOW, &termio) < 0) {
@@ -563,7 +563,7 @@ static int sessionpty(struct ChanSess * chansess) {
 		TRACE(("leave sessionpty: failed to allocate pty"))
 		return DROPBEAR_FAILURE;
 	}
-	
+
 	chansess->tty = (char*)m_strdup(namebuf);
 	if (!chansess->tty) {
 		dropbear_exit("Out of memory"); /* TODO disconnect */
@@ -634,7 +634,7 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 			if ((cmdlen == 4) && strncmp(chansess->cmd, "sftp", 4) == 0) {
 				m_free(chansess->cmd);
 				chansess->cmd = m_strdup(SFTPSERVER_PATH);
-			} else 
+			} else
 #endif
 			{
 				m_free(chansess->cmd);
@@ -642,21 +642,21 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 			}
 		}
 	}
-	
+
 	/* take public key option 'command' into account */
 	svr_pubkey_set_forced_command(chansess);
 
 #ifdef LOG_COMMANDS
 	if (chansess->cmd) {
-		dropbear_log(LOG_INFO, "User %s executing '%s'", 
+		dropbear_log(LOG_INFO, "User %s executing '%s'",
 						ses.authstate.pw_name, chansess->cmd);
 	} else {
-		dropbear_log(LOG_INFO, "User %s executing login shell", 
+		dropbear_log(LOG_INFO, "User %s executing login shell",
 						ses.authstate.pw_name);
 	}
 #endif
 
-	/* uClinux will vfork(), so there'll be a race as 
+	/* uClinux will vfork(), so there'll be a race as
 	connection_string is freed below. */
 #ifndef __uClinux__
 	chansess->connection_string = make_connection_string();
@@ -670,7 +670,7 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 		ret = ptycommand(channel, chansess);
 	}
 
-#ifndef __uClinux__	
+#ifndef __uClinux__
 	m_free(chansess->connection_string);
 #endif
 
@@ -687,7 +687,7 @@ static int noptycommand(struct Channel *channel, struct ChanSess *chansess) {
 	int ret;
 
 	TRACE(("enter noptycommand"))
-	ret = spawn_command(execchild, chansess, 
+	ret = spawn_command(execchild, chansess,
 			&channel->writefd, &channel->readfd, &channel->errfd,
 			&chansess->pid);
 
@@ -744,7 +744,7 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 		dropbear_log(LOG_WARNING, "No pty was allocated, couldn't execute");
 		return DROPBEAR_FAILURE;
 	}
-	
+
 #ifdef __uClinux__
 	pid = vfork();
 #else
@@ -755,18 +755,20 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 
 	if (pid == 0) {
 		/* child */
-		
+
 		TRACE(("back to normal sigchld"))
 		/* Revert to normal sigchld handling */
 		if (signal(SIGCHLD, SIG_DFL) == SIG_ERR) {
 			dropbear_exit("signal() error");
 		}
-		
+
+#ifndef __uClinux__
 		/* redirect stdin/stdout/stderr */
 		close(chansess->master);
+#endif
 
 		pty_make_controlling_tty(&chansess->slave, chansess->tty);
-		
+
 		if ((dup2(chansess->slave, STDIN_FILENO) < 0) ||
 			(dup2(chansess->slave, STDERR_FILENO) < 0) ||
 			(dup2(chansess->slave, STDOUT_FILENO) < 0)) {
@@ -787,7 +789,7 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 			/* don't show the motd if ~/.hushlogin exists */
 
 			/* 12 == strlen("/.hushlogin\0") */
-			len = strlen(ses.authstate.pw_dir) + 12; 
+			len = strlen(ses.authstate.pw_dir) + 12;
 
 			hushpath = m_malloc(len);
 			snprintf(hushpath, len, "%s/.hushlogin", ses.authstate.pw_dir);
@@ -799,7 +801,7 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 					buf_setpos(motdbuf, 0);
 					while (motdbuf->pos != motdbuf->len) {
 						len = motdbuf->len - motdbuf->pos;
-						len = write(STDOUT_FILENO, 
+						len = write(STDOUT_FILENO,
 								buf_getptr(motdbuf, len), len);
 						buf_incrpos(motdbuf, len);
 					}
@@ -820,8 +822,9 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 
 		/* add a child pid */
 		addchildpid(chansess, pid);
-
+#ifndef __uClinux__
 		close(chansess->slave);
+#endif
 		channel->writefd = chansess->master;
 		channel->readfd = chansess->master;
 		/* don't need to set stderr here */
@@ -851,7 +854,7 @@ static void addchildpid(struct ChanSess *chansess, pid_t pid) {
 				sizeof(struct ChildPid) * (svr_ses.childpidsize+1));
 		svr_ses.childpidsize++;
 	}
-	
+
 	svr_ses.childpids[i].pid = pid;
 	svr_ses.childpids[i].chansess = chansess;
 
@@ -892,7 +895,7 @@ static void execchild(void *user_data) {
 	if (getuid() == 0) {
 
 		if ((setgid(ses.authstate.pw_gid) < 0) ||
-			(initgroups(ses.authstate.pw_name, 
+			(initgroups(ses.authstate.pw_name,
 						ses.authstate.pw_gid) < 0)) {
 			dropbear_exit("Error changing user group");
 		}
@@ -925,11 +928,11 @@ static void execchild(void *user_data) {
 	if (chansess->tty) {
 		addnewvar("SSH_TTY", chansess->tty);
 	}
-	
+
 	if (chansess->connection_string) {
 		addnewvar("SSH_CONNECTION", chansess->connection_string);
 	}
-	
+
 #ifdef ENABLE_SVR_PUBKEY_OPTIONS
 	if (chansess->original_command) {
 		addnewvar("SSH_ORIGINAL_COMMAND", chansess->original_command);
@@ -985,7 +988,7 @@ void svr_chansessinitialise() {
 	if (sigaction(SIGCHLD, &sa_chld, NULL) < 0) {
 		dropbear_exit("signal() error");
 	}
-	
+
 }
 
 /* add a new environment variable, allocating space for the entry */

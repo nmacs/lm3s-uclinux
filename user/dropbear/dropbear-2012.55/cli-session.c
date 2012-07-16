@@ -1,20 +1,20 @@
 /*
  * Dropbear SSH
- * 
+ *
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2004 by Mihnea Stoenescu
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -198,7 +198,7 @@ static void cli_sessionloop() {
 			cli_ses.state = USERAUTH_REQ_SENT;
 			TRACE(("leave cli_sessionloop: sent userauth methods req"))
 			return;
-			
+
 		case USERAUTH_FAIL_RCVD:
 			cli_auth_try();
 			cli_ses.state = USERAUTH_REQ_SENT;
@@ -217,12 +217,12 @@ static void cli_sessionloop() {
 							errno, strerror(errno));
 				}
 				dup2(devnull, STDIN_FILENO);
-				if (daemon(0, 1) < 0) {
-					dropbear_exit("Backgrounding failed: %d %s", 
-							errno, strerror(errno));
-				}
+				//if (daemon(0, 1) < 0) {
+				//	dropbear_exit("Backgrounding failed: %d %s",
+				//			errno, strerror(errno));
+				//}
 			}
-			
+
 #ifdef ENABLE_CLI_LOCALTCPFWD
 			setup_localtcp();
 #endif
@@ -233,7 +233,7 @@ static void cli_sessionloop() {
 #ifdef ENABLE_CLI_NETCAT
 			if (cli_opts.netcat_host) {
 				cli_send_netcat_request();
-			} else 
+			} else
 #endif
 			if (!cli_opts.no_cmd) {
 				cli_send_chansess_request();
@@ -302,7 +302,7 @@ static void cli_remoteclosed() {
 }
 
 /* Operates in-place turning dirty (untrusted potentially containing control
- * characters) text into clean text. 
+ * characters) text into clean text.
  * Note: this is safe only with ascii - other charsets could have problems. */
 void cleantext(unsigned char* dirtytext) {
 

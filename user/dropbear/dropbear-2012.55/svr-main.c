@@ -1,19 +1,19 @@
 /*
  * Dropbear - a SSH2 server
- * 
+ *
  * Copyright (c) 2002-2006 Matt Johnston
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -93,8 +93,8 @@ static void main_inetd() {
 	 * this */
 	setsid();
 
-	/* Start service program 
-	 * -1 is a dummy childpipe, just something we can close() without 
+	/* Start service program
+	 * -1 is a dummy childpipe, just something we can close() without
 	 * mattering. */
 	svr_session(0, -1);
 
@@ -128,7 +128,7 @@ void main_noinetd() {
 		childpipes[i] = -1;
 	}
 	memset(preauth_addrs, 0x0, sizeof(preauth_addrs));
-	
+
 	/* Set up the listening sockets */
 	listensockcount = listensockets(listensocks, MAX_LISTEN_ADDR, &maxsock);
 	if (listensockcount == 0)
@@ -136,6 +136,7 @@ void main_noinetd() {
 		dropbear_exit("No listening ports available.");
 	}
 
+#ifndef __uClinux__
 	/* fork */
 	if (svr_opts.forkbg) {
 		int closefds = 0;
@@ -148,6 +149,7 @@ void main_noinetd() {
 			dropbear_exit("Failed to daemonize: %s", strerror(errno));
 		}
 	}
+#endif
 
 	/* should be done after syslog is working */
 	if (svr_opts.forkbg) {
@@ -167,7 +169,7 @@ void main_noinetd() {
 	for(;;) {
 
 		FD_ZERO(&fds);
-		
+
 		/* listening sockets */
 		for (i = 0; i < listensockcount; i++) {
 			FD_SET(listensocks[i], &fds);
@@ -187,7 +189,7 @@ void main_noinetd() {
 			unlink(svr_opts.pidfile);
 			dropbear_exit("Terminated by signal");
 		}
-		
+
 		if (val == 0) {
 			/* timeout reached - shouldn't happen. eh */
 			continue;
@@ -220,11 +222,11 @@ void main_noinetd() {
 			struct sockaddr_storage remoteaddr;
 			socklen_t remoteaddrlen;
 
-			if (!FD_ISSET(listensocks[i], &fds)) 
+			if (!FD_ISSET(listensocks[i], &fds))
 				continue;
 
 			remoteaddrlen = sizeof(remoteaddr);
-			childsock = accept(listensocks[i], 
+			childsock = accept(listensocks[i],
 					(struct sockaddr*)&remoteaddr, &remoteaddrlen);
 
 			if (childsock < 0) {
@@ -262,7 +264,11 @@ void main_noinetd() {
 #ifdef DEBUG_NOFORK
 			fork_ret = 0;
 #else
+#ifdef __uClinux__
+			fork_ret = vfork();
+#else
 			fork_ret = fork();
+#endif
 #endif
 			if (fork_ret < 0) {
 				dropbear_log(LOG_WARNING, "Error forking: %s", strerror(errno));
@@ -326,7 +332,7 @@ out:
 static void sigchld_handler(int UNUSED(unused)) {
 	struct sigaction sa_chld;
 
-	while(waitpid(-1, NULL, WNOHANG) > 0); 
+	while(waitpid(-1, NULL, WNOHANG) > 0);
 
 	sa_chld.sa_handler = sigchld_handler;
 	sa_chld.sa_flags = SA_NOCLDSTOP;
@@ -359,7 +365,7 @@ static void commonsetup() {
 #endif
 
 	/* set up cleanup handler */
-	if (signal(SIGINT, sigintterm_handler) == SIG_ERR || 
+	if (signal(SIGINT, sigintterm_handler) == SIG_ERR ||
 #ifndef DEBUG_VALGRIND
 		signal(SIGTERM, sigintterm_handler) == SIG_ERR ||
 #endif
@@ -387,7 +393,7 @@ static void commonsetup() {
 
 /* Set up listening sockets for all the requested ports */
 static size_t listensockets(int *sock, size_t sockcount, int *maxfd) {
-	
+
 	unsigned int i;
 	char* errstring = NULL;
 	size_t sockpos = 0;
@@ -399,12 +405,12 @@ static size_t listensockets(int *sock, size_t sockcount, int *maxfd) {
 
 		TRACE(("listening on '%s:%s'", svr_opts.addresses[i], svr_opts.ports[i]))
 
-		nsock = dropbear_listen(svr_opts.addresses[i], svr_opts.ports[i], &sock[sockpos], 
+		nsock = dropbear_listen(svr_opts.addresses[i], svr_opts.ports[i], &sock[sockpos],
 				sockcount - sockpos,
 				&errstring, maxfd);
 
 		if (nsock < 0) {
-			dropbear_log(LOG_WARNING, "Failed listening on '%s': %s", 
+			dropbear_log(LOG_WARNING, "Failed listening on '%s': %s",
 							svr_opts.ports[i], errstring);
 			m_free(errstring);
 			continue;

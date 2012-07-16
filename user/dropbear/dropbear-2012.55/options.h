@@ -21,10 +21,10 @@
 
 /* Default hostkey paths - these can be specified on the command line */
 #ifndef DSS_PRIV_FILENAME
-#define DSS_PRIV_FILENAME "/etc/dropbear/dropbear_dss_host_key"
+#define DSS_PRIV_FILENAME "/etc/dropbear_dss_host_key"
 #endif
 #ifndef RSA_PRIV_FILENAME
-#define RSA_PRIV_FILENAME "/etc/dropbear/dropbear_rsa_host_key"
+#define RSA_PRIV_FILENAME "/etc/dropbear_rsa_host_key"
 #endif
 
 /* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
@@ -38,7 +38,7 @@
  * Both of these flags can be defined at once, don't compile without at least
  * one of them. */
 #define NON_INETD_MODE
-#define INETD_MODE
+//#define INETD_MODE
 
 /* Setting this disables the fast exptmod bignum code. It saves ~5kB, but is
  * perhaps 20% slower for pubkey operations (it is probably worth experimenting
@@ -49,10 +49,10 @@
 several kB in binary size however will make the symmetrical ciphers and hashes
 slower, perhaps by 50%. Recommended for small systems that aren't doing
 much traffic. */
-/*#define DROPBEAR_SMALL_CODE*/
+#define DROPBEAR_SMALL_CODE
 
 /* Enable X11 Forwarding - server only */
-#define ENABLE_X11FWD
+//#define ENABLE_X11FWD
 
 /* Enable TCP Fowarding */
 /* 'Local' is "-L" style (client listening port forwarded via server)
@@ -72,7 +72,7 @@ much traffic. */
 /* Note: Both ENABLE_CLI_PROXYCMD and ENABLE_CLI_NETCAT must be set to
  * allow multihop dbclient connections */
 
-/* Allow using -J <proxycommand> to run the connection through a 
+/* Allow using -J <proxycommand> to run the connection through a
    pipe to a program, rather the normal TCP connection */
 #define ENABLE_CLI_PROXYCMD
 
@@ -82,18 +82,18 @@ much traffic. */
 
 /* Encryption - at least one required.
  * Protocol RFC requires 3DES and recommends AES128 for interoperability.
- * Including multiple keysize variants the same cipher 
+ * Including multiple keysize variants the same cipher
  * (eg AES256 as well as AES128) will result in a minimal size increase.*/
 #define DROPBEAR_AES128
-#define DROPBEAR_3DES
-#define DROPBEAR_AES256
+//#define DROPBEAR_3DES
+//#define DROPBEAR_AES256
 /* Compiling in Blowfish will add ~6kB to runtime heap memory usage */
 /*#define DROPBEAR_BLOWFISH*/
-#define DROPBEAR_TWOFISH256
-#define DROPBEAR_TWOFISH128
+//#define DROPBEAR_TWOFISH256
+//#define DROPBEAR_TWOFISH128
 
 /* Enable "Counter Mode" for ciphers. This is more secure than normal
- * CBC mode against certain attacks. This adds around 1kB to binary 
+ * CBC mode against certain attacks. This adds around 1kB to binary
  * size and is recommended for most cases */
 #define DROPBEAR_ENABLE_CTR_MODE
 
@@ -111,24 +111,24 @@ much traffic. */
  * which are not the standard form. */
 #define DROPBEAR_SHA1_HMAC
 #define DROPBEAR_SHA1_96_HMAC
-#define DROPBEAR_MD5_HMAC
+//#define DROPBEAR_MD5_HMAC
 
 /* Hostkey/public key algorithms - at least one required, these are used
  * for hostkey as well as for verifying signatures with pubkey auth.
  * Removing either of these won't save very much space.
  * SSH2 RFC Draft requires dss, recommends rsa */
 #define DROPBEAR_RSA
-#define DROPBEAR_DSS
+//#define DROPBEAR_DSS
 
 /* RSA can be vulnerable to timing attacks which use the time required for
  * signing to guess the private key. Blinding avoids this attack, though makes
  * signing operations slightly slower. */
-#define RSA_BLINDING
+//#define RSA_BLINDING
 
 /* Define DSS_PROTOK to use PuTTY's method of generating the value k for dss,
  * rather than just from the random byte source. Undefining this will save you
  * ~4k in binary size with static uclibc, but your DSS hostkey could be exposed
- * if the random number source isn't good. It happened to Sony. 
+ * if the random number source isn't good. It happened to Sony.
  * On systems with a decent random source this isn't required. */
 /* #define DSS_PROTOK */
 
@@ -140,15 +140,15 @@ much traffic. */
  * Both modes will use ~35kB for decompression (using windowBits=15 for
  * interoperability) */
 #ifndef DROPBEAR_ZLIB_WINDOW_BITS
-#define DROPBEAR_ZLIB_WINDOW_BITS 15 
+#define DROPBEAR_ZLIB_WINDOW_BITS 15
 #endif
 
 /* Whether to do reverse DNS lookups. */
-#define DO_HOST_LOOKUP
+//#define DO_HOST_LOOKUP
 
 /* Whether to print the message of the day (MOTD). This doesn't add much code
  * size */
-#define DO_MOTD
+//#define DO_MOTD
 
 /* The MOTD file path */
 #ifndef MOTD_FILENAME
@@ -165,12 +165,12 @@ much traffic. */
  * PAM challenge/response.
  * You can't enable both PASSWORD and PAM. */
 
-#define ENABLE_SVR_PASSWORD_AUTH
+//#define ENABLE_SVR_PASSWORD_AUTH
 /* PAM requires ./configure --enable-pam */
 /*#define ENABLE_SVR_PAM_AUTH*/
 #define ENABLE_SVR_PUBKEY_AUTH
 
-/* Whether to take public key options in 
+/* Whether to take public key options in
  * authorized_keys file into account */
 #ifdef ENABLE_SVR_PUBKEY_AUTH
 #define ENABLE_SVR_PUBKEY_OPTIONS
@@ -190,7 +190,7 @@ much traffic. */
  * authentication on the commandline. Beware of platforms
  * that don't protect environment variables of processes etc. Also
  * note that it will be provided for all "hidden" client-interactive
- * style prompts - if you want something more sophisticated, use 
+ * style prompts - if you want something more sophisticated, use
  * SSH_ASKPASS instead. Comment out this var to remove this functionality.*/
 #define DROPBEAR_PASSWORD_ENV "DROPBEAR_PASSWORD"
 
@@ -204,7 +204,7 @@ much traffic. */
 /* Random device to use - define either DROPBEAR_RANDOM_DEV or
  * DROPBEAR_PRNGD_SOCKET.
  * DROPBEAR_RANDOM_DEV is recommended on hosts with a good /dev/(u)random,
- * otherwise use run prngd (or egd if you want), specifying the socket. 
+ * otherwise use run prngd (or egd if you want), specifying the socket.
  * The device will be queried for a few dozen bytes of seed a couple of times
  * per session (or more for very long-lived sessions). */
 
@@ -223,15 +223,15 @@ much traffic. */
 #define MAX_UNAUTH_PER_IP 5
 #endif
 
-/* And then a global limit to avoid chewing memory if connections 
+/* And then a global limit to avoid chewing memory if connections
  * come from many IPs */
 #ifndef MAX_UNAUTH_CLIENTS
-#define MAX_UNAUTH_CLIENTS 30
+#define MAX_UNAUTH_CLIENTS 2
 #endif
 
 /* Maximum number of failed authentication tries (server option) */
 #ifndef MAX_AUTH_TRIES
-#define MAX_AUTH_TRIES 10
+#define MAX_AUTH_TRIES 5
 #endif
 
 /* The default file to store the daemon's process ID, for shutdown
@@ -257,8 +257,8 @@ much traffic. */
  * not using the Dropbear client, you'll need to change it */
 #define _PATH_SSH_PROGRAM "/usr/bin/dbclient"
 
-/* Whether to log commands executed by a client. This only logs the 
- * (single) command sent to the server, not what a user did in a 
+/* Whether to log commands executed by a client. This only logs the
+ * (single) command sent to the server, not what a user did in a
  * shell/sftp session etc. */
 /* #define LOG_COMMANDS */
 
@@ -270,7 +270,7 @@ much traffic. */
    chosen for a 100mbit ethernet network. The value can be altered at
    runtime with the -W argument. */
 #ifndef DEFAULT_RECV_WINDOW
-#define DEFAULT_RECV_WINDOW 24576
+#define DEFAULT_RECV_WINDOW 1024
 #endif
 /* Maximum size of a received SSH data packet - this _MUST_ be >= 32768
    in order to interoperate with other implementations */
@@ -280,7 +280,7 @@ much traffic. */
 /* Maximum size of a transmitted data packet - this can be any value,
    though increasing it may not make a significant difference. */
 #ifndef TRANS_MAX_PAYLOAD_LEN
-#define TRANS_MAX_PAYLOAD_LEN 16384
+#define TRANS_MAX_PAYLOAD_LEN 1024
 #endif
 
 /* Ensure that data is transmitted every KEEPALIVE seconds. This can
