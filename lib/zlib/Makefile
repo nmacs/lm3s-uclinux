@@ -24,8 +24,6 @@
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
 #           -Wstrict-prototypes -Wmissing-prototypes
 
-CFLAGS += -fPIC
-
 LDFLAGS=libz.a
 LDSHARED=$(CC) -shared
 CPP=$(CC) -E
