@@ -78,13 +78,13 @@ CONFIG_OPTS += no-err
 
 # REVISIT: It would be better to have OPENSSL config options
 # which turn on this support as needed
-ifeq ($(CONFIG_USER_NESSUS_NASL)$(CONFIG_USER_SSH_SSH),)
+ifeq ($(CONFIG_USER_NESSUS_NASL)$(CONFIG_USER_SSH_SSH)$(CONFIG_USER_SSH_SSHD),)
 CONFIG_OPTS += no-ripemd
 CONFIG_OPTS += no-cast
 CONFIG_OPTS += no-rc4
 endif
 
-ifeq ($(CONFIG_USER_NESSUS_NASL)$(CONFIG_USER_SSH_SSH)$(CONFIG_PROP_SSCEP_SSCEP),)
+ifeq ($(CONFIG_USER_NESSUS_NASL)$(CONFIG_USER_SSH_SSH)$(CONFIG_USER_SSH_SSHD)$(CONFIG_PROP_SSCEP_SSCEP),)
 CONFIG_OPTS += no-bf
 endif
 
