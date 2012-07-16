@@ -33,6 +33,8 @@
 
 #<name>		<type>	<mode>	<uid>	<gid>	<major>	<minor>	<start>	<inc>	<count>
 /dev		d	755	0	0	-	-	-	-	-
+/dev/net	d	755	0	0	-	-	-	-	-
+/dev/pts	d	755	0	0	-	-	-	-	-
 /dev/mem	c	640	0	0	1	1	0	0	-
 /dev/kmem	c	640	0	0	1	2	0	0	-
 /dev/null	c	640	0	0	1	3	0	0	-
@@ -60,3 +62,4 @@
 /dev/ubi_ctrl	c	640	0	0	10	61	0	0	-
 /dev/ubi0	c	640	0	0	254	0	0	0	-
 /dev/ubi0_0	c	640	0	0	254	1	0	0	-
+/dev/net/tun	c	666	0	0	10	200	0	0	-

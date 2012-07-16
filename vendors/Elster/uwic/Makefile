@@ -29,9 +29,6 @@ romfs: linux_image
 	for i in $(ROMFS_DIRS); do \
 		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
 	done
-ifdef CONFIG_PPP
-	[ -d $(ROMFSDIR)/dev/pts ] || mkdir -p $(ROMFSDIR)/dev/pts
-endif
 	$(ROMFSINST) /etc/passwd
 	$(ROMFSINST) /etc/inittab
 	$(ROMFSINST) /etc/opkg.conf
