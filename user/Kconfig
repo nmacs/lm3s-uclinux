@@ -1245,7 +1245,6 @@ config USER_DNSMASQ2_RESOLVE_AS_SERVER
 
 config USER_DROPBEAR_DROPBEAR
 	bool "dropbear"
-	depends on USER_INETD_INETD
 	select LIB_ZLIB
 	help
 	  Dropbear-SSH ist a small sshd-replacement, that does not depend on
