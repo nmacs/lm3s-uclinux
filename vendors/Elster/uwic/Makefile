@@ -18,7 +18,7 @@ LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
 
 
-ROMFS_DIRS = bin dev etc home lib mnt proc sys usr var tmp boot
+ROMFS_DIRS = bin dev etc home lib mnt proc sys usr var tmp boot root
 
 clean:
 	rm -rf $(ROMFSDIR)
@@ -31,10 +31,8 @@ romfs: linux_image
 	done
 ifdef CONFIG_PPP
 	[ -d $(ROMFSDIR)/dev/pts ] || mkdir -p $(ROMFSDIR)/dev/pts
-	for i in $(PPPPTS); do \
-		touch $(ROMFSDIR)/dev/pts/@$$i; \
-	done
 endif
+	$(ROMFSINST) /etc/passwd
 	$(ROMFSINST) /etc/inittab
 	$(ROMFSINST) /etc/opkg.conf
 	$(ROMFSINST) /etc/resolv.conf

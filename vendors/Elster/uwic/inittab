@@ -1,5 +1,6 @@
 ::sysinit:/bin/mount -t proc proc proc
 ::sysinit:/bin/mount -t sysfs sys sys
+::sysinit:/bin/mount -t devpts devpts /dev/pts
 ::sysinit:/bin/ifconfig eth0 192.168.100.10
 ::sysinit:/bin/route add default gw 192.168.100.2
 console::respawn:/bin/sh
