@@ -7,6 +7,7 @@ sbindir=${exec_prefix}/sbin
 
 INSTALL=install
 CFLAGS += -Ilibtomcrypt
+CONF_OPTIONS = --host=arm --disable-zlib --disable-syslog --disable-shadow --disable-lastlog --disable-utmp --disable-utmpx --disable-wtmp --disable-wtmpx
 
 # these are exported so that libtomcrypt's makefile will use them
 # export CC
@@ -14,8 +15,10 @@ export CFLAGS
 # export LD
 # export RANLIB AR STRIP
 
+.PHONY: all romfs dropbearkey-host dropbear clean
+
 # all: dropbear dropbearkey dropbearconvert
-all: dropbear dropbearkey-host
+all: $(DROPBEAR)/Makefile dropbear dropbearkey-host
 
 romfs:
 	$(ROMFSINST) -e CONFIG_USER_DROPBEAR_DROPBEAR $(DROPBEAR)/dropbear /bin/dropbear
@@ -29,11 +32,10 @@ dropbearkey-host:
 	#dropbearkey -t dss -f dropbear_dss_host_key
 
 dropbear:
-	@if [ ! -f $(DROPBEAR)/Makefile ]; then \
-		cd $(DROPBEAR); \
-		./configure --host=arm; \
-	fi
 	$(MAKE) -C $(DROPBEAR) "PROGRAMS=dropbear dbclient"
+
+$(DROPBEAR)/Makefile: Makefile
+	cd $(DROPBEAR); ./configure $(CONF_OPTIONS)
 
 clean:
 	@if [ -f $(DROPBEAR)/Makefile ]; then \
