@@ -36,7 +36,11 @@ WARNOPTS	:= -Wall -Wextra -Woverloaded-virtual -Wpointer-arith\
 TGTOPTS		:= @PROCESSOR_OPTS@
 INLINEOPTS	:= @INLINE_OPTS@
 
-CXXFLAGS	:= ${WARNOPTS} ${TGTOPTS} @CUSTOMINCDIR@ -fPIC
+CXXFLAGS	:= ${WARNOPTS} ${TGTOPTS} @CUSTOMINCDIR@
+ifdef BUILD_SHARED
+	CXXFLAGS += -fPIC
+endif
+
 LDFLAGS		:= @CUSTOMLIBDIR@
 LIBS		:=
 ifdef DEBUG
@@ -44,7 +48,7 @@ ifdef DEBUG
     LDFLAGS	+= -rdynamic
 else
     CXXFLAGS	+= -Os -g0 -DNDEBUG=1 -fomit-frame-pointer ${INLINEOPTS}
-    LDFLAGS	+= -s -Wl,-gc-sections
+    LDFLAGS	+= -s -Wl,--gc-sections
 endif
 ifdef NOLIBSTDCPP
     LD		:= @CC@
