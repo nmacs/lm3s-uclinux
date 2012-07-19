@@ -1,13 +1,16 @@
 IN_LIBUSTL := true
 export IN_LIBUSTL
 
-CONFIG_OPTS  := --prefix=output --without-shared --with-static --without-bounds --without-demangler --without-libstdc++
+OUTPUT       := "../output"
+CONFIG_OPTS  := --prefix=$(OUTPUT) --without-shared --with-static --without-bounds --without-demangler --without-libstdc++
 
 SRC_DIR := ustl-1.6
 
-#CXXFLAGS += -Os
+.PHONY: all lib
 
-all: $(SRC_DIR)/config.h
+all: $(SRC_DIR)/config.h lib
+
+lib:
 	$(MAKE) -C $(SRC_DIR)
 	$(MAKE) -C $(SRC_DIR) install
 
@@ -18,6 +21,7 @@ $(SRC_DIR)/config.h: makefile
 
 clean:
 	$(MAKE) -C $(SRC_DIR) clean
+	-rm -rf $(OUTPUT)
 
 romfs:
 
