@@ -37,6 +37,11 @@ endif
 lib_libcrypt_old = libcrypt_old.a
 inc_libcrypt_old = *.h,.
 
+dir_$(CONFIG_LIB_USTL) += libustl
+lib_ustl = output/lib/*.a
+inc_ustl = output/include/ustl.h,. \
+           output/include/ustl/*.h,.
+
 dir_$(CONFIG_LIB_ADNS) += adns
 lib_adns = src/libadns.a
 

@@ -6,16 +6,46 @@
 CONSOLE_BAUD_RATE = 115200
 
 ############################################################################
+#
+#
+#
 
 CPUFLAGS := -mtune=cortex-m3 -march=armv7-m -mthumb
-VENDOR_CFLAGS :=
 DISABLE_XIP := 1
 DISABLE_MOVE_RODATA := 1       # until we get a toolchain release
 LOPT := -Os                  # library is alway 02
 UOPT := -Os                  # user apps are always Os
 
 ############################################################################
+#
+#
+#
 
 include $(ROOTDIR)/vendors/config/armnommu/config.arch
 
 ############################################################################
+#
+# Settings for building user apps
+#
+
+ifdef UCLINUX_BUILD_USER
+	LIBC        = -lc
+	LIBCRYPTO   = -lcrypto
+	LIBCRYPT    = -lcrypt
+	LIBGCC      = -lgcc
+	LIBIBERTY   = -liberty
+	LIBSUPCPP   = -lsupc++
+
+	LDPATH = -L$(ROOTDIR)/lib/$(LIBCDIR)/lib
+
+	ifdef CONFIG_LIB_USTL
+		LDPATH   += -L$(ROOTDIR)/gcc-4.5.2/libstdc++-v3/output/lib
+		LDPATH   += -L$(ROOTDIR)/lib/libustl/ustl-1.6/output/lib
+	endif
+
+	CXXFLAGS   += -I$(ROOTDIR)/lib/libustl/ustl-1.6/output/include
+
+	LDLIBS     += $(LDPATH) $(LIBC)
+	CXXLIBS    += $(LDPATH) $(LIBSTDCPP) $(LIBSUPCPP) $(LIBC) $(LIBGCC)
+
+endif

@@ -146,6 +146,9 @@ ifeq ($(UCLINUX_COMMON_LIB),1)
 	SLIBIXML	=	-lixml
 	SLIBJPEG	=	-ljpeg
 	SLIBPNG		=	-lpng
+	ifdef CONFIG_LIB_USTL
+		SLIBSTDCPP	=	-lustl -lpthread
+	else
 	ifdef CONFIG_LIB_STLPORT
 		ifdef CONFIG_LIB_STLPORT_SHARED
 			SLIBSTDCPP	=	-lstlport
@@ -154,6 +157,7 @@ ifeq ($(UCLINUX_COMMON_LIB),1)
 		endif
 	else
 		SLIBSTDCPP	=	-lstdc++
+	endif
 	endif
 	SLIBTHREADUTIL	=	-lthreadutil
 	SLIBPTHREAD	=	-lpthread
