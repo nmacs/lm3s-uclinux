@@ -152,6 +152,8 @@ ifdef UCLINUX_BUILD_LIB
   	LDFLAGS += -Wl,-move-rodata
   endif
 
+	CXXFLAGS = $(CFLAGS) -nostdinc++
+
   ifdef BUILD_SHARED
 	LDFLAGS += -mid-shared-library -mshared-library-id=0 -Wl,-shared-lib-id=0
   else
@@ -197,8 +199,8 @@ ifdef UCLINUX_BUILD_USER
 	CFLAGS  += -Dlinux -D__linux__ -Dunix
 	CFLAGS  += -D__uClinux__
 
-	CXXFLAGS = $(CFLAGS) -nostdinc++ -fno-exceptions
-	CXXSUP := 
+	CXXFLAGS = $(CFLAGS) -nostdinc++
+	CXXSUP :=
 
 	LDFLAGS += -Wl,-elf2flt -msoft-float
   ifndef DISABLE_MOVE_RODATA
@@ -233,7 +235,7 @@ ifeq ($(UCLINUX_BUILD_SET),1)
 	EXTRA_CFLAGS := $(CPUFLAGS)
 
 	CXXLIBS =
-  	 
+
 	LDLIBS = $(LIBBIND)
 endif
 
