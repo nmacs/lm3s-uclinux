@@ -10,11 +10,12 @@ CONSOLE_BAUD_RATE = 115200
 #
 #
 
-CPUFLAGS := -mtune=cortex-m3 -march=armv7-m -mthumb
-DISABLE_XIP := 1
-DISABLE_MOVE_RODATA := 1       # until we get a toolchain release
-LOPT := -Os                  # library is alway 02
-UOPT := -Os                  # user apps are always Os
+CPUFLAGS            := -mtune=cortex-m3 -march=armv7-m -mthumb
+DISABLE_XIP         := 1
+DISABLE_MOVE_RODATA := 1
+LOPT                := -Os
+UOPT                := -Os
+VENDOR_CFLAGS       := -ffunction-sections -fdata-sections -Wl,--gc-sections
 
 ############################################################################
 #
@@ -35,17 +36,20 @@ ifdef UCLINUX_BUILD_USER
 	LIBGCC      = -lgcc
 	LIBIBERTY   = -liberty
 	LIBSUPCPP   = -lsupc++
+#	LIBSUPCPP   = -lstdc++
 
 	LDPATH = -L$(ROOTDIR)/lib/$(LIBCDIR)/lib
 
-	ifdef CONFIG_LIB_USTL
-		LDPATH   += -L$(ROOTDIR)/gcc-4.5.2/libstdc++-v3/output/lib
-		LDPATH   += -L$(ROOTDIR)/lib/libustl/ustl-1.6/output/lib
+	ifdef CONFIG_LIB_SUPCPP
+		LDPATH   += -L$(ROOTDIR)/lib/libsupcpp/output/lib/thumb2
 	endif
 
-	CXXFLAGS   += -I$(ROOTDIR)/lib/libustl/ustl-1.6/output/include
+	LDLIBS     += $(LDPATH)
+	CXXLIBS    += $(LDPATH)
 
-	LDLIBS     += $(LDPATH) $(LIBC)
-	CXXLIBS    += $(LDPATH) $(LIBSTDCPP) $(LIBSUPCPP) $(LIBC) $(LIBGCC)
-
+	ifdef CONFIG_LIB_USTL
+		LDPATH   += -L$(ROOTDIR)/lib/libustl/output/lib
+		CXXFLAGS += -I$(ROOTDIR)/lib/libustl/output/include
+		CXXLIBS  += -nodefaultlib $(LIBSTDCPP) $(LIBSUPCPP) $(LIBC) $(LIBGCC)
+	endif
 endif
