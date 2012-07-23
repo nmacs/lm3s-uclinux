@@ -38,9 +38,12 @@ lib_libcrypt_old = libcrypt_old.a
 inc_libcrypt_old = *.h,.
 
 dir_$(CONFIG_LIB_USTL) += libustl
-lib_ustl = output/lib/*.a
-inc_ustl = output/include/ustl.h,. \
-           output/include/ustl/*.h,.
+lib_libustl = output/lib/*.a
+inc_libustl = output/include/ustl.h,. \
+              output/include/ustl/*.h,ustl
+
+dir_$(CONFIG_LIB_SUPCPP) += libsupcpp
+lib_libsupcpp = output/lib/thumb2/*.a
 
 dir_$(CONFIG_LIB_ADNS) += adns
 lib_adns = src/libadns.a
@@ -284,7 +287,7 @@ $(foreach d,$(sort $(dir_y) $(dir_n) $(dir_)),$(eval $(call dep,$(d))))
 
 .PHONY: base
 base: $(dir_base)
-	@ln -sf $(LD_LIB) $(LD_LIB_DEST)		
+	@ln -sf $(LD_LIB) $(LD_LIB_DEST)
 
 $(dir_base): baseprep
 
@@ -310,7 +313,7 @@ $(DIRS_y):
 			ln -s $$i $(STAGEDIR)/lib/.; \
 			echo "ln -s $$i $(STAGEDIR)/lib/."; \
 		done ; \
-	done	
+	done
 	@set -f; \
 	for p in $(inc_$@); do \
 		src=$(ROOTDIR)/lib/$(call DIRPATH,$@)/`expr "$$p" : '\(.*\),.*'` ; \
