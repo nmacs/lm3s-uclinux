@@ -312,11 +312,13 @@ __UCLIBC_MUTEX_INIT(__atexit_lock, PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP);
 extern void __uClibc_fini(void);
 libc_hidden_proto(__uClibc_fini)
 
+
 /*
  * Normal program termination
  */
 void exit(int rv)
 {
+#ifdef CONFIG_UCLIBC_CLEANUP_ON_EXIT
 	/* Perform exit-specific cleanup (atexit and on_exit) */
 	__UCLIBC_MUTEX_LOCK(__atexit_lock);
 	if (__exit_cleanup) {
@@ -332,6 +334,7 @@ void exit(int rv)
 	 * Check the stdio routines for details. */
 	if (_stdio_term)
 	    _stdio_term();
+#endif // CONFIG_UCLIBC_CLEANUP_ON_EXIT
 
 	_exit(rv);
 }

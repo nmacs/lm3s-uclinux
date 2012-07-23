@@ -297,12 +297,12 @@ config LDSO_RUNPATH
 	depends on HAVE_SHARED
 	default y
 	help
-	  ELF's may have dynamic RPATH/RUNPATH tags.  These tags list paths 
-	  which extend the library search paths.  They are really only useful 
-	  if a package installs libraries in non standard locations and 
+	  ELF's may have dynamic RPATH/RUNPATH tags.  These tags list paths
+	  which extend the library search paths.  They are really only useful
+	  if a package installs libraries in non standard locations and
 	  ld.so.conf support is disabled.
 
-	  Usage of RUNPATH tags is not too common, so disabling this feature 
+	  Usage of RUNPATH tags is not too common, so disabling this feature
 	  should be safe for most people.
 
 config UCLIBC_CTOR_DTOR
@@ -434,6 +434,13 @@ config MALLOC_GLIBC_COMPAT
 	  AC_FUNC_MALLOC macro (which  redefines malloc as rpl_malloc if it
 	  does not detect glibc style returning-a-valid-pointer-for-malloc(0)
 	  behavior).  Most people can safely answer N.
+
+config UCLIBC_CLEANUP_ON_EXIT
+	bool "Call cleanup routines on exit"
+	default ARCH_USE_MMU
+	depends on ARCH_USE_MMU
+	help
+	  Calling of cleanup routines on exit is distructive on no-MMU platforms
 
 config UCLIBC_DYNAMIC_ATEXIT
 	bool "Dynamic atexit() Support"
@@ -654,8 +661,8 @@ config UCLIBC_HAS_REENTRANT_RPC
 	depends on UCLIBC_HAS_RPC
 	default y if !HAVE_SHARED
 	help
-	  Most packages utilize the normal (non-reentrant) RPC functions, but 
-	  some (like exportfs from nfs-utils) need these reentrant versions.  
+	  Most packages utilize the normal (non-reentrant) RPC functions, but
+	  some (like exportfs from nfs-utils) need these reentrant versions.
 
 	  Most people can safely answer N.
 
@@ -1444,8 +1451,8 @@ config CROSS_COMPILER_PREFIX
 	string "Cross-compiling toolchain prefix"
 	default ""
 	help
-	  The prefix used to execute your cross-compiling toolchain.  For 
-	  example, if you run 'arm-linux-uclibc-gcc' to compile something, 
+	  The prefix used to execute your cross-compiling toolchain.  For
+	  example, if you run 'arm-linux-uclibc-gcc' to compile something,
 	  then enter 'arm-linux-uclibc-' here.
 
 config UCLIBC_EXTRA_CFLAGS
@@ -1472,7 +1479,7 @@ config DODEBUG_PT
 	depends on UCLIBC_HAS_THREADS && LINUXTHREADS_OLD
 	default n
 	help
-	  Enable debug output in libpthread.  This is only useful when doing 
+	  Enable debug output in libpthread.  This is only useful when doing
 	  development in libpthread itself.
 
 	  Otherwise, answer N.
