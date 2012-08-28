@@ -2,7 +2,7 @@ IN_LIBUSTL := true
 export IN_LIBUSTL
 
 OUTPUT       := "$(ROOTDIR)/lib/libustl/output"
-CONFIG_OPTS  := --prefix=$(OUTPUT) --without-shared --with-static --without-bounds --without-demangler --without-libstdc++
+CONFIG_OPTS  := --prefix=$(OUTPUT) --oldincludedir="$(ROOTDIR)/lib/libc/include" --without-shared --with-static --without-bounds --without-demangler --without-libstdc++
 
 SRC_DIR := ustl-1.6
 
