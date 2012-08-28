@@ -18,7 +18,7 @@ export CFLAGS
 .PHONY: all romfs dropbearkey-host dropbear clean
 
 # all: dropbear dropbearkey dropbearconvert
-all: $(DROPBEAR)/Makefile dropbear dropbearkey-host
+all: dropbear dropbearkey-host
 
 romfs:
 	$(ROMFSINST) -e CONFIG_USER_DROPBEAR_DROPBEAR $(DROPBEAR)/dropbear /bin/dropbear
@@ -31,11 +31,12 @@ dropbearkey-host:
 	#rm -f dropbear_dss_host_key
 	#dropbearkey -t dss -f dropbear_dss_host_key
 
-dropbear:
+dropbear: $(DROPBEAR)/Makefile
 	$(MAKE) -C $(DROPBEAR) "PROGRAMS=dropbear dbclient"
 
 $(DROPBEAR)/Makefile: Makefile
 	cd $(DROPBEAR); ./configure $(CONF_OPTIONS)
+	touch .configured
 
 clean:
 	@if [ -f $(DROPBEAR)/Makefile ]; then \
