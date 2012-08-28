@@ -49,6 +49,8 @@ lib_libustl = output/lib/*.a
 inc_libustl = output/include/ustl.h,. \
               output/include/ustl/*.h,ustl
 
+dir_$(CONFIG_LIB_CYASSL) += cyassl
+
 dir_$(CONFIG_LIB_SUPCPP) += libsupcpp
 lib_libsupcpp = output/lib/thumb2/*.a
 

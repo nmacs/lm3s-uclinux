@@ -24,6 +24,10 @@ config LIB_USTL
 	bool "Build uSTL"
 	default n
 
+config LIB_CYASSL
+	bool "Build CyaSSL"
+	default n
+
 config LIB_SUPCPP
 	bool "Build lightweight version of libsupc++"
 	depends on LIB_USTL
