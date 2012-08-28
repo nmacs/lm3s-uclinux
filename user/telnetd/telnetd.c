@@ -39,7 +39,7 @@ char copyright[] =
 /*
  * From: @(#)telnetd.c	5.48 (Berkeley) 3/1/91
  */
-char telnetd_rcsid[] = 
+char telnetd_rcsid[] =
   "$Original-Id: telnetd.c,v 1.9 1996/12/29 18:16:33 dholland Exp $";
 #endif
 
@@ -100,7 +100,7 @@ main(int argc, char *argv[])
 #ifndef REALLY_SMALL_TELNETD
 	register int ch;
 #endif
-	
+
 #if	defined(IPPROTO_IP) && defined(IP_TOS)
 	int tos = -1;
 #endif
@@ -311,7 +311,7 @@ main(int argc, char *argv[])
 	    } else if (argc == 1) {
 		    if ((sp = getservbyname(*argv, "tcp"))!=NULL) {
 			sn.sin_port = sp->s_port;
-		    } 
+		    }
 		    else {
 			sn.sin_port = atoi(*argv);
 			if ((int)sn.sin_port <= 0) {
@@ -498,24 +498,24 @@ getterminaltype(char *name)
     if (his_state_is_will(TELOPT_TSPEED)) {
 	static char sbbuf[] = { IAC, SB, TELOPT_TSPEED, TELQUAL_SEND, IAC, SE };
 
-	bcopy(sbbuf, nfrontp, sizeof sbbuf);
+	memcpy(sbbuf, nfrontp, sizeof sbbuf);
 	nfrontp += sizeof sbbuf;
     }
     if (his_state_is_will(TELOPT_XDISPLOC)) {
 	static char sbbuf[] = { IAC, SB, TELOPT_XDISPLOC, TELQUAL_SEND, IAC, SE };
 
-	bcopy(sbbuf, nfrontp, sizeof sbbuf);
+	memcpy(sbbuf, nfrontp, sizeof sbbuf);
 	nfrontp += sizeof sbbuf;
     }
     if (his_state_is_will(TELOPT_ENVIRON)) {
 	static char sbbuf[] = { IAC, SB, TELOPT_ENVIRON, TELQUAL_SEND, IAC, SE };
 
-	bcopy(sbbuf, nfrontp, sizeof sbbuf);
+	memcpy(sbbuf, nfrontp, sizeof sbbuf);
 	nfrontp += sizeof sbbuf;
     }
     if (his_state_is_will(TELOPT_TTYPE)) {
 
-	bcopy(ttytype_sbbuf, nfrontp, sizeof ttytype_sbbuf);
+	memcpy(ttytype_sbbuf, nfrontp, sizeof ttytype_sbbuf);
 	nfrontp += sizeof ttytype_sbbuf;
     }
     if (his_state_is_will(TELOPT_TSPEED)) {
@@ -776,7 +776,7 @@ void telnet(int f, int p, char *host)
      * echo the terminal input).
      */
     send_do(TELOPT_ECHO, 1);
-    
+
 #ifdef	LINEMODE
     if (his_state_is_wont(TELOPT_LINEMODE)) {
 	/*
@@ -796,7 +796,7 @@ void telnet(int f, int p, char *host)
     send_will(TELOPT_STATUS, 1);
     flowmode = 1;  /* default flow control state */
     send_do(TELOPT_LFLOW, 1);
-    
+
     /*
      * Spin, waiting for a response from the DO ECHO.  However,
      * some REALLY DUMB telnets out there might not respond
@@ -809,7 +809,7 @@ void telnet(int f, int p, char *host)
     while (his_will_wont_is_changing(TELOPT_NAWS)) {
 	ttloop();
     }
-    
+
     /*
      * But...
      * The client might have sent a WILL NAWS as part of its
@@ -842,15 +842,15 @@ void telnet(int f, int p, char *host)
 	     nfrontp += strlen(nfrontp);});
 	willoption(TELOPT_ECHO);
     }
-    
+
     /*
      * Finally, to clean things up, we turn on our echo.  This
      * will break stupid 4.2 telnets out of local terminal echo.
      */
-    
+
     if (my_state_is_wont(TELOPT_ECHO))
 	send_will(TELOPT_ECHO, 1);
-    
+
     /*
      * Turn on packet mode
      */
@@ -864,14 +864,14 @@ void telnet(int f, int p, char *host)
     if (lmodetype < REAL_LINEMODE)
 	send_do(TELOPT_TM, 1);
 #endif	/* defined(LINEMODE) && defined(KLUDGELINEMODE) */
-    
+
     /*
      * Call telrcv() once to pick up anything received during
      * terminal type negotiation, 4.2/4.3 determination, and
      * linemode negotiation.
      */
     telrcv();
-    
+
     ioctl(f, FIONBIO, (char *)&on);
     ioctl(p, FIONBIO, (char *)&on);
 #if defined(CRAY2) && defined(UNICOS5)
@@ -881,7 +881,7 @@ void telnet(int f, int p, char *host)
 #if defined(SO_OOBINLINE)
     setsockopt(net, SOL_SOCKET, SO_OOBINLINE, &on, sizeof on);
 #endif	/* defined(SO_OOBINLINE) */
-    
+
 #ifdef	SIGTSTP
     signal(SIGTSTP, SIG_IGN);
 #endif
@@ -892,9 +892,9 @@ void telnet(int f, int p, char *host)
      */
     signal(SIGTTOU, SIG_IGN);
 #endif
-    
+
     signal(SIGCHLD, cleanup);
-    
+
 #if defined(CRAY2) && defined(UNICOS5)
     /*
      * Cray-2 will send a signal when pty modes are changed by slave
@@ -920,7 +920,7 @@ void telnet(int f, int p, char *host)
 	}
     }
 #endif
-    
+
 #if defined(CRAY) && defined(NEWINIT) && defined(TIOCSCTTY)
     setsid();
     ioctl(p, TIOCSCTTY, 0);
@@ -933,12 +933,12 @@ void telnet(int f, int p, char *host)
      * gets carriage return null processing, etc., just like all
      * other pty --> client data.
      */
-    
+
 #if !defined(CRAY) || !defined(NEWINIT)
 /*    if (getenv("USER"))
 	hostinfo = 0;*/
 #endif
-    
+
 #ifdef EDIT_HOST_STUFF
     IM = DEFAULT_IM;
     HE = 0;
@@ -946,10 +946,10 @@ void telnet(int f, int p, char *host)
     edithost(HE, host_name);
     if (hostinfo && *IM)
 	putf(IM, ptyibuf2);
-    
+
     if (pcc) strncat(ptyibuf2, ptyip, pcc+1);
 #endif
-    
+
     ptyip = ptyibuf2;
     pcc = strlen(ptyip);
 #ifdef LINEMODE
@@ -963,7 +963,7 @@ void telnet(int f, int p, char *host)
     DIAG(TD_REPORT,
 	 {sprintf(nfrontp, "td: Entering processing loop\r\n");
 	 nfrontp += strlen(nfrontp);});
-    
+
 #ifdef	convex
     startslave(host);
 #endif
@@ -971,10 +971,10 @@ void telnet(int f, int p, char *host)
     for (;;) {
 	fd_set ibits, obits, xbits;
 	int c, hifd;
-	
+
 	if (ncc < 0 && pcc < 0)
 	    break;
-	
+
 #if	defined(CRAY2) && defined(UNICOS5)
 	if (needtermstat) _termstat();
 #endif	/* defined(CRAY2) && defined(UNICOS5) */
@@ -989,7 +989,7 @@ void telnet(int f, int p, char *host)
 	if (nfrontp - nbackp || pcc > 0) {
 	    FD_SET(f, &obits);
 	    if (f >= hifd) hifd = f+1;
-	} 
+	}
 	else {
 	    FD_SET(p, &ibits);
 	    if (p >= hifd) hifd = p+1;
@@ -997,7 +997,7 @@ void telnet(int f, int p, char *host)
 	if (pfrontp - pbackp || ncc > 0) {
 	    FD_SET(p, &obits);
 	    if (p >= hifd) hifd = p+1;
-	} 
+	}
 	else {
 	    FD_SET(f, &ibits);
 	    if (f >= hifd) hifd = f+1;
@@ -1016,14 +1016,14 @@ void telnet(int f, int p, char *host)
 	    sleep(5);
 	    continue;
 	}
-	
+
 	/*
 	 * Any urgent data?
 	 */
 	if (FD_ISSET(net, &xbits)) {
 	    SYNCHing = 1;
 	}
-	
+
 	/*
 	 * Something to read from the network...
 	 */
@@ -1065,7 +1065,7 @@ void telnet(int f, int p, char *host)
 	     */
 	    if (SYNCHing) {
 		int atmark;
-		
+
 		ioctl(net, SIOCATMARK, (char *)&atmark);
 		if (atmark) {
 		    ncc = recv(net, netibuf, sizeof (netibuf), MSG_OOB);
@@ -1075,11 +1075,11 @@ void telnet(int f, int p, char *host)
 			    SYNCHing = stilloob(net);
 			}
 		    }
-		} 
+		}
 		else {
 		    ncc = read(net, netibuf, sizeof (netibuf));
 		}
-	    } 
+	    }
 	    else {
 		ncc = read(net, netibuf, sizeof (netibuf));
 	    }
@@ -1100,7 +1100,7 @@ void telnet(int f, int p, char *host)
 		 nfrontp += strlen(nfrontp);});
 	    DIAG(TD_NETDATA, printdata("nd", netip, ncc));
 	}
-	
+
 	/*
 	 * Something to read from the pty...
 	 */
@@ -1113,7 +1113,7 @@ void telnet(int f, int p, char *host)
 	     */
 	    if (pcc < 0 && (errno == EWOULDBLOCK || errno == EIO)) {
 		pcc = 0;
-	    } 
+	    }
 	    else {
 		if (pcc <= 0)
 		    break;
@@ -1160,12 +1160,12 @@ void telnet(int f, int p, char *host)
 		    pcc = term_output(&unptyip, ptyibuf2,
 				      &unpcc, BUFSIZ);
 		    ptyip = ptyibuf2;
-		} 
+		}
 		else ptyip = ptyibuf;
 #endif	/* defined(CRAY2) && defined(UNICOS5) */
 	    }
 	}
-	
+
 	while (pcc > 0) {
 	    if ((&netobuf[BUFSIZ] - nfrontp) < 2)
 		break;
@@ -1182,7 +1182,7 @@ void telnet(int f, int p, char *host)
 		if (pcc > 0 && ((*ptyip & 0377) == '\n')) {
 		    *nfrontp++ = *ptyip++ & 0377;
 		    pcc--;
-		} 
+		}
 		else *nfrontp++ = '\0';
 	    }
 	}
@@ -1207,7 +1207,7 @@ void telnet(int f, int p, char *host)
     }
     cleanup(0);
 }  /* end of telnet */
-	
+
 #ifndef	TCSIG
 # ifdef	TIOCSIG
 #  define TCSIG TIOCSIG
@@ -1221,7 +1221,7 @@ void telnet(int f, int p, char *host)
  */
 void interrupt(void) {
     ptyflush();	/* half-hearted */
-    
+
 #ifdef	TCSIG
     (void) ioctl(pty, TCSIG, (char *)SIGINT);
 #else	/* TCSIG */

@@ -35,7 +35,7 @@
 /*
  * From: @(#)utility.c	5.8 (Berkeley) 3/22/91
  */
-char util_rcsid[] = 
+char util_rcsid[] =
   "$Id: utility.c,v 1.2 2003-07-21 03:11:25 davidm Exp $";
 #endif
 
@@ -230,7 +230,7 @@ netclear()
 		next = nextitem(next);
 	    } while (wewant(next) && (nfrontp > next));
 	    length = next-thisitem;
-	    bcopy(thisitem, good, length);
+	    memcpy(thisitem, good, length);
 	    good += length;
 	    thisitem = next;
 	} else {
@@ -337,7 +337,7 @@ writenet(ptr, len)
 		netflush();
 	}
 
-	bcopy(ptr, nfrontp, len);
+	memcpy(ptr, nfrontp, len);
 	nfrontp += len;
 
 }  /* end of writenet */
@@ -423,7 +423,7 @@ edithost(const char *pat, const char *host)
 
 static char *putlocation;
 
-static 
+static
 void
 putstr(const char *s)
 {
@@ -765,7 +765,7 @@ printsub(char direction, unsigned char *pointer, int length)
 		    break;
 		}
 		break;
-		
+
 	    case LM_SLC:
 		sprintf(nfrontp, "SLC");
 		nfrontp += strlen(nfrontp);
@@ -915,7 +915,7 @@ printsub(char direction, unsigned char *pointer, int length)
 			nfrontp += strlen(nfrontp);
 
 			break;
-				
+
 		    default:
 			sprintf(nfrontp, " %d", pointer[i]);
 			nfrontp += strlen(nfrontp);
@@ -1010,7 +1010,7 @@ printsub(char direction, unsigned char *pointer, int length)
 	case TELOPT_AUTHENTICATION:
 	    sprintf(nfrontp, "AUTHENTICATION");
 	    nfrontp += strlen(nfrontp);
-	
+
 	    if (length < 2) {
 		sprintf(nfrontp, " (empty suboption?)");
 		nfrontp += strlen(nfrontp);
@@ -1212,13 +1212,13 @@ printdata(const char *tag, const char *ptr, int cnt)
 		nfrontp += strlen(nfrontp);
 		for (i = 0; i < 20 && cnt; i++) {
 			sprintf(nfrontp, "%02x", *ptr);
-			nfrontp += strlen(nfrontp); 
+			nfrontp += strlen(nfrontp);
 			if (isprint(*ptr)) {
 				xbuf[i] = *ptr;
 			} else {
 				xbuf[i] = '.';
 			}
-			if (i % 2) { 
+			if (i % 2) {
 				*nfrontp = ' ';
 				nfrontp++;
 			}
@@ -1228,6 +1228,6 @@ printdata(const char *tag, const char *ptr, int cnt)
 		xbuf[i] = '\0';
 		sprintf(nfrontp, " %s\r\n", xbuf );
 		nfrontp += strlen(nfrontp);
-	} 
+	}
 }
 #endif /* DIAGNOSTICS */
