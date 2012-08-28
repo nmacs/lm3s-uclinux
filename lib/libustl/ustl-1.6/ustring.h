@@ -66,6 +66,7 @@ public:
     inline			string (const_pointer s1, const_pointer s2);
     explicit			string (size_type n, value_type c = 0);
     inline pointer		data (void)		{ return (string::pointer (memblock::data())); }
+    inline const_pointer		data (void) const		{ return (string::pointer (memblock::cdata())); }
     inline const_pointer	c_str (void) const	{ return (string::const_pointer (memblock::cdata())); }
     inline size_type		max_size (void) const	{ size_type s (memblock::max_size()); return (s - !!s); }
     inline size_type		capacity (void) const	{ size_type c (memblock::capacity()); return (c - !!c); }
