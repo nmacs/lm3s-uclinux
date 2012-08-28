@@ -1,4 +1,4 @@
-i#!/bin/bash
+#!/bin/bash
 
 root=`pwd`
 toolset="$root/../../../../toolchain/uclinux/arm-2011.03/bin"
