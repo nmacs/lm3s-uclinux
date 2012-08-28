@@ -93,7 +93,7 @@ int main(int argc, char** argv)
 #ifndef NO_DES3
     bench_des();
 #endif
-    
+
     printf("\n");
 
     bench_md5();
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 #endif
 
     printf("\n");
-    
+
     bench_rsa();
 
 #ifndef NO_DH
@@ -120,7 +120,7 @@ int main(int argc, char** argv)
     bench_rsaKeyGen();
 #endif
 
-#ifdef HAVE_ECC 
+#ifdef HAVE_ECC
     bench_eccKeyGen();
     bench_eccKeyAgree();
 #endif
@@ -128,27 +128,27 @@ int main(int argc, char** argv)
     return 0;
 }
 
-const int megs  = 5;     /* how many megs to test (en/de)cryption */
-const int times = 100;   /* public key iterations */
+const int blocks  = 5;   /* how many blocks to test (en/de)cryption */
+const int times = 5;   /* public key iterations */
 
-const byte key[] = 
+const byte key[] =
 {
     0x01,0x23,0x45,0x67,0x89,0xab,0xcd,0xef,
     0xfe,0xde,0xba,0x98,0x76,0x54,0x32,0x10,
     0x89,0xab,0xcd,0xef,0x01,0x23,0x45,0x67
 };
 
-const byte iv[] = 
+const byte iv[] =
 {
     0x12,0x34,0x56,0x78,0x90,0xab,0xcd,0xef,
     0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
     0x11,0x21,0x31,0x41,0x51,0x61,0x71,0x81
-    
+
 };
 
 
-byte plain [1024*1024];
-byte cipher[1024*1024];
+byte plain [1024*128];
+byte cipher[1024*128];
 
 
 #ifndef NO_AES
@@ -161,15 +161,15 @@ void bench_aes(int show)
     AesSetKey(&enc, key, 16, iv, AES_ENCRYPTION);
     start = current_time();
 
-    for(i = 0; i < megs; i++)
+    for(i = 0; i < blocks; i++)
         AesCbcEncrypt(&enc, plain, cipher, sizeof(plain));
 
     total = current_time() - start;
 
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
     if (show)
-        printf("AES      %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+        printf("AES      %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                                     persec);
 }
 #endif
@@ -190,14 +190,14 @@ void bench_aesgcm()
     AesGcmSetExpIV(&enc, iv+4);
     start = current_time();
 
-    for(i = 0; i < megs; i++)
+    for(i = 0; i < blocks; i++)
         AesGcmEncrypt(&enc, cipher, plain, sizeof(plain),
                         tag, 16, additional, 13);
 
     total = current_time() - start;
 
-    persec = 1 / total * megs;
-    printf("AES-GCM  %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
+    printf("AES-GCM  %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                                     persec);
 }
 #endif
@@ -213,14 +213,14 @@ void bench_des()
     Des3_SetKey(&enc, key, iv, DES_ENCRYPTION);
     start = current_time();
 
-    for(i = 0; i < megs; i++)
+    for(i = 0; i < blocks; i++)
         Des3_CbcEncrypt(&enc, plain, cipher, sizeof(plain));
 
     total = current_time() - start;
 
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
-    printf("3DES     %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    printf("3DES     %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                              persec);
 }
 #endif
@@ -231,17 +231,17 @@ void bench_arc4()
     Arc4   enc;
     double start, total, persec;
     int    i;
-    
+
     Arc4SetKey(&enc, key, 16);
     start = current_time();
 
-    for(i = 0; i < megs; i++)
+    for(i = 0; i < blocks; i++)
         Arc4Process(&enc, cipher, plain, sizeof(plain));
 
     total = current_time() - start;
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
-    printf("ARC4     %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    printf("ARC4     %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                              persec);
 }
 
@@ -252,17 +252,17 @@ void bench_hc128()
     HC128  enc;
     double start, total, persec;
     int    i;
-    
+
     Hc128_SetKey(&enc, key, iv);
     start = current_time();
 
-    for(i = 0; i < megs; i++)
+    for(i = 0; i < blocks; i++)
         Hc128_Process(&enc, cipher, plain, sizeof(plain));
 
     total = current_time() - start;
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
-    printf("HC128    %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    printf("HC128    %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                              persec);
 }
 #endif /* HAVE_HC128 */
@@ -274,17 +274,17 @@ void bench_rabbit()
     Rabbit  enc;
     double start, total, persec;
     int    i;
-    
+
     RabbitSetKey(&enc, key, iv);
     start = current_time();
 
-    for(i = 0; i < megs; i++)
+    for(i = 0; i < blocks; i++)
         RabbitProcess(&enc, cipher, plain, sizeof(plain));
 
     total = current_time() - start;
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
-    printf("RABBIT   %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    printf("RABBIT   %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                              persec);
 }
 #endif /* NO_RABBIT */
@@ -300,15 +300,15 @@ void bench_md5()
     InitMd5(&hash);
     start = current_time();
 
-    for(i = 0; i < megs; i++)
+    for(i = 0; i < blocks; i++)
         Md5Update(&hash, plain, sizeof(plain));
-   
+
     Md5Final(&hash, digest);
 
     total = current_time() - start;
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
-    printf("MD5      %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    printf("MD5      %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                              persec);
 }
 
@@ -319,19 +319,19 @@ void bench_sha()
     byte   digest[SHA_DIGEST_SIZE];
     double start, total, persec;
     int    i;
-        
+
     InitSha(&hash);
     start = current_time();
-    
-    for(i = 0; i < megs; i++)
+
+    for(i = 0; i < blocks; i++)
         ShaUpdate(&hash, plain, sizeof(plain));
-   
+
     ShaFinal(&hash, digest);
 
     total = current_time() - start;
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
-    printf("SHA      %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    printf("SHA      %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                              persec);
 }
 
@@ -343,19 +343,19 @@ void bench_sha256()
     byte   digest[SHA256_DIGEST_SIZE];
     double start, total, persec;
     int    i;
-        
+
     InitSha256(&hash);
     start = current_time();
-    
-    for(i = 0; i < megs; i++)
+
+    for(i = 0; i < blocks; i++)
         Sha256Update(&hash, plain, sizeof(plain));
-   
+
     Sha256Final(&hash, digest);
 
     total = current_time() - start;
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
-    printf("SHA-256  %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    printf("SHA-256  %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                              persec);
 }
 #endif
@@ -367,19 +367,19 @@ void bench_sha512()
     byte   digest[SHA512_DIGEST_SIZE];
     double start, total, persec;
     int    i;
-        
+
     InitSha512(&hash);
     start = current_time();
-    
-    for(i = 0; i < megs; i++)
+
+    for(i = 0; i < blocks; i++)
         Sha512Update(&hash, plain, sizeof(plain));
-   
+
     Sha512Final(&hash, digest);
 
     total = current_time() - start;
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
-    printf("SHA-512  %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    printf("SHA-512  %d blocks took %5.3f seconds, %6.2f kiB/s\n", blocks, total,
                                                              persec);
 }
 #endif
@@ -391,19 +391,19 @@ void bench_ripemd()
     byte   digest[RIPEMD_DIGEST_SIZE];
     double start, total, persec;
     int    i;
-        
+
     InitRipeMd(&hash);
     start = current_time();
-    
-    for(i = 0; i < megs; i++)
+
+    for(i = 0; i < blocks; i++)
         RipeMdUpdate(&hash, plain, sizeof(plain));
-   
+
     RipeMdFinal(&hash, digest);
 
     total = current_time() - start;
-    persec = 1 / total * megs;
+    persec = 1 / total * ( blocks * (sizeof(plain) / 1024));
 
-    printf("RIPEMD   %d megs took %5.3f seconds, %6.2f MB/s\n", megs, total,
+    printf("RIPEMD   %d blocks took %5.3f seconds, %6.2f KiB/s\n", blocks, total,
                                                              persec);
 }
 #endif
@@ -423,7 +423,7 @@ void bench_rsa()
     byte*     output;
     const int len = (int)strlen((char*)message);
     double    start, total, each, milliEach;
-    
+
     RsaKey key;
     FILE*  file = fopen("./certs/rsa2048.der", "rb");
 
@@ -437,7 +437,7 @@ void bench_rsa()
     bytes = fread(tmp, 1, sizeof(tmp), file);
     InitRsaKey(&key, 0);
     bytes = RsaPrivateKeyDecode(tmp, &idx, &key, (word32)bytes);
-    
+
     start = current_time();
 
     for (i = 0; i < times; i++)
@@ -447,7 +447,7 @@ void bench_rsa()
     each  = total / times;   /* per second   */
     milliEach = each * 1000; /* milliseconds */
 
-    printf("RSA 2048 encryption took %6.2f milliseconds, avg over %d" 
+    printf("RSA 2048 encryption took %6.2f milliseconds, avg over %d"
            " iterations\n", milliEach, times);
 
     start = current_time();
@@ -459,7 +459,7 @@ void bench_rsa()
     each  = total / times;   /* per second   */
     milliEach = each * 1000; /* milliseconds */
 
-    printf("RSA 2048 decryption took %6.2f milliseconds, avg over %d" 
+    printf("RSA 2048 decryption took %6.2f milliseconds, avg over %d"
            " iterations\n", milliEach, times);
 
     fclose(file);
@@ -480,7 +480,7 @@ void bench_dh()
     byte   pub2[256];   /* for 2048 bit */
     byte   priv2[256];  /* for 2048 bit */
     byte   agree[256];  /* for 2048 bit */
-    
+
     double start, total, each, milliEach;
     DhKey  key;
     FILE*  file = fopen("./certs/dh2048.der", "rb");
@@ -504,7 +504,7 @@ void bench_dh()
     each  = total / times;   /* per second   */
     milliEach = each * 1000; /* milliseconds */
 
-    printf("DH  2048 key generation  %6.2f milliseconds, avg over %d" 
+    printf("DH  2048 key generation  %6.2f milliseconds, avg over %d"
            " iterations\n", milliEach, times);
 
     DhGenerateKeyPair(&key, &rng, priv2, &privSz2, pub2, &pubSz2);
@@ -517,7 +517,7 @@ void bench_dh()
     each  = total / times;   /* per second   */
     milliEach = each * 1000; /* milliseconds */
 
-    printf("DH  2048 key agreement   %6.2f milliseconds, avg over %d" 
+    printf("DH  2048 key agreement   %6.2f milliseconds, avg over %d"
            " iterations\n", milliEach, times);
 
     fclose(file);
@@ -532,12 +532,12 @@ void bench_rsaKeyGen()
     double start, total, each, milliEach;
     int    i;
     const int genTimes = 5;
-  
-    /* 1024 bit */ 
+
+    /* 1024 bit */
     start = current_time();
 
     for(i = 0; i < genTimes; i++) {
-        InitRsaKey(&genKey, 0); 
+        InitRsaKey(&genKey, 0);
         MakeRsaKey(&genKey, 1024, 65537, &rng);
         FreeRsaKey(&genKey);
     }
@@ -546,14 +546,14 @@ void bench_rsaKeyGen()
     each  = total / genTimes;  /* per second  */
     milliEach = each * 1000;   /* millisconds */
     printf("\n");
-    printf("RSA 1024 key generation  %6.2f milliseconds, avg over %d" 
+    printf("RSA 1024 key generation  %6.2f milliseconds, avg over %d"
            " iterations\n", milliEach, genTimes);
 
     /* 2048 bit */
     start = current_time();
 
     for(i = 0; i < genTimes; i++) {
-        InitRsaKey(&genKey, 0); 
+        InitRsaKey(&genKey, 0);
         MakeRsaKey(&genKey, 2048, 65537, &rng);
         FreeRsaKey(&genKey);
     }
@@ -561,20 +561,20 @@ void bench_rsaKeyGen()
     total = current_time() - start;
     each  = total / genTimes;  /* per second  */
     milliEach = each * 1000;   /* millisconds */
-    printf("RSA 2048 key generation  %6.2f milliseconds, avg over %d" 
+    printf("RSA 2048 key generation  %6.2f milliseconds, avg over %d"
            " iterations\n", milliEach, genTimes);
 }
 #endif /* CYASSL_KEY_GEN */
 
-#ifdef HAVE_ECC 
+#ifdef HAVE_ECC
 void bench_eccKeyGen()
 {
     ecc_key genKey;
     double start, total, each, milliEach;
     int    i;
     const int genTimes = 5;
-  
-    /* 256 bit */ 
+
+    /* 256 bit */
     start = current_time();
 
     for(i = 0; i < genTimes; i++) {
@@ -586,7 +586,7 @@ void bench_eccKeyGen()
     each  = total / genTimes;  /* per second  */
     milliEach = each * 1000;   /* millisconds */
     printf("\n");
-    printf("ECC  256 key generation  %6.2f milliseconds, avg over %d" 
+    printf("ECC  256 key generation  %6.2f milliseconds, avg over %d"
            " iterations\n", milliEach, genTimes);
 }
 
@@ -601,11 +601,11 @@ void bench_eccKeyAgree()
     byte   sig[1024];
     byte   digest[32];
     word32 x;
-  
+
     ecc_make_key(&rng, 32, &genKey);
     ecc_make_key(&rng, 32, &genKey2);
 
-    /* 256 bit */ 
+    /* 256 bit */
     start = current_time();
 
     for(i = 0; i < agreeTimes; i++) {
@@ -616,7 +616,7 @@ void bench_eccKeyAgree()
     total = current_time() - start;
     each  = total / agreeTimes;  /* per second  */
     milliEach = each * 1000;   /* millisconds */
-    printf("EC-DHE   key agreement   %6.2f milliseconds, avg over %d" 
+    printf("EC-DHE   key agreement   %6.2f milliseconds, avg over %d"
            " iterations\n", milliEach, agreeTimes);
 
     /* make dummy digest */
@@ -634,7 +634,7 @@ void bench_eccKeyAgree()
     total = current_time() - start;
     each  = total / agreeTimes;  /* per second  */
     milliEach = each * 1000;   /* millisconds */
-    printf("EC-DSA   sign time       %6.2f milliseconds, avg over %d" 
+    printf("EC-DSA   sign time       %6.2f milliseconds, avg over %d"
            " iterations\n", milliEach, agreeTimes);
 
     ecc_free(&genKey2);
@@ -652,7 +652,7 @@ void bench_eccKeyAgree()
     {
         static int init = 0;
         static LARGE_INTEGER freq;
-    
+
         LARGE_INTEGER count;
 
         if (!init) {
