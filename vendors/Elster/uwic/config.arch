@@ -17,6 +17,8 @@ LOPT                := -Os
 UOPT                := -Os
 VENDOR_CFLAGS       := -ffunction-sections -fdata-sections -Wl,--gc-sections
 
+export CPUFLAGS
+
 ############################################################################
 #
 #
