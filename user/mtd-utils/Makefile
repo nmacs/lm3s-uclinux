@@ -52,6 +52,10 @@ SYMLINKS =
 LDLIBS = -L$(BUILDDIR)/lib -lmtd
 LDDEPS = $(BUILDDIR)/lib/libmtd.a
 
+ifneq ($(CONFIG_UCLIBC_HAS_LFS), y)
+	export WITHOUT_LARGEFILE := 1
+endif
+
 include common.mk
 
 # mkfs.ubifs needs -lubi which is in ubi-utils/
