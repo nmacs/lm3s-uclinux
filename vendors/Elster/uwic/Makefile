@@ -10,12 +10,14 @@ LINUXFILE           = linux.bin
 LINUXCOMPRESSEDFILE = Image.lzo
 LINUXUBOOTFILE      = Image.uboot
 UBIFSFILE           = Image.ubifs
+EXT2FILE            = Image.ext2
 
 LINUXBOOTDIR       = $(ROOTDIR)/$(LINUXDIR)/arch/arm/boot
 LINUXCOMPRESSEDIMG = $(LINUXBOOTDIR)/$(LINUXCOMPRESSEDFILE)
 LINUXUBOOTIMG      = $(LINUXBOOTDIR)/$(LINUXUBOOTFILE)
 LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
+EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 
 
 ROMFS_DIRS = bin dev etc home lib mnt proc sys usr var tmp boot root
@@ -52,4 +54,5 @@ linux_image:
 image: romfs
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
 	cp $(LINUXUBOOTIMG) $(LINUXIMG)
+	genext2fs -b 5120 -D $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
 	mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0 --devtable=$(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt --root=$(ROMFSDIR) --output=$(UBIFSIMG)
