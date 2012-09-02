@@ -4393,7 +4393,8 @@ valid_CFLAGS="$CFLAGS"; CFLAGS="$CFLAGS -fstack-protector"
 valid_LDFLAGS="$LDFLAGS"; LDFLAGS="$LDFLAGS -fstack-protector"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-int main() {return 0;}
+int fun(char* buf) {int sum = 0; int i; for(i = 0; i < 32; i++) { sum += buf[i]; } return sum; }
+int main() { char buf[16]; return fun(buf); }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
 
