@@ -6,19 +6,19 @@
  *   under the terms of the GNU General Public License as published by the
  *   Free Software Foundation; either version 2 of the License, or (at your
  *   option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *   See the GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License along
  *   with this program; if not, see <http://www.gnu.org/licenses>.
- * 
+ *
  *   Linking stunnel statically or dynamically with other modules is making
  *   a combined work based on stunnel. Thus, the terms and conditions of
  *   the GNU General Public License cover the whole combination.
- * 
+ *
  *   In addition, as a special exception, the copyright holder of stunnel
  *   gives you permission to combine stunnel with free software programs or
  *   libraries that are released under the GNU LGPL and with code included
@@ -26,7 +26,7 @@
  *   modified versions of such code, with unchanged license). You may copy
  *   and distribute such a system following the terms of the GNU GPL for
  *   stunnel and the licenses of the other code concerned.
- * 
+ *
  *   Note that people who make modified versions of stunnel are not obligated
  *   to grant this special exception for their modified versions; it is their
  *   choice whether to do so. The GNU General Public License gives permission
@@ -68,7 +68,9 @@ static int accept_connection(SERVICE_OPTIONS *);
 static int change_root(void);
 #endif
 #if !defined(USE_WIN32) && !defined(__vms)
+#if !defined(__uClinux__)
 static int daemonize(int);
+#endif
 static int create_pid(void);
 static void delete_pid(void);
 #endif
@@ -111,7 +113,7 @@ int main(int argc, char* argv[]) { /* execution begins here 8-) */
 }
 
 static int main_unix(int argc, char* argv[]) {
-#if !defined(__vms) && !defined(USE_OS2)
+#if !defined(__vms) && !defined(USE_OS2) && !defined(__uClinux__)
     int fd;
 
     fd=open("/dev/null", O_RDWR); /* open /dev/null before chroot */
@@ -122,7 +124,7 @@ static int main_unix(int argc, char* argv[]) {
     if(main_configure(argc>1 ? argv[1] : NULL, argc>2 ? argv[2] : NULL))
         return 1;
     if(service_options.next) { /* there are service sections -> daemon mode */
-#if !defined(__vms) && !defined(USE_OS2)
+#if !defined(__vms) && !defined(USE_OS2) && !defined(__uClinux__)
         if(daemonize(fd))
             return 1;
         close(fd);
@@ -145,7 +147,7 @@ static int main_unix(int argc, char* argv[]) {
             signal(SIGINT, signal_handler); /* fatal */
         daemon_loop();
     } else { /* inetd mode */
-#if !defined(__vms) && !defined(USE_OS2)
+#if !defined(__vms) && !defined(USE_OS2) && !defined(__uClinux__)
         close(fd);
 #endif /* standard Unix */
         signal(SIGCHLD, SIG_IGN); /* ignore dead children */
@@ -428,6 +430,7 @@ int drop_privileges(int critical) {
     return 0;
 }
 
+#if !defined(__uClinux__)
 static int daemonize(int fd) { /* go to background */
     if(global_options.option.foreground)
         return 0;
@@ -458,6 +461,7 @@ static int daemonize(int fd) { /* go to background */
 #endif
     return 0;
 }
+#endif
 
 static int create_pid(void) {
     int pf;
@@ -660,6 +664,10 @@ static void signal_handler(int sig) {
 #endif /* !defined(USE_WIN32) && !defined(USE_OS2) */
 
 /**************************************** log messages to identify  build */
+
+#ifdef HAVE_LIB_CYASSL
+#define OPENSSL_VERSION_TEXT "CyaSSL " LIBCYASSL_VERSION_STRING
+#endif
 
 void stunnel_info(int level) {
     s_log(level, "stunnel " STUNNEL_VERSION " on " HOST " platform");

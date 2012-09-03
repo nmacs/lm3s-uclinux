@@ -245,7 +245,11 @@ stunnel_CFLAGS = @stunnel_CFLAGS@
 stunnel_LDFLAGF = @stunnel_LDFLAGF@
 
 # SSL library
+ifdef CONFIG_LIB_CYASSL
+stunnel_LDFLAGS = -L$(SSLDIR)/lib64 -L$(SSLDIR)/lib -lcyassl
+else
 stunnel_LDFLAGS = -L$(SSLDIR)/lib64 -L$(SSLDIR)/lib -lssl -lcrypto
+endif
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
@@ -339,7 +343,7 @@ config.h: stamp-h1
 stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status src/config.h
-$(srcdir)/config.h.in:  $(am__configure_deps) 
+$(srcdir)/config.h.in:  $(am__configure_deps)
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@
@@ -379,7 +383,7 @@ clean-pkglibLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libstunnel.la: $(libstunnel_la_OBJECTS) $(libstunnel_la_DEPENDENCIES) 
+libstunnel.la: $(libstunnel_la_OBJECTS) $(libstunnel_la_DEPENDENCIES)
 	$(libstunnel_la_LINK) -rpath $(pkglibdir) $(libstunnel_la_OBJECTS) $(libstunnel_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
@@ -424,7 +428,7 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-stunnel$(EXEEXT): $(stunnel_OBJECTS) $(stunnel_DEPENDENCIES) 
+stunnel$(EXEEXT): $(stunnel_OBJECTS) $(stunnel_DEPENDENCIES)
 	@rm -f stunnel$(EXEEXT)
 	$(stunnel_LINK) $(stunnel_OBJECTS) $(stunnel_LDADD) $(LIBS)
 install-binSCRIPTS: $(bin_SCRIPTS)

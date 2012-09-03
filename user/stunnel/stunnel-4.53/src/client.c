@@ -6,19 +6,19 @@
  *   under the terms of the GNU General Public License as published by the
  *   Free Software Foundation; either version 2 of the License, or (at your
  *   option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *   See the GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License along
  *   with this program; if not, see <http://www.gnu.org/licenses>.
- * 
+ *
  *   Linking stunnel statically or dynamically with other modules is making
  *   a combined work based on stunnel. Thus, the terms and conditions of
  *   the GNU General Public License cover the whole combination.
- * 
+ *
  *   In addition, as a special exception, the copyright holder of stunnel
  *   gives you permission to combine stunnel with free software programs or
  *   libraries that are released under the GNU LGPL and with code included
@@ -26,7 +26,7 @@
  *   modified versions of such code, with unchanged license). You may copy
  *   and distribute such a system following the terms of the GNU GPL for
  *   stunnel and the licenses of the other code concerned.
- * 
+ *
  *   Note that people who make modified versions of stunnel are not obligated
  *   to grant this special exception for their modified versions; it is their
  *   choice whether to do so. The GNU General Public License gives permission
@@ -726,8 +726,10 @@ static void transfer(CLI *c) {
                 break;
             case SSL_ERROR_ZERO_RETURN: /* close_notify alert received */
                 s_log(LOG_DEBUG, "SSL closed on SSL_read");
+#ifndef HAVE_LIB_CYASSL
                 if(SSL_version(c->ssl)==SSL2_VERSION)
                     SSL_set_shutdown(c->ssl, SSL_SENT_SHUTDOWN|SSL_RECEIVED_SHUTDOWN);
+#endif
                 break;
             case SSL_ERROR_SSL:
                 sslerror("SSL_read");
@@ -778,8 +780,10 @@ static void transfer(CLI *c) {
                 break;
             case SSL_ERROR_ZERO_RETURN: /* close_notify alert received */
                 s_log(LOG_DEBUG, "SSL closed on SSL_write");
+#ifndef HAVE_LIB_CYASSL
                 if(SSL_version(c->ssl)==SSL2_VERSION)
                     SSL_set_shutdown(c->ssl, SSL_SENT_SHUTDOWN|SSL_RECEIVED_SHUTDOWN);
+#endif
                 break;
             case SSL_ERROR_SSL:
                 sslerror("SSL_write");
@@ -804,9 +808,12 @@ static void transfer(CLI *c) {
             }
         }
         if(!(SSL_get_shutdown(c->ssl)&SSL_SENT_SHUTDOWN) && !sock_open_rd && !c->sock_ptr) {
+#ifndef HAVE_LIB_CYASSL
             if(SSL_version(c->ssl)!=SSL2_VERSION) { /* SSLv3, TLSv1 */
+#endif
                 s_log(LOG_DEBUG, "Sending close_notify alert");
                 shutdown_wants_write=1;
+#ifndef HAVE_LIB_CYASSL
             } else { /* no alerts in SSLv2, including the close_notify alert */
                 s_log(LOG_DEBUG, "Closing SSLv2 socket");
                 if(c->ssl_rfd->is_socket)
@@ -816,6 +823,7 @@ static void transfer(CLI *c) {
                 /* notify the OpenSSL library */
                 SSL_set_shutdown(c->ssl, SSL_SENT_SHUTDOWN|SSL_RECEIVED_SHUTDOWN);
             }
+#endif
         }
 
         /****************************** check watchdog */
@@ -891,9 +899,11 @@ static void print_cipher(CLI *c) { /* print negotiated cipher */
     if(global_options.debug_level<LOG_INFO) /* performance optimization */
         return;
     cipher=(SSL_CIPHER *)SSL_get_current_cipher(c->ssl);
+#ifndef HAVE_LIB_CYASSL
     s_log(LOG_INFO, "Negotiated %s ciphersuite: %s (%d-bit encryption)",
         SSL_CIPHER_get_version(cipher), SSL_CIPHER_get_name(cipher),
         SSL_CIPHER_get_bits(cipher, NULL));
+#endif
 
 #if !defined(OPENSSL_NO_COMP) && OPENSSL_VERSION_NUMBER>=0x0090800fL
     compression=SSL_get_current_compression(c->ssl);
@@ -982,7 +992,7 @@ static void auth_user(CLI *c, char *accepted_address) {
     str_free(line);
 }
 
-#if defined(_WIN32_WCE) || defined(__vms)
+#if defined(_WIN32_WCE) || defined(__vms) || defined(__uClinux__)
 
 static int connect_local(CLI *c) { /* spawn local process */
     s_log(LOG_ERR, "Local mode is not supported on this platform");

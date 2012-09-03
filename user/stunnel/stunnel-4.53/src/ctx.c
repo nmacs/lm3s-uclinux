@@ -70,12 +70,14 @@ static void cache_transfer(SSL_CTX *, const unsigned int, const unsigned,
     const unsigned char *, const unsigned int,
     unsigned char **, unsigned int *);
 
+#ifndef HAVE_LIB_CYASSL
 /* info callbacks */
 static void info_callback(
 #if OPENSSL_VERSION_NUMBER>=0x0090700fL
     const
 #endif
     SSL *, int, int);
+#endif
 
 static void sslerror_queue(void);
 static void sslerror_log(unsigned long, char *);
@@ -133,9 +135,11 @@ int context_init(SERVICE_OPTIONS *section) { /* init SSL context */
         SSL_CTX_sess_set_remove_cb(section->ctx, sess_remove_cb);
     }
 
+#ifndef HAVE_LIB_CYASSL
     /* set info callback */
     if(global_options.debug_level==LOG_DEBUG) /* performance optimization */
         SSL_CTX_set_info_callback(section->ctx, info_callback);
+#endif
 
     /* ciphers, options, mode */
     if(section->cipher_list)
@@ -455,8 +459,10 @@ static int sess_new_cb(SSL *ssl, SSL_SESSION *sess) {
     val_tmp=val=str_alloc(val_len);
     i2d_SSL_SESSION(sess, &val_tmp);
 
+#ifndef HAVE_LIB_CYASSL
     cache_transfer(ssl->ctx, CACHE_CMD_NEW, SSL_SESSION_get_timeout(sess),
         sess->session_id, sess->session_id_length, val, val_len, NULL, NULL);
+#endif
     str_free(val);
     return 1; /* leave the session in local cache for reuse */
 }
@@ -468,8 +474,10 @@ static SSL_SESSION *sess_get_cb(SSL *ssl,
     SSL_SESSION *sess;
 
     *do_copy = 0; /* allow the session to be freed autmatically */
+#ifndef HAVE_LIB_CYASSL
     cache_transfer(ssl->ctx, CACHE_CMD_GET, 0,
         key, key_len, NULL, 0, &val, &val_len);
+#endif
     if(!val)
         return NULL;
     val_tmp=val;
@@ -483,8 +491,10 @@ static SSL_SESSION *sess_get_cb(SSL *ssl,
 }
 
 static void sess_remove_cb(SSL_CTX *ctx, SSL_SESSION *sess) {
+#ifndef HAVE_LIB_CYASSL
     cache_transfer(ctx, CACHE_CMD_REMOVE, 0,
         sess->session_id, sess->session_id_length, NULL, 0, NULL, NULL);
+#endif
 }
 
 #define MAX_VAL_LEN 512
@@ -610,6 +620,7 @@ static void cache_transfer(SSL_CTX *ctx, const unsigned int type,
 
 /**************************************** informational callback */
 
+#ifndef HAVE_LIB_CYASSL
 static void info_callback(
 #if OPENSSL_VERSION_NUMBER>=0x0090700fL
         const
@@ -650,6 +661,7 @@ static void info_callback(
             SSL_CTX_sess_timeouts(ssl->ctx));
     }
 }
+#endif
 
 /**************************************** SSL error reporting */
 

@@ -28,7 +28,11 @@ stunnel_CPPFLAGS += -DCONFDIR='"$(sysconfdir)/stunnel"'
 stunnel_CPPFLAGS += -DPIDFILE='"$(localstatedir)/run/stunnel/stunnel.pid"'
 
 # SSL library
+ifdef CONFIG_LIB_CYASSL
+stunnel_LDFLAGS = -L$(SSLDIR)/lib64 -L$(SSLDIR)/lib -lcyassl
+else
 stunnel_LDFLAGS = -L$(SSLDIR)/lib64 -L$(SSLDIR)/lib -lssl -lcrypto
+endif
 
 # Win32 executable
 EXTRA_DIST = nogui.c make.bat makece.bat makew32.bat
