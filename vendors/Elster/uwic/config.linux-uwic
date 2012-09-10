@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.33
-# Mon Jul 23 16:39:52 2012
+# Sat Sep  8 11:33:24 2012
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -200,6 +200,7 @@ CONFIG_ARCH_LM3S1D21=y
 # CONFIG_ARCH_U8500 is not set
 # CONFIG_ARCH_MPS is not set
 CONFIG_MACH_LM3S1D21=y
+CONFIG_MPU=y
 
 #
 # Processor Type
