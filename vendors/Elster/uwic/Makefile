@@ -19,7 +19,6 @@ LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
 EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 
-
 ROMFS_DIRS = bin dev etc home lib mnt proc sys usr var tmp boot root
 
 clean:
@@ -36,6 +35,8 @@ romfs: linux_image
 	$(ROMFSINST) /etc/rc
 	$(ROMFSINST) /etc/opkg.conf
 	$(ROMFSINST) /etc/resolv.conf
+	$(ROMFSINST) /etc/stunnel.conf
+	$(ROMFSINST) -p 600 /etc/stunnel.pem
 	$(ROMFSINST) $(LINUXUBOOTIMG) /boot/$(LINUXFILE)
 
 modules.dep:
