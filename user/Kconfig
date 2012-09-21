@@ -4621,6 +4621,13 @@ config USER_GAMES_TAMA
 
 endmenu
 
+menu "Vendor specific applications"
+
+config USER_ELSTER_MGATE
+	bool "Elster mgate"
+
+endmenu
+
 #############################################################################
 
 menu "Miscellaneous Configuration"

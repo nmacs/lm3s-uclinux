@@ -436,7 +436,10 @@ dir_$(CONFIG_USER_ZEBRA_OSPFD_OSPFD)        += zebra
 dir_$(CONFIG_USER_ZEBRA_RIPD_RIPD)          += zebra
 dir_$(CONFIG_USER_ZEBRA_ZEBRA_ZEBRA)        += zebra
 
+dir_$(CONFIG_USER_ELSTER_MGATE)             += elster
+
 dir_y += games
+#dir_y += mputest
 #dir_y += elster
 
 -include Makefile.local
