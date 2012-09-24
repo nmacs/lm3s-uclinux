@@ -81,8 +81,6 @@ void string::append (const_pointer s)
 /// Appends to itself the value of string \p s of length \p len.
 void string::append (const_pointer s, size_type len)
 {
-    while (len && s[len - 1] == 0)
-	-- len;
     resize (size() + len);
     copy_n (s, len, end() - len);
 }
