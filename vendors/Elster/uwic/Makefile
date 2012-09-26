@@ -35,6 +35,7 @@ romfs: linux_image
 	$(ROMFSINST) /etc/inittab
 	$(ROMFSINST) /etc/opkg.conf
 	$(ROMFSINST) /etc/resolv.conf
+	$(ROMFSINST) /etc/mgate.conf
 	$(ROMFSINST) $(LINUXUBOOTIMG) /boot/$(LINUXFILE)
 
 modules.dep:
