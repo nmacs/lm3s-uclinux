@@ -18,6 +18,8 @@ config LIB_BITVECTOR
 	  Only enable this if you want to force the library to be built.
 	  The Config will make sure this library is built if it is needed.
 
+source  ../lib/liblua/Kconfig
+
 config LIB_USTL
 	bool "Build uSTL"
 	default n

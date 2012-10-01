@@ -37,6 +37,8 @@ endif
 lib_libcrypt_old = libcrypt_old.a
 inc_libcrypt_old = *.h,.
 
+dir_$(CONFIG_LIB_LUA) += liblua
+
 dir_$(CONFIG_LIB_USTL) += libustl
 lib_libustl = output/lib/*.a
 inc_libustl = output/include/ustl.h,. \

@@ -1,0 +1,5 @@
+config LIB_LUA
+  bool "lua"
+  help
+     The lua programming language compiler and interpreter.
+     See http://www.lua.org/
