@@ -39,3 +39,9 @@ config LIB_LUA_LUACOPAS
     with Copas should provide a handler for requests and use Copas socket functions
     to send the response. Copas loops through requests and invokes the corresponding handlers.
     For a full implementation of a Copas HTTP server you can refer to Xavante as an example.
+
+config LIB_LUA_LUAXAVANTE
+  bool "Lua xavante"
+  depends on LIB_LUA_LUASOCKET && LIB_LUA_LUACOPAS
+  help
+    Xavante is a Lua HTTP 1.1 Web server that uses a modular architecture based on URI mapped handlers.

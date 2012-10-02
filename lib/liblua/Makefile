@@ -5,6 +5,7 @@ LUAFILESYSTEM_DIR := luafilesystem-1.5.0
 LUASOCKET_DIR     := luasocket-2.0.2
 LUACOXPCALL_DIR   := coxpcall-1.13
 LUACOPAS_DIR      := copas-1.1.6
+LUAXAVANTE_DIR    := xavante-2.2.1
 
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
@@ -48,6 +49,9 @@ ifdef CONFIG_LIB_LUA_LUACOXPCALL
 endif
 ifdef CONFIG_LIB_LUA_LUACOPAS
 	$(ROMFSINST) -d $(LUACOPAS_DIR)/src/copas/copas.lua /usr/local/lib/lua/5.1/copas.lua
+endif
+ifdef CONFIG_LIB_LUA_LUAXAVANTE
+	$(ROMFSINST) -d $(LUAXAVANTE_DIR)/src/xavante /usr/local/lib/lua/5.1/xavante
 endif
 
 romfs_user:
