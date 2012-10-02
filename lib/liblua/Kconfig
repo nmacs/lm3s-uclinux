@@ -1,5 +1,14 @@
 config LIB_LUA
-  bool "lua"
+  bool "Lua"
   help
      The lua programming language compiler and interpreter.
      See http://www.lua.org/
+
+config LIB_LUA_LUAFILESYSTEM
+   bool "Lua filesystem"
+   depends on LIB_LUA
+   help
+      LuaFileSystem is a Lua library developed to complement the set of
+      functions related to file systems offered by the standard Lua distribution.
+      LuaFileSystem offers a portable way to access the underlying
+      directory structure and file attributes.
