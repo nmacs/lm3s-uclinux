@@ -34,5 +34,9 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
     lua_pushstring(L, lib->name);
     lua_call(L, 1, 0);
   }
+
+#ifdef LUA_STATIC_MODULES
+  luaL_load_static_modules(L);
+#endif
 }
 
