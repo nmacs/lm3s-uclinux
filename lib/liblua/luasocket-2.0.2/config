@@ -8,7 +8,8 @@
 EXT=so
 SOCKET_V=2.0.2
 MIME_V=1.0.2
-SOCKET_SO=socket.$(EXT).$(SOCKET_V) 
+SOCKET_SO=socket.$(EXT).$(SOCKET_V)
+SOCKET_A=libsocket.a
 MIME_SO=mime.$(EXT).$(MIME_V)
 UNIX_SO=unix.$(EXT)
 
@@ -49,11 +50,21 @@ INSTALL_EXEC=cp
 #------
 # Compiler and linker settings
 # for Linux
-CC=gcc
-DEF=-DLUASOCKET_DEBUG 
-CFLAGS= $(LUAINC) $(DEF) -pedantic -Wall -O2 -fpic
-LDFLAGS=-O -shared -fpic
-LD=gcc 
+#CC=gcc
+#DEF=-DLUASOCKET_DEBUG
+#CFLAGS= $(LUAINC) $(DEF) -pedantic -Wall -O2 -fpic
+#LDFLAGS=-O -shared -fpic
+#LD=gcc
+
+#------
+# Compiler and linker settings
+# for uCLinux
+
+#CC=gcc
+#DEF=-DLUASOCKET_DEBUG
+#CFLAGS= $(LUAINC) $(DEF) -pedantic -Wall -O2 -fpic
+#LDFLAGS=-O -shared -fpic
+#LD=gcc
 
 #------
 # End of makefile configuration

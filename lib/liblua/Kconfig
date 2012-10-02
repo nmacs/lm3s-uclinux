@@ -5,10 +5,19 @@ config LIB_LUA
      See http://www.lua.org/
 
 config LIB_LUA_LUAFILESYSTEM
-   bool "Lua filesystem"
-   depends on LIB_LUA
-   help
-      LuaFileSystem is a Lua library developed to complement the set of
-      functions related to file systems offered by the standard Lua distribution.
-      LuaFileSystem offers a portable way to access the underlying
-      directory structure and file attributes.
+  bool "Lua filesystem"
+  depends on LIB_LUA
+  help
+    LuaFileSystem is a Lua library developed to complement the set of
+    functions related to file systems offered by the standard Lua distribution.
+    LuaFileSystem offers a portable way to access the underlying
+    directory structure and file attributes.
+
+config LIB_LUA_LUASOCKET
+  bool "Lua socket"
+  depends on LIB_LUA
+  help
+    LuaSocket is a Lua extension library that is composed by two parts:
+    a C core that provides support for the TCP and UDP transport layers,
+    and a set of Lua modules that add support for functionality commonly
+    needed by applications that deal with the Internet.

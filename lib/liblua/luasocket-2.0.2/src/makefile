@@ -25,7 +25,7 @@ SOCKET_OBJS:= \
 	udp.o \
 	except.o \
 	select.o \
-	usocket.o 
+	usocket.o
 
 #------
 # Modules belonging mime-core
@@ -33,7 +33,7 @@ SOCKET_OBJS:= \
 #$(COMPAT)/compat-5.1.o \
 
 MIME_OBJS:=\
-	mime.o 
+	mime.o
 
 #------
 # Modules belonging unix (local domain sockets)
@@ -47,7 +47,11 @@ UNIX_OBJS:=\
 	usocket.o \
 	unix.o
 
-all: $(SOCKET_SO) $(MIME_SO) 
+all: $(SOCKET_SO) $(MIME_SO)
+
+$(SOCKET_A): $(SOCKET_OBJS)
+	$(AR) rcu $@ $(SOCKET_OBJS)
+	$(RANLIB) $@
 
 $(SOCKET_SO): $(SOCKET_OBJS)
 	$(LD) $(LDFLAGS) -o $@ $(SOCKET_OBJS)
@@ -82,7 +86,7 @@ unix.o: unix.c auxiliar.h socket.h io.h timeout.h usocket.h options.h \
 usocket.o: usocket.c socket.h io.h timeout.h usocket.h
 
 clean:
-	rm -f $(SOCKET_SO) $(SOCKET_OBJS) 
+	rm -f $(SOCKET_SO) $(SOCKET_A) $(SOCKET_OBJS)
 	rm -f $(MIME_SO) $(UNIX_SO) $(MIME_OBJS) $(UNIX_OBJS)
 
 #------
