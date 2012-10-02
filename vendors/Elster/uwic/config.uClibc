@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Mon Aug 27 13:00:25 2012
+# Tue Oct  2 12:49:50 2012
 #
 # TARGET_alpha is not set
 TARGET_arm=y
@@ -89,8 +89,8 @@ UCLIBC_HAS_THREADS=y
 # PTHREADS_DEBUG_SUPPORT is not set
 LINUXTHREADS_OLD=y
 UCLIBC_HAS_LFS=y
-# MALLOC is not set
-MALLOC_SIMPLE=y
+MALLOC=y
+# MALLOC_SIMPLE is not set
 # MALLOC_STANDARD is not set
 MALLOC_GLIBC_COMPAT=y
 UCLIBC_DYNAMIC_ATEXIT=y
@@ -196,6 +196,7 @@ UCLIBC_EXTRA_CFLAGS=""
 # DODEBUG_PT is not set
 DOSTRIP=y
 # DOASSERTS is not set
+# UCLIBC_MALLOC_DEBUGGING is not set
 WARNINGS="-Wall"
 # EXTRA_WARNINGS is not set
 # DOMULTI is not set
