@@ -38,6 +38,11 @@ lib_libcrypt_old = libcrypt_old.a
 inc_libcrypt_old = *.h,.
 
 dir_$(CONFIG_LIB_LUA) += liblua
+lib_liblua = lua-5.1.5/src/liblua.a luafilesystem-1.5.0/src/liblfs.a luasocket-2.0.2/src/libsocket.a
+inc_liblua = lua-5.1.5/src/lua.h,. \
+             lua-5.1.5/src/luaconf.h,. \
+             lua-5.1.5/src/lualib.h,. \
+             lua-5.1.5/src/lauxlib.h,.
 
 dir_$(CONFIG_LIB_USTL) += libustl
 lib_libustl = output/lib/*.a
