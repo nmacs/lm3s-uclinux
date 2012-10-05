@@ -85,7 +85,7 @@ struct initline {
 
 struct initline *inittab;
 /* How many struct initline's will fit in the memory pointed to by inittab */
-int inittab_size = 0; 
+int inittab_size = 0;
 int numcmd;
 int stopped = 0;	/* are we stopped */
 int reload = 0;	/* are we stopped */
@@ -128,7 +128,7 @@ static void err(const char *s)
 	output[0].iov_len = 6;
 	output[1].iov_base = (void *)s;
 	output[1].iov_len = strlen(s);
-#if LINUX_VERSION_CODE < 0x020100	
+#if LINUX_VERSION_CODE < 0x020100
 	if (console_device == NULL) return;
 	if((fd = open(console_device, O_WRONLY)) < 0) return;
 	writev(fd, output, 2);
@@ -156,6 +156,7 @@ add_tok(struct initline *p, char *tok)
 	p->toks[i] = NULL;
 }
 
+#ifdef CONFIG_USER_INIT_BOOT_SINGLE
 static void enter_single(void)
 {
 	pid_t pid;
@@ -178,6 +179,7 @@ static void enter_single(void)
     }
     unlink(_PATH_SINGLE);
 }
+#endif
 
 
 #if LINUX_VERSION_CODE < 0x020100
@@ -213,7 +215,7 @@ static int do_command(const char *path, const char *filename, int dowait)
 {
 	pid_t pid, wpid;
 	int stat, st;
-	
+
 	if((pid = vfork()) == 0) {
 		/* the child */
 		char *argv[3];
@@ -271,9 +273,11 @@ static int do_rc(void)
 {
 	int rc;
 
+#ifdef CONFIG_USER_INIT_RUN_RC
 	rc = do_command(_PATH_BSHELL, _PATH_RC, 1);
 	if (rc)
 		return(rc);
+#endif
 #ifdef CONFIG_USER_INIT_RUN_FIREWALL
 	rc = do_command(_PATH_FIREWALL, "-i", 1);
 	if (rc)
@@ -358,11 +362,13 @@ int main(int argc, char *argv[])
 	set_console_baud(CONSOLE_BAUD_RATE);
 #endif
 
-	/* 
+	/*
 	 * start up in single user mode if /etc/singleboot exists or if
 	 * argv[1] is "single".
 	 */
+#ifdef CONFIG_USER_INIT_BOOT_SINGLE
 	if(boot_single(0, argc, argv)) enter_single();
+#endif
 
 #ifdef RUN_RC
 	/* Register console if defined by boot */
@@ -395,10 +401,14 @@ int main(int argc, char *argv[])
 #endif
 
 	/*If we get a SIGTSTP before multi-user mode, do nothing*/
-	while(stopped)	
+	while(stopped)
 		pause();
+#ifdef CONFIG_USER_INIT_BOOT_SINGLE
 	if(do_rc() != 0 && boot_single(1, argc, argv) && !stopped)
 		enter_single();
+#else
+	do_rc();
+#endif
 	while(stopped)	/*Also if /etc/rc fails & we get SIGTSTP*/
 		pause();
 #endif
@@ -490,14 +500,15 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-}	
+}
 
 
 /*
- * return true if we should boot up in singleuser mode. If argv[i] is 
+ * return true if we should boot up in singleuser mode. If argv[i] is
  * "single" or the file /etc/singleboot exists, then singleuser mode should
  * be entered. If /etc/securesingle exists ask for root password first.
  */
+#ifdef CONFIG_USER_INIT_BOOT_SINGLE
 int boot_single(int singlearg, int argc, char *argv[])
 {
 	char *pass, *rootpass = NULL;
@@ -518,7 +529,7 @@ int boot_single(int singlearg, int argc, char *argv[])
 			for(i = 0; i < MAXTRIES; i++) {
 				pass = getpass("Password: ");
 				if(pass == NULL) continue;
-				
+
 				if(!strcmp(crypt(pass, rootpass), rootpass)) {
 					return 1;
 				}
@@ -529,6 +540,7 @@ int boot_single(int singlearg, int argc, char *argv[])
 	}
 	return 0;
 }
+#endif
 
 void spawn(int i)
 {
@@ -537,7 +549,7 @@ void spawn(int i)
 	time_t t;
 	struct initline *it;
 	char buf[150];
-	
+
 	it = inittab + i;
 
 	t = time(NULL);
@@ -572,7 +584,7 @@ void spawn(int i)
 		return;
 	}
 	it->nextrun = t + delaytime;
-	
+
 	if((pid = vfork()) < 0) {
 		it->pid = -1;
 		err("fork failed\n");
@@ -590,7 +602,7 @@ void spawn(int i)
 		char tz[BUF_SIZ];
 #endif
 		char *env[4];
-		
+
 		setsid();
 
 		/* Close everything other than 0, 1 and 2 */
@@ -625,7 +637,7 @@ void spawn(int i)
 }
 
 static void init_itab(struct initline *p) {
-	bzero(p, sizeof(struct initline));
+	memset(p, 0, sizeof(struct initline));
 	p->pid = -1;
 	p->nextrun = time(NULL);
 }
@@ -745,8 +757,8 @@ read_initfile(const char *initfile)
 		if (getline(&buf, &buf_len, f) == -1) break;
 
 		for(k = 0; k < buf_len && buf[k]; k++) {
-			if(buf[k] == '#') { 
-				buf[k] = '\0'; break; 
+			if(buf[k] == '#') {
+				buf[k] = '\0'; break;
 			}
 		}
 
@@ -757,13 +769,13 @@ read_initfile(const char *initfile)
 		p->line = strdup(buf);
 		p->fullline = strdup(buf);
 		if (!p->line || !p->fullline) {
-			err("Not memory to allocate inittab entry");
+			err("Not memory to allocate inittab entry\n");
 			clear_itab(p);
 			continue;
 		}
 		ptr = strtok(p->line, ":");
 		if (!ptr) {
-			err("Missing TTY/ID field in inittab");
+			err("Missing TTY/ID field in inittab\n");
 			clear_itab(p);
 			continue;
 		}
@@ -771,7 +783,7 @@ read_initfile(const char *initfile)
 		//p->tty[9] = '\0';
 		ptr = strtok(NULL, ":");
 		if (!ptr) {
-			err("Missing TERMTYPE field in inittab");
+			err("Missing TERMTYPE field in inittab\n");
 			clear_itab(p);
 			continue;
 		}
@@ -780,7 +792,7 @@ read_initfile(const char *initfile)
 
 		getty = strtok(NULL, " \t\n");
 		if (!getty) {
-			err("Missing PROCESS field in inittab");
+			err("Missing PROCESS field in inittab\n");
 			clear_itab(p);
 			continue;
 		}
@@ -809,7 +821,7 @@ read_initfile(const char *initfile)
 
 	if (buf)
 		free(buf);
-	
+
 	fclose(f);
 
 	numcmd = i;
@@ -843,7 +855,7 @@ void reload_inittab()
 		}
 	}
 
-	oldnum = numcmd;		
+	oldnum = numcmd;
 	read_inittab();
 
 	/* See which ones still exist */
@@ -892,7 +904,7 @@ void sigint_processing()
 	 */
 
 	int pid;
-	
+
 	sync();
 	sync();
 	if((pid = vfork()) == 0) {
@@ -901,7 +913,7 @@ void sigint_processing()
 		/* reboot properly... */
 		av[0] = _PATH_REBOOT;
 		av[1] = NULL;
-		
+
 		execve(_PATH_REBOOT, av, environ);
 #if __GNU_LIBRARY__ > 5
 		reboot(0x1234567);
@@ -965,13 +977,13 @@ void write_wtmp(void)
 #if 0
     int fd;
     struct utmp ut;
-    
+
     bzero((char *)&ut, sizeof(ut));
     strcpy(ut.ut_line, "~");
     bzero(ut.ut_name, sizeof(ut.ut_name));
     time(&ut.ut_time);
     ut.ut_type = BOOT_TIME;
-    
+
     if((fd = open(_PATH_WTMP, O_WRONLY|O_APPEND)) >= 0) {
 	flock(fd, LOCK_EX|LOCK_NB); /* make sure init won't hang */
 	write(fd, (char *)&ut, sizeof(ut));
@@ -979,7 +991,7 @@ void write_wtmp(void)
 	close(fd);
     }
 #endif
-}     
+}
 
 void make_ascii_tty(void)
 {
@@ -1025,6 +1037,8 @@ void make_ascii_tty(void)
 	if (pt && pt[0] == '^' && pt[1]) {
 		tty.c_cc[VERASE] = (pt[1] == '?') ? 127 : CTRL(pt[1]);
 	}
+	else
+		tty.c_cc[VERASE] = 127;
 
 	tcsetattr(0, TCSANOW, &tty);
 }
@@ -1053,7 +1067,7 @@ void make_console(const char *tty)
 	    /* Try to open the specified console */
 	    if (open(devname, O_RDWR|O_NONBLOCK) >= 0) {
 		fcntl(0, F_SETFL, 0);
-		dup(0); 
+		dup(0);
 		dup(0);
 		make_ascii_tty();
 		ioctl(0, TIOCSCTTY, (char*)0);

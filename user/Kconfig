@@ -16,21 +16,37 @@ config USER_INIT_INIT
 
 config USER_INIT_CONSOLE_SH
 	bool "enable console shell"
+	depends on USER_INIT_INIT
 	help
 	  Init will automatically spawn a shell on the console.
 
+config USER_INIT_RUN_RC
+	bool "execute /etc/rc script"
+	depends on USER_INIT_INIT
+	help
+	  Init will run the /etc/rc script of start up.
+
 config USER_INIT_RUN_FIREWALL
 	bool "execute firewall rules"
+	depends on USER_INIT_INIT
 	help
 	  Init will automatically run the firewall script on start up.
 
 config USER_INIT_CONF
 	bool "process init.conf"
+	depends on USER_INIT_INIT
 	help
 	  Read and process simple configuration from /etc/config/init.conf
 	  or /etc/init.conf.  The format of the file is as follows (this is
 	  also all the current config options).  Any lines that are not
 	  understood are ignored.
+
+config USER_INIT_BOOT_SINGLE
+	bool "boot single mode support"
+	depends on USER_INIT_INIT
+	help
+	  Single user mode (run level 1), in which only the system administrator
+	  is using the machine.
 
 choice
 	prompt "Shell Program"

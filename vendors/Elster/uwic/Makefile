@@ -33,6 +33,7 @@ romfs: linux_image
 	done
 	$(ROMFSINST) /etc/passwd
 	$(ROMFSINST) /etc/inittab
+	$(ROMFSINST) /etc/rc
 	$(ROMFSINST) /etc/opkg.conf
 	$(ROMFSINST) /etc/resolv.conf
 	$(ROMFSINST) /etc/mgate.conf
