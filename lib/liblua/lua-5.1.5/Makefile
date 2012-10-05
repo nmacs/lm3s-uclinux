@@ -33,7 +33,7 @@ INSTALL_DATA= $(INSTALL) -m 0644
 
 # Utilities.
 MKDIR= mkdir -p
-RANLIB= ranlib
+#RANLIB= ranlib
 
 # == END OF USER SETTINGS. NO NEED TO CHANGE ANYTHING BELOW THIS LINE =========
 
