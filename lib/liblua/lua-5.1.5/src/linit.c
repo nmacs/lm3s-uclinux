@@ -36,7 +36,7 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
   }
 
 #ifdef LUA_STATIC_MODULES
-  luaL_load_static_modules(L);
+  luaL_preload_static_modules(L);
 #endif
 }
 

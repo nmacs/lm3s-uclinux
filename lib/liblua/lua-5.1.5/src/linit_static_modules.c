@@ -27,22 +27,31 @@ int luaopen_lfs (lua_State *L);
 int luaopen_socket_core(lua_State *L);
 #endif
 
-static const lua_CFunction modules[] = {
+static const luaL_Reg modules[] = {
 #ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
-  luaopen_lfs,
+  {"lfs", luaopen_lfs},
 #endif
 #ifdef CONFIG_LIB_LUA_LUASOCKET
-  luaopen_socket_core,
+	{"socket.core", luaopen_socket_core},
 #endif
-  NULL
+	{NULL, NULL}
 };
 
+LUALIB_API void luaL_preload_static_modules (lua_State *L) {
+  const luaL_Reg *module = modules;
 
-LUALIB_API void luaL_load_static_modules (lua_State *L) {
-  const lua_CFunction *func = modules;
-  for (; *func; func++) {
-    lua_pushcfunction(L, *func);
-    lua_call(L, 0, 0);
+  lua_getfield(L, LUA_GLOBALSINDEX, "package");
+  if (!lua_istable(L, -1))
+    luaL_error(L, LUA_QL("package") " must be a table");
+
+  lua_getfield(L, -1, "preload");
+  if (!lua_istable(L, -1))
+    luaL_error(L, LUA_QL("package.preload") " must be a table");
+
+  for (; module->func; module++) {
+    lua_pushstring(L, module->name);
+    lua_pushcfunction(L, module->func);
+    lua_settable(L, -3);
   }
 }
 
