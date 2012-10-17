@@ -63,3 +63,4 @@
 /dev/ubi0	c	640	0	0	254	0	0	0	-
 /dev/ubi0_0	c	640	0	0	254	1	0	0	-
 /dev/net/tun	c	666	0	0	10	200	0	0	-
+/dev/watchdog	c	640	0	0	10	130	0	0 -
