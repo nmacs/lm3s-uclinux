@@ -6,6 +6,7 @@ LUASOCKET_DIR     := luasocket-2.0.2
 LUACOXPCALL_DIR   := coxpcall-1.13
 LUACOPAS_DIR      := copas-1.1.6
 LUAXAVANTE_DIR    := xavante-2.2.1
+JSON_DIR          := json4lua-0.9.50
 
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
@@ -42,17 +43,23 @@ clean:
 romfs:
 	$(ROMFSINST) $(LUA_DIR)/src/lua /bin/lua
 ifdef CONFIG_LIB_LUA_LUASOCKET
-	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/socket.lua /usr/local/lib/lua/5.1/socket.lua
+	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/socket.lua /usr/local/share/lua/5.1/socket.lua
+	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/url.lua /usr/local/share/lua/5.1/socket/url.lua
 endif
 ifdef CONFIG_LIB_LUA_LUACOXPCALL
-	$(ROMFSINST) -d $(LUACOXPCALL_DIR)/src/coxpcall.lua /usr/local/lib/lua/5.1/coxpcall.lua
+	$(ROMFSINST) -d $(LUACOXPCALL_DIR)/src/coxpcall.lua /usr/local/share/lua/5.1/coxpcall.lua
 endif
 ifdef CONFIG_LIB_LUA_LUACOPAS
-	$(ROMFSINST) -d $(LUACOPAS_DIR)/src/copas/copas.lua /usr/local/lib/lua/5.1/copas.lua
+	$(ROMFSINST) -d $(LUACOPAS_DIR)/src/copas/copas.lua /usr/local/share/lua/5.1/copas.lua
 endif
 ifdef CONFIG_LIB_LUA_LUAXAVANTE
-	$(ROMFSINST) -d $(LUAXAVANTE_DIR)/src/xavante /usr/local/lib/lua/5.1/xavante
+	$(ROMFSINST) -d $(LUAXAVANTE_DIR)/src/xavante/xavante.lua /usr/local/share/lua/5.1/xavante.lua
+	$(ROMFSINST) -d $(LUAXAVANTE_DIR)/src/xavante /usr/local/share/lua/5.1/xavante
 endif
+ifdef CONFIG_LIB_LUA_JSON
+	$(ROMFSINST) -d $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
+endif
+	$(ROMFSINST) http.lua /http-test.lua
 
 romfs_user:
 

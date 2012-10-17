@@ -45,3 +45,9 @@ config LIB_LUA_LUAXAVANTE
   depends on LIB_LUA_LUASOCKET && LIB_LUA_LUACOPAS
   help
     Xavante is a Lua HTTP 1.1 Web server that uses a modular architecture based on URI mapped handlers.
+
+config LIB_LUA_JSON
+  bool "Lua JSON"
+  depends on LIB_LUA
+  help
+    JSON4Lua implements JSON (JavaScript Object Notation) encoding and decoding.
