@@ -53,7 +53,7 @@ linux_image:
 #	gzip --best --force --stdout $(LINUXBOOTDIR)/Image > $(LINUXCOMPRESSEDIMG)
 	mkimage -A arm -O linux -T kernel -C lzo -a 0x60008000 -e 0x60008000 -n "Linux kernel image" -d $(LINUXCOMPRESSEDIMG) $(LINUXUBOOTIMG)
 
-image: romfs
+image:
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
 	cp $(LINUXUBOOTIMG) $(LINUXIMG)
 	genext2fs -b 5120 -D $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
