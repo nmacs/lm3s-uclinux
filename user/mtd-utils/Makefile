@@ -1,128 +1,54 @@
+MTDUTILS_SRC := mtd-utils-1.5.0
 
-# -*- sh -*-
+CFLAGS += -I$(STAGEDIR)/include
+CFLAGS += -L$(STAGEDIR)/lib
+CFLAGS += $(ZLIBCPPFLAGS) $(LZOCPPFLAGS)
+#CFLAGS += -DCONFIG_JFFS2_ZLIB -DCONFIG_JFFS2_RTIME -DCONFIG_JFFS2_LZO
+CFLAGS += -DWITHOUT_XATTR
 
-HOST_CC = gcc
-HOST_AR = ar
-HOST_RANLIB = ranlib
-HOST_CPPFLAGS += -I/usr/include -I./include
-HOST_CPPFLAGS += $(ZLIBCPPFLAGS) $(LZOCPPFLAGS)
-HOST_CPPFLAGS += -DCONFIG_JFFS2_ZLIB -DCONFIG_JFFS2_RTIME
-HOST_CPPFLAGS += -DWITHOUT_XATTR
-HOST_LDLIBS += -lz
-HOST_BUILDDIR = $(CURDIR)/build
-HOST_TARGETS_$(CONFIG_JFFS2_FS) += $(HOST_BUILDDIR)/mkfs.jffs2
+all:
+	$(MAKE) V=1 -C $(MTDUTILS_SRC)
 
-CPPFLAGS += -I./include
-CPPFLAGS += $(ZLIBCPPFLAGS) $(LZOCPPFLAGS)
-CPPFLAGS += -DCONFIG_JFFS2_ZLIB -DCONFIG_JFFS2_RTIME -DCONFIG_JFFS2_LZO
-CPPFLAGS += -DWITHOUT_XATTR
-
-SUBDIRS = lib ubi-utils mkfs.ubifs
-
-TARGETS_$(CONFIG_USER_MTDUTILS_DOCFDISK)	+= doc_fdisk
-TARGETS_$(CONFIG_USER_MTDUTILS_DOC_LOADBIOS)	+= doc_loadbios
-TARGETS_$(CONFIG_USER_MTDUTILS_DOC_LOADIPL)	+= doc_loadipl
-TARGETS_$(CONFIG_USER_MTDUTILS_ERASE)		+= flash_erase
-TARGETS_$(CONFIG_USER_MTDUTILS_LOCK)		+= flash_lock
-TARGETS_$(CONFIG_USER_MTDUTILS_UNLOCK)		+= flash_unlock
-TARGETS_$(CONFIG_USER_MTDUTILS_FLASH_INFO)	+= flash_info
-TARGETS_$(CONFIG_USER_MTDUTILS_FLASH_OTP_INFO)	+= flash_otp_info
-TARGETS_$(CONFIG_USER_MTDUTILS_FLASH_OTP_DUMP)	+= flash_otp_dump
-TARGETS_$(CONFIG_USER_MTDUTILS_FLASHCP)		+= flashcp
-TARGETS_$(CONFIG_USER_MTDUTILS_FTL_CHECK)	+= ftl_check
-TARGETS_$(CONFIG_USER_MTDUTILS_FTL_FORMAT)	+= ftl_format
-TARGETS_$(CONFIG_USER_MTDUTILS_JFFS2DUMP)	+= jffs2dump
-TARGETS_$(CONFIG_USER_MTDUTILS_MKFSJFFS2)	+= mkfs.jffs2
-TARGETS_$(CONFIG_USER_MTDUTILS_MTD_DEBUG)	+= mtd_debug
-TARGETS_$(CONFIG_USER_MTDUTILS_NFTL_FORMAT)	+= nftl_format
-TARGETS_$(CONFIG_USER_MTDUTILS_NFTLDUMP)	+= nftldump
-TARGETS_$(CONFIG_USER_MTDUTILS_NANDDUMP)	+= nanddump
-TARGETS_$(CONFIG_USER_MTDUTILS_NANDTEST)	+= nandtest
-TARGETS_$(CONFIG_USER_MTDUTILS_NANDWRITE)	+= nandwrite
-TARGETS_$(CONFIG_USER_MTDUTILS_RFDDUMP)		+= rfddump
-TARGETS_$(CONFIG_USER_MTDUTILS_RFDFORMAT)	+= rfdformat
-TARGETS_$(CONFIG_USER_MTDUTILS_RECV_IMAGE)	+= recv_image
-TARGETS_$(CONFIG_USER_MTDUTILS_SERVE_IMAGE)	+= serve_image
-TARGETS_$(CONFIG_USER_MTDUTILS_SUMTOOL)		+= sumtool
-
-SCRIPTS = flash_eraseall
-
-SYMLINKS =
-
-LDLIBS = -L$(BUILDDIR)/lib -lmtd
-LDDEPS = $(BUILDDIR)/lib/libmtd.a
-
-ifneq ($(CONFIG_UCLIBC_HAS_LFS), y)
-	export WITHOUT_LARGEFILE := 1
-endif
-
-include common.mk
-
-# mkfs.ubifs needs -lubi which is in ubi-utils/
-subdirs_mkfs.ubifs_all: subdirs_ubi-utils_all
-
-clean::
-	-rm -f $(SYMLINKS)
-ifneq ($(BUILDDIR)/.git,)
-ifneq ($(BUILDDIR),.)
-ifneq ($(BUILDDIR),$(CURDIR))
-	rm -rf $(BUILDDIR)
-endif
-endif
-endif
-
-$(SYMLINKS):
-	ln -sf ../fs/jffs2/$@ $@
-
-MKFS_JFFS2_OBJS = compr_rtime.o mkfs.jffs2.o compr_zlib.o compr_lzo.o \
-	compr.o rbtree.o
-$(BUILDDIR)/mkfs.jffs2: $(addprefix $(BUILDDIR)/,$(MKFS_JFFS2_OBJS))
-LDFLAGS_mkfs.jffs2 = $(ZLIBLDFLAGS) $(LZOLDFLAGS)
-LDLIBS_mkfs.jffs2  = -lz -llzo2
-
-$(BUILDDIR)/jffs2reader: $(BUILDDIR)/jffs2reader.o
-LDFLAGS_jffs2reader = $(ZLIBLDFLAGS) $(LZOLDFLAGS)
-LDLIBS_jffs2reader  = -lz -llzo2
-
-HOST_LIB_OBJS = lib/libmtd.o lib/libmtd_legacy.o lib/libcrc32.o lib/libfec.o
-HOST_MKFS_JFFS2_OBJS = $(MKFS_JFFS2_OBJS) $(HOST_LIB_OBJS)
-$(HOST_BUILDDIR)/mkfs.jffs2: $(addprefix $(HOST_BUILDDIR)/,$(HOST_MKFS_JFFS2_OBJS))
-	$(HOST_CC) $(HOST_CFLAGS) $(HOST_LDFLAGS) $(LDFLAGS_$(notdir $@)) -g -o $@ $^ $(HOST_LDLIBS)
-
-
-$(BUILDDIR)/lib/libmtd.a: subdirs_lib_all ;
-
-install:: ${TARGETS_y} ${SCRIPTS}
-	mkdir -p ${DESTDIR}/${SBINDIR}
-	install -m 0755 ${TARGETS_y} ${SCRIPTS} ${DESTDIR}/${SBINDIR}/
-	mkdir -p ${DESTDIR}/${MANDIR}/man1
-	gzip -9c mkfs.jffs2.1 > ${DESTDIR}/${MANDIR}/man1/mkfs.jffs2.1.gz
+clean:
+	$(MAKE) -C $(MTDUTILS_SRC) clean
 
 romfs:
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_ERASE          /bin/flash_erase
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_ERASEALL       /bin/flash_eraseall
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_LOCK           /bin/flash_lock
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UNLOCK         /bin/flash_unlock
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FLASH_INFO     /bin/flash_info
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FLASH_OTP_INFO /bin/flash_otp_info
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FLASH_OTP_DUMP /bin/flash_otp_dump
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FLASHCP        /bin/flashcp
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FTL_CHECK      /bin/ftl_check
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FTL_FORMAT     /bin/ftl_format
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_JFFS2DUMP      /bin/jffs2dump
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_MKFSJFFS2      /bin/mkfs.jffs2
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_MTD_DEBUG      /bin/mtd_debug
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NFTLDUMP       /bin/nftldump
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NFTL_FORMAT    /bin/nftl_format
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NANDDUMP       /bin/nanddump
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NANDTEST       /bin/nandtest
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NANDWRITE      /bin/nandwrite
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_DOC_LOADBIOS   /bin/doc_loadbios
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_DOC_LOADIPL    /bin/doc_loadipl
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_DOCFDISK       /bin/docfdisk
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_RFDDUMP        /bin/rfddump
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_RFDFORMAT      /bin/rfdformat
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_RECV_IMAGE     /bin/recv_image
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_SERVE_IMAGE    /bin/server_image
-	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_SUMTOOL        /bin/sumtool
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_ERASE          $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/flash_erase
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_ERASEALL       $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/flash_eraseall
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_LOCK           $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/flash_lock
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UNLOCK         $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/flash_unlock
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FLASH_INFO     $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/flash_info
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FLASH_OTP_INFO $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/flash_otp_info
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FLASH_OTP_DUMP $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/flash_otp_dump
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FLASHCP        $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/flashcp
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FTL_CHECK      $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/ftl_check
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_FTL_FORMAT     $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/ftl_format
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_JFFS2DUMP      $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/jffs2dump
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_MKFSJFFS2      $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/mkfs.jffs2
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_MTD_DEBUG      $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/mtd_debug
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NFTLDUMP       $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/nftldump
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NFTL_FORMAT    $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/nftl_format
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NANDDUMP       $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/nanddump
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NANDTEST       $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/nandtest
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_NANDWRITE      $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/nandwrite
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_DOC_LOADBIOS   $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/doc_loadbios
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_DOC_LOADIPL    $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/doc_loadipl
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_DOCFDISK       $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/docfdisk
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_RFDDUMP        $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/rfddump
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_RFDFORMAT      $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/rfdformat
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_RECV_IMAGE     $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/recv_image
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_SERVE_IMAGE    $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/server_image
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_SUMTOOL        $(MTDUTILS_SRC)/$(CROSS:-=)/ /bin/sumtool
 
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBIUPDATEVOL   $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubiupdatevol /bin/ubiupdatevol
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBIMKVOL       $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubimkvol /bin/ubimkvol
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBIRMVOL       $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubirmvol /bin/ubirmvol
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBICRC32       $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubicrc32 /bin/ubicrc32
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBINFO         $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubinfo /bin/ubinfo
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBIATTACH      $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubiattach /bin/ubiattach
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBIDETACH      $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubidetach /bin/ubidetach
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBINIZE        $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubinize /bin/ubinize
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBIFORMAT      $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubiformat /bin/ubiformat
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBIRENAME      $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubirename /bin/ubirename
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_MTDINFO        $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/mtdinfo /bin/mtdinfo
+	$(ROMFSINST) -e CONFIG_USER_MTDUTILS_UBIRSVOL       $(MTDUTILS_SRC)/$(CROSS:-=)/ubi-utils/ubirsvol /bin/ubirsvol
