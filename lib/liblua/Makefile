@@ -59,7 +59,6 @@ endif
 ifdef CONFIG_LIB_LUA_JSON
 	$(ROMFSINST) -d $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
 endif
-	$(ROMFSINST) http.lua /http-test.lua
 
 romfs_user:
 
