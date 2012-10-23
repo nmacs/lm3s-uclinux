@@ -1,4 +1,4 @@
-CC := $(CROSS)gcc
+#CC := $(CROSS)gcc
 AR := $(CROSS)ar
 RANLIB := $(CROSS)ranlib
 

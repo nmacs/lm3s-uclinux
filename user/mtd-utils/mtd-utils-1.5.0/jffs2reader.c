@@ -138,7 +138,7 @@ void putblock(char *b, size_t bsize, size_t * rsize,
 		errmsg_die("File does not fit into buffer!");
 
 	if (*rsize < je32_to_cpu(n->isize))
-		bzero(b + *rsize, je32_to_cpu(n->isize) - *rsize);
+		memset(b + *rsize, 0, je32_to_cpu(n->isize) - *rsize);
 
 	switch (n->compr) {
 		case JFFS2_COMPR_ZLIB:
@@ -153,7 +153,7 @@ void putblock(char *b, size_t bsize, size_t * rsize,
 			break;
 
 		case JFFS2_COMPR_ZERO:
-			bzero(b + je32_to_cpu(n->offset), dlen);
+			memset(b + je32_to_cpu(n->offset), 0, dlen);
 			break;
 
 			/* [DYN]RUBIN support required! */
