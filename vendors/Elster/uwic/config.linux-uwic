@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.33
-# Sat Sep  8 11:33:24 2012
+# Tue Oct 23 13:36:47 2012
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -53,6 +53,7 @@ CONFIG_TINY_RCU=y
 CONFIG_LOG_BUF_SHIFT=12
 # CONFIG_GROUP_SCHED is not set
 # CONFIG_CGROUPS is not set
+# CONFIG_SYSFS_DEPRECATED_V2 is not set
 # CONFIG_RELAY is not set
 # CONFIG_NAMESPACES is not set
 # CONFIG_BLK_DEV_INITRD is not set
@@ -81,6 +82,7 @@ CONFIG_PERF_USE_VMALLOC=y
 # CONFIG_PERF_EVENTS is not set
 # CONFIG_PERF_COUNTERS is not set
 # CONFIG_VM_EVENT_COUNTERS is not set
+# CONFIG_SLUB_DEBUG is not set
 CONFIG_COMPAT_BRK=y
 # CONFIG_SLAB is not set
 CONFIG_SLUB=y
@@ -475,6 +477,7 @@ CONFIG_MTD_UBI_BEB_RESERVE=0
 #
 # UBI debugging options
 #
+# CONFIG_MTD_UBI_DEBUG is not set
 # CONFIG_PARPORT is not set
 CONFIG_BLK_DEV=y
 # CONFIG_BLK_DEV_COW_COMMON is not set
@@ -489,11 +492,13 @@ CONFIG_BLK_DEV=y
 # CONFIG_ATA_OVER_ETH is not set
 CONFIG_MISC_DEVICES=y
 # CONFIG_ENCLOSURE_SERVICES is not set
+# CONFIG_TI_DAC7512 is not set
 # CONFIG_C2PORT is not set
 
 #
 # EEPROM support
 #
+CONFIG_EEPROM_AT25=y
 # CONFIG_EEPROM_93CX6 is not set
 CONFIG_HAVE_IDE=y
 # CONFIG_IDE is not set
@@ -634,6 +639,7 @@ CONFIG_SPI_LM3S=y
 # SPI Protocol Masters
 #
 # CONFIG_SPI_SPIDEV is not set
+# CONFIG_SPI_TLE62X0 is not set
 
 #
 # PPS support
@@ -643,7 +649,14 @@ CONFIG_SPI_LM3S=y
 # CONFIG_POWER_SUPPLY is not set
 # CONFIG_HWMON is not set
 # CONFIG_THERMAL is not set
-# CONFIG_WATCHDOG is not set
+CONFIG_WATCHDOG=y
+CONFIG_WATCHDOG_NOWAYOUT=y
+
+#
+# Watchdog Device Drivers
+#
+# CONFIG_SOFT_WATCHDOG is not set
+CONFIG_LM3S_WATCHDOG=y
 CONFIG_SSB_POSSIBLE=y
 
 #
@@ -709,6 +722,7 @@ CONFIG_RTC_LIB=y
 # CONFIG_JFS_FS is not set
 # CONFIG_FS_POSIX_ACL is not set
 # CONFIG_XFS_FS is not set
+# CONFIG_OCFS2_FS is not set
 # CONFIG_BTRFS_FS is not set
 # CONFIG_NILFS2_FS is not set
 CONFIG_FILE_LOCKING=y
@@ -744,8 +758,9 @@ CONFIG_FILE_LOCKING=y
 #
 CONFIG_PROC_FS=y
 # CONFIG_PROC_SYSCTL is not set
-# CONFIG_SYSFS is not set
+CONFIG_SYSFS=y
 # CONFIG_HUGETLB_PAGE is not set
+# CONFIG_CONFIGFS_FS is not set
 CONFIG_MISC_FILESYSTEMS=y
 # CONFIG_ADFS_FS is not set
 # CONFIG_AFFS_FS is not set
@@ -797,6 +812,7 @@ CONFIG_SUNRPC=y
 # CONFIG_PARTITION_ADVANCED is not set
 CONFIG_MSDOS_PARTITION=y
 # CONFIG_NLS is not set
+# CONFIG_DLM is not set
 
 #
 # Kernel hacking
@@ -808,6 +824,7 @@ CONFIG_FRAME_WARN=0
 # CONFIG_MAGIC_SYSRQ is not set
 # CONFIG_STRIP_ASM_SYMS is not set
 # CONFIG_UNUSED_SYMBOLS is not set
+# CONFIG_DEBUG_FS is not set
 # CONFIG_HEADERS_CHECK is not set
 # CONFIG_DEBUG_KERNEL is not set
 # CONFIG_DEBUG_MEMORY_INIT is not set
@@ -826,6 +843,7 @@ CONFIG_ARM_UNWIND=y
 #
 CONFIG_KEYS=y
 # CONFIG_KEYS_DEBUG_PROC_KEYS is not set
+# CONFIG_SECURITY is not set
 # CONFIG_SECURITYFS is not set
 # CONFIG_DEFAULT_SECURITY_SELINUX is not set
 # CONFIG_DEFAULT_SECURITY_SMACK is not set
