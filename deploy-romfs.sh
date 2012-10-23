@@ -6,8 +6,6 @@ rm -rf /nfsroot/*
 
 cp -r $ROOT/romfs/* /nfsroot/
 
-find $ROOT/user/mtd-utils/ubi-utils -executable -type f -not -name '*.gdb' | xargs -I {} cp {} /nfsroot/bin
-
 cp -r $ROOT/images /nfsroot/
 
 mkdir -p /tmp/uwic-image
