@@ -65,3 +65,4 @@ patches-*
 # cscope files
 cscope.*
 ncscope.*
+arm-uclinuxeabi
