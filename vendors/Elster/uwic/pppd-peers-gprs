@@ -1,0 +1,14 @@
+/dev/modem
+115200
+nobsdcomp
+nodeflate
+connect '/bin/chat -v -f /etc/ppp/chat/gprs'
+noauth
+noipdefault
+usepeerdns
+defaultroute
+#debug
+nodetach
+persist
+maxfail 0
+holdoff 10

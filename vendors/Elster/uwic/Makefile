@@ -38,6 +38,10 @@ romfs: linux_image
 	$(ROMFSINST) /etc/stunnel.conf
 	$(ROMFSINST) -p 600 /etc/stunnel.pem
 	$(ROMFSINST) $(LINUXUBOOTIMG) /boot/$(LINUXFILE)
+ifdef CONFIG_USER_PPPD_PPPD_PPPD
+	$(ROMFSINST) -d pppd-peers-gprs /etc/ppp/peers/gprs
+	$(ROMFSINST) -d pppd-chat-gprs /etc/ppp/chat/gprs
+endif
 
 modules.dep:
 ifdef CONFIG_MODULES
