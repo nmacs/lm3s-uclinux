@@ -52,12 +52,16 @@ endif
 # Uncomment the next line to enable multilink PPP (enabled by default)
 # Linux distributions: Please leave multilink ENABLED in your builds
 # of pppd!
+ifeq ($(CONFIG_USER_PPPD_WITH_MULTILINK),y)
 HAVE_MULTILINK=y
+endif
 
 # Uncomment the next line to enable the TDB database (enabled by default.)
 # If you enable multilink, then TDB is automatically enabled also.
 # Linux distributions: Please leave TDB ENABLED in your builds.
+ifeq ($(CONFIG_USER_PPPD_WITH_TDB),y)
 USE_TDB=y
+endif
 
 ifneq ($(CONFIG_USER_SHADOW_UTILS)$(USER_BUSYBOX_USE_BB_SHADOW),)
 HAS_SHADOW=y

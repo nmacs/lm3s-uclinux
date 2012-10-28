@@ -2335,22 +2335,11 @@ config USER_PPPD_WITH_RADIUS
 	help
 	  RADIUS authentication plugin for pppd.
 
-config USER_PPPD_WITH_PPPOE
-	bool "enable PPPOE"
-	depends on USER_PPPD_PPPD_PPPD
-	help
-	  Allow kernel mode PPPOE support.
-
 config USER_PPPD_WITH_PPPOA
 	bool "enable PPPOA"
 	depends on USER_PPPD_PPPD_PPPD
 	help
 	  Allow kernel mode PPPOATM support.
-
-config USER_PPPD_PPPOE_RETRIES
-	int "default number of PPPOE retries"
-	depends on USER_PPPD_WITH_PPPOE
-	default 6
 
 config USER_PPPD_NO_AT_REDIRECTION
 	bool "disable redirection of passwords starting with @"
@@ -2379,6 +2368,30 @@ config USER_PPPD_WITH_WINBIND
 	depends on USER_PPPD_PPPD_PPPD
 	help
 	  Enable support for the winbind plugin.
+
+config USER_PPPD_WITH_TDB
+	bool "enable TDB database"
+	depends on USER_PPPD_PPPD_PPPD
+	help
+	  Enable support for TDB database.
+
+config USER_PPPD_WITH_MULTILINK
+	bool "enable multilink"
+	depends on USER_PPPD_PPPD_PPPD
+	select USER_PPPD_WITH_TDB
+	help
+	  Enable support of the multilink.
+
+config USER_PPPD_WITH_PPPOE
+	bool "enable PPPOE"
+	depends on USER_PPPD_PPPD_PPPD
+	help
+	  Allow kernel mode PPPOE support.
+
+config USER_PPPD_PPPOE_RETRIES
+	int "default number of PPPOE retries"
+	depends on USER_PPPD_WITH_PPPOE
+	default 6
 
 config USER_PPTPD_PPTPCTRL
 	bool "pptpctrl"
