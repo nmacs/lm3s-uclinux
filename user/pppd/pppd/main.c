@@ -1599,7 +1599,7 @@ device_script(program, in, out, dont_wait)
 		close(in);
 	if (out != 1)
 		close(out);
-	if (errfd != 2)
+	if (errfd != 2 && errfd != 1)
 		close(errfd);
 
 	close(pipefd[0]);
@@ -1735,7 +1735,7 @@ run_program(prog, args, must_exist, done, arg, wait)
 #ifdef BSD
 	/* Force the priority back to zero if pppd is running higher. */
 	if (setpriority (PRIO_PROCESS, 0, 0) < 0)
-	    warn("can't reset priority to 0: %m"); 
+	    warn("can't reset priority to 0: %m");
 #endif
 
 	/* SysV recommends a second fork at this point. */
