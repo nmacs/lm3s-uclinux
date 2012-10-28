@@ -209,7 +209,11 @@ void Add_history(const char *string);
 #define Chmod(p,m) chmod(p,m)
 #define Poll(u, n, t) poll(u, n, t)
 #define Select(n,r,w,e,t) select(n,r,w,e,t)
-#define Fork() fork()
+#ifdef __uClinux__
+#  define Fork() vfork()
+#else
+#  define Fork() fork()
+#endif
 #define Waitpid(p,s,o) waitpid(p,s,o)
 #define Signal(s,h) signal(s,h)
 #define Sigaction(s,a,o) sigaction(s,a,o)

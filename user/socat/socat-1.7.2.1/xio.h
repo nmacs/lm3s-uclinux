@@ -9,6 +9,7 @@
 #include "mytypes.h"
 #include "sysutils.h"
 #endif
+#include "compat.h"
 
 #define XIO_MAXSOCK 2
 
