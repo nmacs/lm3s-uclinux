@@ -28,7 +28,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "libbb.h"
 
 /* Always sets uid and gid */
-int get_uidgid(struct bb_uidgid_t *u, const char *ug, int numeric_ok)
+int FAST_FUNC get_uidgid(struct bb_uidgid_t *u, const char *ug, int numeric_ok)
 {
 	struct passwd *pwd;
 	struct group *gr;
@@ -71,10 +71,16 @@ int get_uidgid(struct bb_uidgid_t *u, const char *ug, int numeric_ok)
 			}
 		}
 		gr = getgrnam(group);
-		if (!gr) return 0;
+		if (!gr)
+			return 0;
 		u->gid = gr->gr_gid;
 	}
 	return 1;
+}
+void FAST_FUNC xget_uidgid(struct bb_uidgid_t *u, const char *ug)
+{
+	if (!get_uidgid(u, ug, 1))
+		bb_error_msg_and_die("unknown user/group %s", ug);
 }
 
 /* chown-like:
@@ -82,14 +88,11 @@ int get_uidgid(struct bb_uidgid_t *u, const char *ug, int numeric_ok)
  * ":group" sets gid only
  * "user:" sets uid and gid (to user's primary group id)
  * "user:group" sets uid and gid
- * ('unset' uid or gid is actually set to -1)
+ * ('unset' uid or gid retains the value it has on entry)
  */
-void parse_chown_usergroup_or_die(struct bb_uidgid_t *u, char *user_group)
+void FAST_FUNC parse_chown_usergroup_or_die(struct bb_uidgid_t *u, char *user_group)
 {
 	char *group;
-
-	u->uid = -1;
-	u->gid = -1;
 
 	/* Check if there is a group name */
 	group = strchr(user_group, '.'); /* deprecated? */
@@ -106,8 +109,7 @@ void parse_chown_usergroup_or_die(struct bb_uidgid_t *u, char *user_group)
 	} else {
 		if (!group[1]) /* "user:" */
 			*group = '\0';
-		if (!get_uidgid(u, user_group, 1))
-			bb_error_msg_and_die("unknown user/group %s", user_group);
+		xget_uidgid(u, user_group);
 	}
 }
 

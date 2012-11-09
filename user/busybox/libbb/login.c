@@ -6,21 +6,21 @@
  *
  * Optimize and correcting OCRNL by Vladimir Oleynik <dzo@simtreas.ru>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
-#include <sys/param.h>  /* MAXHOSTNAMELEN */
-#include <sys/utsname.h>
 #include "libbb.h"
+/* After libbb.h, since it needs sys/types.h on some systems */
+#include <sys/utsname.h>
 
 #define LOGIN " login: "
 
 static const char fmtstr_d[] ALIGN1 = "%A, %d %B %Y";
 static const char fmtstr_t[] ALIGN1 = "%H:%M:%S";
 
-void print_login_issue(const char *issue_file, const char *tty)
+void FAST_FUNC print_login_issue(const char *issue_file, const char *tty)
 {
-	FILE *fd;
+	FILE *fp;
 	int c;
 	char buf[256+1];
 	const char *outbuf;
@@ -30,12 +30,12 @@ void print_login_issue(const char *issue_file, const char *tty)
 	time(&t);
 	uname(&uts);
 
-	puts("\r");	/* start a new line */
+	puts("\r");  /* start a new line */
 
-	fd = fopen(issue_file, "r");
-	if (!fd)
+	fp = fopen_for_read(issue_file);
+	if (!fp)
 		return;
-	while ((c = fgetc(fd)) != EOF) {
+	while ((c = fgetc(fp)) != EOF) {
 		outbuf = buf;
 		buf[0] = c;
 		buf[1] = '\0';
@@ -44,7 +44,7 @@ void print_login_issue(const char *issue_file, const char *tty)
 			buf[2] = '\0';
 		}
 		if (c == '\\' || c == '%') {
-			c = fgetc(fd);
+			c = fgetc(fp);
 			switch (c) {
 			case 's':
 				outbuf = uts.sysname;
@@ -62,11 +62,13 @@ void print_login_issue(const char *issue_file, const char *tty)
 			case 'm':
 				outbuf = uts.machine;
 				break;
+/* The field domainname of struct utsname is Linux specific. */
+#if defined(__linux__)
 			case 'D':
 			case 'o':
-				c = getdomainname(buf, sizeof(buf) - 1);
-				buf[c >= 0 ? c : 0] = '\0';
+				outbuf = uts.domainname;
 				break;
+#endif
 			case 'd':
 				strftime(buf, sizeof(buf), fmtstr_d, localtime(&t));
 				break;
@@ -82,17 +84,17 @@ void print_login_issue(const char *issue_file, const char *tty)
 		}
 		fputs(outbuf, stdout);
 	}
-	fclose(fd);
-	fflush(stdout);
+	fclose(fp);
+	fflush_all();
 }
 
-void print_login_prompt(void)
+void FAST_FUNC print_login_prompt(void)
 {
 	char *hostname = safe_gethostname();
-	
+
 	fputs(hostname, stdout);
 	fputs(LOGIN, stdout);
-	fflush(stdout);
+	fflush_all();
 	free(hostname);
 }
 
@@ -112,7 +114,7 @@ static const char forbid[] ALIGN1 =
 	"LD_NOWARN" "\0"
 	"LD_KEEPDIR" "\0";
 
-int sanitize_env_if_suid(void)
+int FAST_FUNC sanitize_env_if_suid(void)
 {
 	const char *p;
 

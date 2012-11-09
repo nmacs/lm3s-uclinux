@@ -4,10 +4,12 @@
  *
  * Copyright (C) 2003-2005  Vladimir Oleynik  <dzo@simtreas.ru>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
-#include <getopt.h>
+#if ENABLE_LONG_OPTS || ENABLE_FEATURE_GETOPT_LONG
+# include <getopt.h>
+#endif
 #include "libbb.h"
 
 /*      Documentation
@@ -72,14 +74,17 @@ getopt32(char **argv, const char *applet_opts, ...)
         env -i ls -d /
         Here we want env to process just the '-i', not the '-d'.
 
+ "!"    Report bad option, missing required options,
+        inconsistent options with all-ones return value (instead of abort).
+
 const char *applet_long_options
 
         This struct allows you to define long options:
 
         static const char applet_longopts[] ALIGN1 =
-		//"name\0" has_arg val
-		"verbose\0" No_argument "v"
-		;
+                //"name\0" has_arg val
+                "verbose\0" No_argument "v"
+                ;
         applet_long_options = applet_longopts;
 
         The last member of struct option (val) typically is set to
@@ -112,7 +117,7 @@ const char *opt_complementary
         found.
 
  "ww"   Adjacent double options have a counter associated which indicates
-        the number of occurences of the option.
+        the number of occurrences of the option.
         For example the ps applet needs:
         if w is given once, GNU ps sets the width to 132,
         if w is given more than once, it is "unlimited"
@@ -137,29 +142,37 @@ const char *opt_complementary
         opt_complementary = "vv:b::b-c:c-b";
         f = getopt32(argv, "vb:c", &my_b, &verbose_level);
         if (f & 2)       // -c after -b unsets -b flag
-                while (my_b) { dosomething_with(my_b->data); my_b = my_b->link; }
+                while (my_b) dosomething_with(llist_pop(&my_b));
         if (my_b)        // but llist is stored if -b is specified
                 free_llist(my_b);
         if (verbose_level) printf("verbose level is %d\n", verbose_level);
 
 Special characters:
 
- "-"    A dash as the first char in a opt_complementary group forces
-        all arguments to be treated as options, even if they have
-        no leading dashes. Next char in this case can't be a digit (0-9),
-        use ':' or end of line. For example:
+ "-"    A group consisting of just a dash forces all arguments
+        to be treated as options, even if they have no leading dashes.
+        Next char in this case can't be a digit (0-9), use ':' or end of line.
+        Example:
 
-        opt_complementary = "-:w-x:x-w";
-        getopt32(argv, "wx");
+        opt_complementary = "-:w-x:x-w"; // "-w-x:x-w" would also work,
+        getopt32(argv, "wx");            // but is less readable
 
-        Allows any arguments to be given without a dash (./program w x)
+        This makes it possible to use options without a dash (./program w x)
         as well as with a dash (./program -x).
+
+        NB: getopt32() will leak a small amount of memory if you use
+        this option! Do not use it if there is a possibility of recursive
+        getopt32() calls.
 
  "--"   A double dash at the beginning of opt_complementary means the
         argv[1] string should always be treated as options, even if it isn't
         prefixed with a "-".  This is useful for special syntax in applets
         such as "ar" and "tar":
         tar xvf foo.tar
+
+        NB: getopt32() will leak a small amount of memory if you use
+        this option! Do not use it if there is a possibility of recursive
+        getopt32() calls.
 
  "-N"   A dash as the first char in a opt_complementary group followed
         by a single digit (0-9) means that at least N non-option
@@ -174,7 +187,7 @@ Special characters:
         on the command line.
 
  "V-"   An option with dash before colon or end-of-line results in
-        bb_show_usage being called if this option is encountered.
+        bb_show_usage() being called if this option is encountered.
         This is typically used to implement "print verbose usage message
         and exit" option.
 
@@ -215,14 +228,14 @@ Special characters:
         if specified together.  In this case you must set
         opt_complementary = "b--cf:c--bf:f--bc".  If two of the
         mutually exclusive options are found, getopt32 will call
-	bb_show_usage() and die.
+        bb_show_usage() and die.
 
  "x--x" Variation of the above, it means that -x option should occur
         at most once.
 
  "a+"   A plus after a char in opt_complementary means that the parameter
         for this option is a nonnegative integer. It will be processed
-        with xatoi_u() - allowed range is 0..INT_MAX.
+        with xatoi_positive() - allowed range is 0..INT_MAX.
 
         int param;  // "unsigned param;" will also work
         opt_complementary = "p+";
@@ -303,7 +316,7 @@ typedef struct {
 } t_complementary;
 
 /* You can set applet_long_options for parse called long options */
-#if ENABLE_GETOPT_LONG
+#if ENABLE_LONG_OPTS || ENABLE_FEATURE_GETOPT_LONG
 static const struct option bb_null_long_options[1] = {
 	{ 0, 0, 0, 0 }
 };
@@ -312,33 +325,35 @@ const char *applet_long_options;
 
 uint32_t option_mask32;
 
-uint32_t
+uint32_t FAST_FUNC
 getopt32(char **argv, const char *applet_opts, ...)
 {
 	int argc;
 	unsigned flags = 0;
 	unsigned requires = 0;
-	t_complementary complementary[33];
+	t_complementary complementary[33]; /* last stays zero-filled */
+	char first_char;
 	int c;
 	const unsigned char *s;
 	t_complementary *on_off;
 	va_list p;
-#if ENABLE_GETOPT_LONG
+#if ENABLE_LONG_OPTS || ENABLE_FEATURE_GETOPT_LONG
 	const struct option *l_o;
 	struct option *long_options = (struct option *) &bb_null_long_options;
 #endif
 	unsigned trigger;
-	char **pargv = NULL;
+	char **pargv;
 	int min_arg = 0;
 	int max_arg = -1;
 
 #define SHOW_USAGE_IF_ERROR     1
 #define ALL_ARGV_IS_OPTS        2
 #define FIRST_ARGV_IS_OPT       4
-#define FREE_FIRST_ARGV_IS_OPT  8
+
 	int spec_flgs = 0;
 
-	argc = 0;
+	/* skip 0: some applets cheat: they do not actually HAVE argv[0] */
+	argc = 1;
 	while (argv[argc])
 		argc++;
 
@@ -347,6 +362,11 @@ getopt32(char **argv, const char *applet_opts, ...)
 	c = 0;
 	on_off = complementary;
 	memset(on_off, 0, sizeof(complementary));
+
+	/* skip bbox extension */
+	first_char = applet_opts[0];
+	if (first_char == '!')
+		applet_opts++;
 
 	/* skip GNU extension */
 	s = (const unsigned char *)applet_opts;
@@ -366,7 +386,7 @@ getopt32(char **argv, const char *applet_opts, ...)
 		c++;
 	}
 
-#if ENABLE_GETOPT_LONG
+#if ENABLE_LONG_OPTS || ENABLE_FEATURE_GETOPT_LONG
 	if (applet_long_options) {
 		const char *optstr;
 		unsigned i, count;
@@ -405,8 +425,12 @@ getopt32(char **argv, const char *applet_opts, ...)
 			c++;
  next_long: ;
 		}
+		/* Make it unnecessary to clear applet_long_options
+		 * by hand after each call to getopt32
+		 */
+		applet_long_options = NULL;
 	}
-#endif /* ENABLE_GETOPT_LONG */
+#endif /* ENABLE_LONG_OPTS || ENABLE_FEATURE_GETOPT_LONG */
 	for (s = (const unsigned char *)opt_complementary; s && *s; s++) {
 		t_complementary *pair;
 		unsigned *pair_switch;
@@ -443,13 +467,17 @@ getopt32(char **argv, const char *applet_opts, ...)
 		}
 		for (on_off = complementary; on_off->opt_char; on_off++)
 			if (on_off->opt_char == *s)
-				break;
+				goto found_opt;
+		/* Without this, diagnostic of such bugs is not easy */
+		bb_error_msg_and_die("NO OPT %c!", *s);
+ found_opt:
 		if (c == ':' && s[2] == ':') {
 			on_off->param_type = PARAM_LIST;
 			continue;
 		}
 		if (c == '+' && (s[2] == ':' || s[2] == '\0')) {
 			on_off->param_type = PARAM_INT;
+			s++;
 			continue;
 		}
 		if (c == ':' || c == '\0') {
@@ -467,15 +495,15 @@ getopt32(char **argv, const char *applet_opts, ...)
 			s++;
 		}
 		pair = on_off;
-		pair_switch = &(pair->switch_on);
+		pair_switch = &pair->switch_on;
 		for (s++; *s && *s != ':'; s++) {
 			if (*s == '?') {
-				pair_switch = &(pair->requires);
+				pair_switch = &pair->requires;
 			} else if (*s == '-') {
-				if (pair_switch == &(pair->switch_off))
-					pair_switch = &(pair->incongruously);
+				if (pair_switch == &pair->switch_off)
+					pair_switch = &pair->incongruously;
 				else
-					pair_switch = &(pair->switch_off);
+					pair_switch = &pair->switch_off;
 			} else {
 				for (on_off = complementary; on_off->opt_char; on_off++)
 					if (on_off->opt_char == *s) {
@@ -486,30 +514,31 @@ getopt32(char **argv, const char *applet_opts, ...)
 		}
 		s--;
 	}
+	opt_complementary = NULL;
 	va_end(p);
 
-	if (spec_flgs & FIRST_ARGV_IS_OPT) {
-		if (argv[1] && argv[1][0] != '-' && argv[1][0] != '\0') {
-			argv[1] = xasprintf("-%s", argv[1]);
-			if (ENABLE_FEATURE_CLEAN_UP)
-				spec_flgs |= FREE_FIRST_ARGV_IS_OPT;
+	if (spec_flgs & (FIRST_ARGV_IS_OPT | ALL_ARGV_IS_OPTS)) {
+		pargv = argv + 1;
+		while (*pargv) {
+			if (pargv[0][0] != '-' && pargv[0][0] != '\0') {
+				/* Can't use alloca: opts with params will
+				 * return pointers to stack!
+				 * NB: we leak these allocations... */
+				char *pp = xmalloc(strlen(*pargv) + 2);
+				*pp = '-';
+				strcpy(pp + 1, *pargv);
+				*pargv = pp;
+			}
+			if (!(spec_flgs & ALL_ARGV_IS_OPTS))
+				break;
+			pargv++;
 		}
 	}
 
 	/* In case getopt32 was already called:
 	 * reset the libc getopt() function, which keeps internal state.
-	 *
-	 * BSD-derived getopt() functions require that optind be set to 1 in
-	 * order to reset getopt() state.  This used to be generally accepted
-	 * way of resetting getopt().  However, glibc's getopt()
-	 * has additional getopt() state beyond optind, and requires that
-	 * optind be set to zero to reset its state.  So the unfortunate state of
-	 * affairs is that BSD-derived versions of getopt() misbehave if
-	 * optind is set to 0 in order to reset getopt(), and glibc's getopt()
-	 * will core dump if optind is set 1 in order to reset getopt().
-	 *
-	 * More modern versions of BSD require that optreset be set to 1 in
-	 * order to reset getopt().   Sigh.  Standards, anyone?
+	 * run_nofork_applet() does this, but we might end up here
+	 * also via gunzip_main() -> gzip_main(). Play safe.
 	 */
 #ifdef __GLIBC__
 	optind = 0;
@@ -523,72 +552,64 @@ getopt32(char **argv, const char *applet_opts, ...)
 	 * "fake" short options, like this one:
 	 * wget $'-\203' "Test: test" http://kernel.org/
 	 * (supposed to act as --header, but doesn't) */
-#if ENABLE_GETOPT_LONG
+#if ENABLE_LONG_OPTS || ENABLE_FEATURE_GETOPT_LONG
 	while ((c = getopt_long(argc, argv, applet_opts,
 			long_options, NULL)) != -1) {
 #else
 	while ((c = getopt(argc, argv, applet_opts)) != -1) {
 #endif
+		/* getopt prints "option requires an argument -- X"
+		 * and returns '?' if an option has no arg, but one is reqd */
 		c &= 0xff; /* fight libc's sign extension */
- loop_arg_is_opt:
 		for (on_off = complementary; on_off->opt_char != c; on_off++) {
-			/* c==0 if long opt have non NULL flag */
-			if (on_off->opt_char == '\0' && c != '\0')
-				bb_show_usage();
+			/* c can be NUL if long opt has non-NULL ->flag,
+			 * but we construct long opts so that flag
+			 * is always NULL (see above) */
+			if (on_off->opt_char == '\0' /* && c != '\0' */) {
+				/* c is probably '?' - "bad option" */
+				goto error;
+			}
 		}
 		if (flags & on_off->incongruously)
-			bb_show_usage();
+			goto error;
 		trigger = on_off->switch_on & on_off->switch_off;
 		flags &= ~(on_off->switch_off ^ trigger);
 		flags |= on_off->switch_on ^ trigger;
 		flags ^= trigger;
 		if (on_off->counter)
 			(*(on_off->counter))++;
-		if (on_off->param_type == PARAM_LIST) {
-			if (optarg)
+		if (optarg) {
+			if (on_off->param_type == PARAM_LIST) {
 				llist_add_to_end((llist_t **)(on_off->optarg), optarg);
-		} else if (on_off->param_type == PARAM_INT) {
-			if (optarg)
-				*(unsigned*)(on_off->optarg) = xatoi_u(optarg);
-		} else if (on_off->optarg) {
-			if (optarg)
+			} else if (on_off->param_type == PARAM_INT) {
+//TODO: xatoi_positive indirectly pulls in printf machinery
+				*(unsigned*)(on_off->optarg) = xatoi_positive(optarg);
+			} else if (on_off->optarg) {
 				*(char **)(on_off->optarg) = optarg;
-		}
-		if (pargv != NULL)
-			break;
-	}
-
-	if (spec_flgs & ALL_ARGV_IS_OPTS) {
-		/* process argv is option, for example "ps" applet */
-		if (pargv == NULL)
-			pargv = argv + optind;
-		while (*pargv) {
-			c = **pargv;
-			if (c == '\0') {
-				pargv++;
-			} else {
-				(*pargv)++;
-				goto loop_arg_is_opt;
 			}
 		}
 	}
 
-#if (ENABLE_AR || ENABLE_TAR) && ENABLE_FEATURE_CLEAN_UP
-	if (spec_flgs & FREE_FIRST_ARGV_IS_OPT)
-		free(argv[1]);
-#endif
 	/* check depending requires for given options */
 	for (on_off = complementary; on_off->opt_char; on_off++) {
-		if (on_off->requires && (flags & on_off->switch_on) &&
-					(flags & on_off->requires) == 0)
-			bb_show_usage();
+		if (on_off->requires
+		 && (flags & on_off->switch_on)
+		 && (flags & on_off->requires) == 0
+		) {
+			goto error;
+		}
 	}
 	if (requires && (flags & requires) == 0)
-		bb_show_usage();
+		goto error;
 	argc -= optind;
 	if (argc < min_arg || (max_arg >= 0 && argc > max_arg))
-		bb_show_usage();
+		goto error;
 
 	option_mask32 = flags;
 	return flags;
+
+ error:
+	if (first_char != '!')
+		bb_show_usage();
+	return (int32_t)-1;
 }

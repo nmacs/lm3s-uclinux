@@ -6,6 +6,7 @@ help:
 	@echo 'Cleaning:'
 	@echo '  clean			- delete temporary files created by build'
 	@echo '  distclean		- delete all non-source files (including .config)'
+	@echo '  doc-clean		- delete all generated documentation'
 	@echo
 	@echo 'Build:'
 	@echo '  all			- Executable and documentation'
@@ -24,6 +25,10 @@ help:
 	@echo '  			  You can use these commands if the commands on the host'
 	@echo '  			  is unusable. Afterwards use it like:'
 	@echo '  			  make SED="$(objtree)/sed"'
+	@$(if $(boards), \
+		$(foreach b, $(boards), \
+		printf "  %-21s - Build for %s\\n" $(b) $(subst _defconfig,,$(b));) \
+		echo '')
 	@echo
 	@echo 'Installation:'
 	@echo '  install		- install busybox into CONFIG_PREFIX'

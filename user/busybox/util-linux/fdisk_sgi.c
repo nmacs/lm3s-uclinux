@@ -1,12 +1,12 @@
+/*
+ * Copyright (C) Andreas Neuper, Sep 1998.
+ *
+ * Licensed under GPLv2, see file LICENSE in this source tree.
+ */
+
 #if ENABLE_FEATURE_SGI_LABEL
 
 #define SGI_DEBUG 0
-
-/*
- * Copyright (C) Andreas Neuper, Sep 1998.
- *      This file may be modified and redistributed under
- *      the terms of the GNU Public License.
- */
 
 #define SGI_VOLHDR      0x00
 /* 1 and 2 were used for drive types no longer supported by SGI */
@@ -36,7 +36,7 @@ struct device_parameter { /* 48 bytes */
 	unsigned short nsect;   /* sectors/tracks in cyl 0 or vol 0 */
 	unsigned short bytes;
 	unsigned short ilfact;
-	unsigned int   flags;           /* controller flags */
+	unsigned int   flags;   /* controller flags */
 	unsigned int   datarate;
 	unsigned int   retries_on_error;
 	unsigned int   ms_per_word;
@@ -70,7 +70,7 @@ typedef struct {
 		unsigned int  vol_file_start;   /* number of logical block */
 		unsigned int  vol_file_size;    /* number of bytes */
 	} directory[15];
-	struct sgi_partinfo {                  /* 16 * 12 bytes */
+	struct sgi_partinfo {                   /* 16 * 12 bytes */
 		unsigned int num_sectors;       /* number of blocks */
 		unsigned int start_sector;      /* must be cylinder aligned */
 		unsigned int id;
@@ -235,7 +235,7 @@ check_sgi_label(void)
 	if (sgilabel->magic != SGI_LABEL_MAGIC
 	 && sgilabel->magic != SGI_LABEL_MAGIC_SWAPPED
 	) {
-		current_label_type = label_dos;
+		current_label_type = LABEL_DOS;
 		return 0;
 	}
 
@@ -248,7 +248,7 @@ check_sgi_label(void)
 		printf("Detected sgi disklabel with wrong checksum\n");
 	}
 	update_units();
-	current_label_type = label_sgi;
+	current_label_type = LABEL_SGI;
 	g_partitions = 16;
 	sgi_volumes = 15;
 	return 1;
@@ -291,11 +291,11 @@ sgi_list_table(int xtra)
 	int kpi = 0;                /* kernel partition ID */
 
 	if (xtra) {
-		printf("\nDisk %s (SGI disk label): %d heads, %d sectors\n"
-			"%d cylinders, %d physical cylinders\n"
-			"%d extra sects/cyl, interleave %d:1\n"
+		printf("\nDisk %s (SGI disk label): %u heads, %u sectors\n"
+			"%u cylinders, %u physical cylinders\n"
+			"%u extra sects/cyl, interleave %u:1\n"
 			"%s\n"
-			"Units = %s of %d * 512 bytes\n\n",
+			"Units = %s of %u * 512 bytes\n\n",
 			disk_device, g_heads, g_sectors, g_cylinders,
 			SGI_SSWAP16(sgiparam.pcylcount),
 			SGI_SSWAP16(sgiparam.sparecyl),
@@ -304,8 +304,8 @@ sgi_list_table(int xtra)
 			str_units(PLURAL), units_per_sector);
 	} else {
 		printf("\nDisk %s (SGI disk label): "
-			"%d heads, %d sectors, %d cylinders\n"
-			"Units = %s of %d * 512 bytes\n\n",
+			"%u heads, %u sectors, %u cylinders\n"
+			"Units = %s of %u * 512 bytes\n\n",
 			disk_device, g_heads, g_sectors, g_cylinders,
 			str_units(PLURAL), units_per_sector );
 	}
@@ -324,7 +324,7 @@ sgi_list_table(int xtra)
 			uint32_t len = sgi_get_num_sectors(i);
 			kpi++;              /* only count nonempty partitions */
 			printf(
-			"%2d: %s %4s %9ld %9ld %9ld  %2x  %s\n",
+			"%2u: %s %4s %9lu %9lu %9lu  %2x  %s\n",
 /* fdisk part number */	i+1,
 /* device */            partname(disk_device, kpi, w+3),
 /* flags */             (sgi_get_swappartition() == i) ? "swap" :
@@ -345,7 +345,7 @@ sgi_list_table(int xtra)
 			uint32_t len = SGI_SSWAP32(sgilabel->directory[i].vol_file_size);
 			unsigned char *name = sgilabel->directory[i].vol_file_name;
 
-			printf("%2d: %-10s sector%5u size%8u\n",
+			printf("%2u: %-10s sector%5u size%8u\n",
 				i, (char*)name, (unsigned int) start, (unsigned int) len);
 		}
 	}
@@ -439,10 +439,7 @@ sgi_write_table(void)
 	assert(two_s_complement_32bit_sum(
 		(unsigned int*)sgilabel, sizeof(*sgilabel)) == 0);
 
-	if (lseek(fd, 0, SEEK_SET) < 0)
-		fdisk_fatal(unable_to_seek);
-	if (write(fd, sgilabel, SECTOR_SIZE) != SECTOR_SIZE)
-		fdisk_fatal(unable_to_write);
+	write_sector(0, sgilabel);
 	if (!strncmp((char*)sgilabel->directory[0].vol_file_name, "sgilabel", 8)) {
 		/*
 		 * keep this habit of first writing the "sgilabel".
@@ -450,10 +447,7 @@ sgi_write_table(void)
 		 */
 		sgiinfo *info = fill_sgiinfo();
 		int infostartblock = SGI_SSWAP32(sgilabel->directory[0].vol_file_start);
-		if (lseek(fd, infostartblock*SECTOR_SIZE, SEEK_SET) < 0)
-			fdisk_fatal(unable_to_seek);
-		if (write(fd, info, SECTOR_SIZE) != SECTOR_SIZE)
-			fdisk_fatal(unable_to_write);
+		write_sector(infostartblock, info);
 		free(info);
 	}
 }
@@ -513,19 +507,19 @@ verify_sgi(int verbose)
 		if ((sgi_get_start_sector(Index[0]) != 0) && verbose)
 			printf("The entire disk partition should start "
 				"at block 0,\n"
-				"not at diskblock %d\n",
+				"not at diskblock %u\n",
 				sgi_get_start_sector(Index[0]));
 		if (SGI_DEBUG)      /* I do not understand how some disks fulfil it */
 			if ((sgi_get_num_sectors(Index[0]) != lastblock) && verbose)
-				printf("The entire disk partition is only %d diskblock large,\n"
-					"but the disk is %d diskblocks long\n",
+				printf("The entire disk partition is only %u diskblock large,\n"
+					"but the disk is %u diskblocks long\n",
 					sgi_get_num_sectors(Index[0]), lastblock);
 			lastblock = sgi_get_num_sectors(Index[0]);
 	} else {
 		if (verbose)
 			printf("One Partition (#11) should cover the entire disk\n");
 		if (SGI_DEBUG > 2)
-			printf("sysid=%d\tpartition=%d\n",
+			printf("sysid=%u\tpartition=%u\n",
 				sgi_get_sysid(Index[0]), Index[0]+1);
 	}
 	for (i = 1, start = 0; i < sortcount; i++) {
@@ -534,20 +528,20 @@ verify_sgi(int verbose)
 		if ((sgi_get_start_sector(Index[i]) % cylsize) != 0) {
 			if (SGI_DEBUG)      /* I do not understand how some disks fulfil it */
 				if (verbose)
-					printf("Partition %d does not start on cylinder boundary\n",
+					printf("Partition %u does not start on cylinder boundary\n",
 						Index[i]+1);
 		}
 		if (sgi_get_num_sectors(Index[i]) % cylsize != 0) {
 			if (SGI_DEBUG)      /* I do not understand how some disks fulfil it */
 				if (verbose)
-					printf("Partition %d does not end on cylinder boundary\n",
+					printf("Partition %u does not end on cylinder boundary\n",
 						Index[i]+1);
 		}
 		/* We cannot handle several "entire disk" entries. */
 		if (sgi_get_sysid(Index[i]) == SGI_ENTIRE_DISK) continue;
 		if (start > sgi_get_start_sector(Index[i])) {
 			if (verbose)
-				printf("Partitions %d and %d overlap by %d sectors\n",
+				printf("Partitions %u and %u overlap by %u sectors\n",
 					Index[i-1]+1, Index[i]+1,
 					start - sgi_get_start_sector(Index[i]));
 			if (gap > 0) gap = -gap;
@@ -555,7 +549,7 @@ verify_sgi(int verbose)
 		}
 		if (start < sgi_get_start_sector(Index[i])) {
 			if (verbose)
-				printf("Unused gap of %8u sectors - sectors %8u-%8u\n",
+				printf("Unused gap of %u sectors - sectors %u-%u\n",
 					sgi_get_start_sector(Index[i]) - start,
 					start, sgi_get_start_sector(Index[i])-1);
 			gap += sgi_get_start_sector(Index[i]) - start;
@@ -565,7 +559,7 @@ verify_sgi(int verbose)
 			   + sgi_get_num_sectors(Index[i]);
 		if (SGI_DEBUG > 1) {
 			if (verbose)
-				printf("%2d:%12d\t%12d\t%12d\n", Index[i],
+				printf("%2u:%12u\t%12u\t%12u\n", Index[i],
 					sgi_get_start_sector(Index[i]),
 					sgi_get_num_sectors(Index[i]),
 					sgi_get_sysid(Index[i]));
@@ -573,7 +567,7 @@ verify_sgi(int verbose)
 	}
 	if (start < lastblock) {
 		if (verbose)
-			printf("Unused gap of %8u sectors - sectors %8u-%8u\n",
+			printf("Unused gap of %u sectors - sectors %u-%u\n",
 				lastblock - start, start, lastblock-1);
 		gap += lastblock - start;
 		add2freelist(start, lastblock);
@@ -782,8 +776,8 @@ create_sgilabel(void)
 	printf(msg_building_new_label, "SGI disklabel");
 
 	sgi_other_endian = BB_LITTLE_ENDIAN;
-	res = ioctl(fd, BLKGETSIZE, &longsectors);
-	if (!ioctl(fd, HDIO_GETGEO, &geometry)) {
+	res = ioctl(dev_fd, BLKGETSIZE, &longsectors);
+	if (!ioctl(dev_fd, HDIO_GETGEO, &geometry)) {
 		g_heads = geometry.heads;
 		g_sectors = geometry.sectors;
 		if (res == 0) {
@@ -794,7 +788,7 @@ create_sgilabel(void)
 			/* otherwise print error and use truncated version */
 			g_cylinders = geometry.cylinders;
 			printf(
-"Warning: BLKGETSIZE ioctl failed on %s.  Using geometry cylinder value of %d.\n"
+"Warning: BLKGETSIZE ioctl failed on %s.  Using geometry cylinder value of %u.\n"
 "This value may be truncated for devices > 33.8 GB.\n", disk_device, g_cylinders);
 		}
 	}
@@ -805,9 +799,9 @@ create_sgilabel(void)
 				old[i].sysid = get_part_table(i)->sys_ind;
 				old[i].start = get_start_sect(get_part_table(i));
 				old[i].nsect = get_nr_sects(get_part_table(i));
-				printf("Trying to keep parameters of partition %d\n", i);
+				printf("Trying to keep parameters of partition %u\n", i);
 				if (SGI_DEBUG)
-					printf("ID=%02x\tSTART=%d\tLENGTH=%d\n",
+					printf("ID=%02x\tSTART=%u\tLENGTH=%u\n",
 				old[i].sysid, old[i].start, old[i].nsect);
 			}
 		}
@@ -851,7 +845,7 @@ create_sgilabel(void)
 	//sgilabel->devparam.xylogics_writecont       = SGI_SSWAP16(0);
 	//memset( &(sgilabel->directory), 0, sizeof(struct volume_directory)*15 );
 	//memset( &(sgilabel->partitions), 0, sizeof(struct sgi_partinfo)*16 );
-	current_label_type = label_sgi;
+	current_label_type = LABEL_SGI;
 	g_partitions = 16;
 	sgi_volumes = 15;
 	sgi_set_entire();

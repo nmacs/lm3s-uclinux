@@ -13,6 +13,24 @@
  * modified for getopt32 by Arne Bernin <arne [at] alamut.de>
  */
 
+//usage:#define arp_trivial_usage
+//usage:     "\n[-vn]	[-H HWTYPE] [-i IF] -a [HOSTNAME]"
+//usage:     "\n[-v]		    [-i IF] -d HOSTNAME [pub]"
+//usage:     "\n[-v]	[-H HWTYPE] [-i IF] -s HOSTNAME HWADDR [temp]"
+//usage:     "\n[-v]	[-H HWTYPE] [-i IF] -s HOSTNAME HWADDR [netmask MASK] pub"
+//usage:     "\n[-v]	[-H HWTYPE] [-i IF] -Ds HOSTNAME IFACE [netmask MASK] pub"
+//usage:#define arp_full_usage "\n\n"
+//usage:       "Manipulate ARP cache\n"
+//usage:       "\n	-a		Display (all) hosts"
+//usage:       "\n	-s		Set new ARP entry"
+//usage:       "\n	-d		Delete a specified entry"
+//usage:       "\n	-v		Verbose"
+//usage:       "\n	-n		Don't resolve names"
+//usage:       "\n	-i IF		Network interface"
+//usage:       "\n	-D		Read <hwaddr> from given device"
+//usage:       "\n	-A,-p AF	Protocol family"
+//usage:       "\n	-H HWTYPE	Hardware address type"
+
 #include "libbb.h"
 #include "inet_common.h"
 
@@ -27,24 +45,40 @@
 #define DFLT_AF "inet"
 #define DFLT_HW "ether"
 
-#define	ARP_OPT_A (0x1)
-#define	ARP_OPT_p (0x2)
-#define	ARP_OPT_H (0x4)
-#define	ARP_OPT_t (0x8)
-#define	ARP_OPT_i (0x10)
-#define	ARP_OPT_a (0x20)
-#define	ARP_OPT_d (0x40)
-#define	ARP_OPT_n (0x80)	/* do not resolve addresses     */
-#define	ARP_OPT_D (0x100)	/* HW-address is devicename     */
-#define	ARP_OPT_s (0x200)
-#define	ARP_OPT_v (0x400 * DEBUG)	/* debugging output flag        */
+enum {
+	ARP_OPT_A = (1 << 0),
+	ARP_OPT_p = (1 << 1),
+	ARP_OPT_H = (1 << 2),
+	ARP_OPT_t = (1 << 3),
+	ARP_OPT_i = (1 << 4),
+	ARP_OPT_a = (1 << 5),
+	ARP_OPT_d = (1 << 6),
+	ARP_OPT_n = (1 << 7), /* do not resolve addresses */
+	ARP_OPT_D = (1 << 8), /* HW-address is devicename */
+	ARP_OPT_s = (1 << 9),
+	ARP_OPT_v = (1 << 10) * DEBUG, /* debugging output flag */
+};
 
+enum {
+	sockfd = 3, /* active socket descriptor */
+};
 
-static const struct aftype *ap; /* current address family       */
-static const struct hwtype *hw; /* current hardware type        */
-static int sockfd;              /* active socket descriptor     */
-static smallint hw_set;         /* flag if hw-type was set (-H) */
-static const char *device = ""; /* current device               */
+struct globals {
+	const struct aftype *ap; /* current address family */
+	const struct hwtype *hw; /* current hardware type */
+	const char *device;      /* current device */
+	smallint hw_set;         /* flag if hw-type was set (-H) */
+
+} FIX_ALIASING;
+#define G (*(struct globals*)&bb_common_bufsiz1)
+#define ap         (G.ap        )
+#define hw         (G.hw        )
+#define device     (G.device    )
+#define hw_set     (G.hw_set    )
+#define INIT_G() do { \
+	device = ""; \
+} while (0)
+
 
 static const char options[] ALIGN1 =
 	"pub\0"
@@ -200,7 +234,7 @@ static void arp_getdevhw(char *ifname, struct sockaddr *sa,
 		}
 		bb_error_msg("device '%s' has HW address %s '%s'",
 					 ifname, xhw->name,
-					 xhw->print((char *) &ifr.ifr_hwaddr.sa_data));
+					 xhw->print((unsigned char *) &ifr.ifr_hwaddr.sa_data));
 	}
 }
 
@@ -313,6 +347,26 @@ static void
 arp_disp(const char *name, char *ip, int type, int arp_flags,
 		 char *hwa, char *mask, char *dev)
 {
+	static const int arp_masks[] = {
+		ATF_PERM, ATF_PUBL,
+#ifdef HAVE_ATF_MAGIC
+		ATF_MAGIC,
+#endif
+#ifdef HAVE_ATF_DONTPUB
+		ATF_DONTPUB,
+#endif
+		ATF_USETRAILERS,
+	};
+	static const char arp_labels[] ALIGN1 = "PERM\0""PUP\0"
+#ifdef HAVE_ATF_MAGIC
+		"AUTO\0"
+#endif
+#ifdef HAVE_ATF_DONTPUB
+		"DONTPUB\0"
+#endif
+		"TRAIL\0"
+	;
+
 	const struct hwtype *xhw;
 
 	xhw = get_hwntype(type);
@@ -333,22 +387,8 @@ arp_disp(const char *name, char *ip, int type, int arp_flags,
 	if (arp_flags & ATF_NETMASK)
 		printf("netmask %s ", mask);
 
-	if (arp_flags & ATF_PERM)
-		printf("PERM ");
-	if (arp_flags & ATF_PUBL)
-		printf("PUP ");
-#ifdef HAVE_ATF_MAGIC
-	if (arp_flags & ATF_MAGIC)
-		printf("AUTO ");
-#endif
-#ifdef HAVE_ATF_DONTPUB
-	if (arp_flags & ATF_DONTPUB)
-		printf("DONTPUB ");
-#endif
-	if (arp_flags & ATF_USETRAILERS)
-		printf("TRAIL ");
-
-	printf("on %s\n", dev);
+	print_flags_separated(arp_masks, arp_labels, arp_flags, " ");
+	printf(" on %s\n", dev);
 }
 
 /* Display the contents of the ARP cache in the kernel. */
@@ -376,7 +416,7 @@ static int arp_show(char *name)
 		}
 		host = xstrdup(ap->sprint(&sa, 1));
 	}
-	fp = xfopen("/proc/net/arp", "r");
+	fp = xfopen_for_read("/proc/net/arp");
 	/* Bypass header -- read one line */
 	fgets(line, sizeof(line), fp);
 
@@ -435,31 +475,34 @@ static int arp_show(char *name)
 }
 
 int arp_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int arp_main(int argc ATTRIBUTE_UNUSED, char **argv)
+int arp_main(int argc UNUSED_PARAM, char **argv)
 {
-	char *hw_type;
-	char *protocol;
+	const char *hw_type = "ether";
+	const char *protocol;
+	unsigned opts;
 
-	/* Initialize variables... */
+	INIT_G();
+
+	xmove_fd(xsocket(AF_INET, SOCK_DGRAM, 0), sockfd);
 	ap = get_aftype(DFLT_AF);
 	if (!ap)
 		bb_error_msg_and_die("%s: %s not supported", DFLT_AF, "address family");
 
-	getopt32(argv, "A:p:H:t:i:adnDsv", &protocol, &protocol,
+	opts = getopt32(argv, "A:p:H:t:i:adnDsv", &protocol, &protocol,
 				 &hw_type, &hw_type, &device);
 	argv += optind;
-	if (option_mask32 & ARP_OPT_A || option_mask32 & ARP_OPT_p) {
+	if (opts & (ARP_OPT_A | ARP_OPT_p)) {
 		ap = get_aftype(protocol);
 		if (ap == NULL)
 			bb_error_msg_and_die("%s: unknown %s", protocol, "address family");
 	}
-	if (option_mask32 & ARP_OPT_A || option_mask32 & ARP_OPT_p) {
+	if (opts & (ARP_OPT_A | ARP_OPT_p)) {
 		hw = get_hwtype(hw_type);
 		if (hw == NULL)
 			bb_error_msg_and_die("%s: unknown %s", hw_type, "hardware type");
 		hw_set = 1;
 	}
-	//if (option_mask32 & ARP_OPT_i)... -i
+	//if (opts & ARP_OPT_i)... -i
 
 	if (ap->af != AF_INET) {
 		bb_error_msg_and_die("%s: kernel only supports 'inet'", ap->name);
@@ -476,16 +519,15 @@ int arp_main(int argc ATTRIBUTE_UNUSED, char **argv)
 		bb_error_msg_and_die("%s: %s without ARP support",
 							 hw->name, "hardware type");
 	}
-	sockfd = xsocket(AF_INET, SOCK_DGRAM, 0);
 
 	/* Now see what we have to do here... */
-	if (option_mask32 & (ARP_OPT_d|ARP_OPT_s)) {
+	if (opts & (ARP_OPT_d | ARP_OPT_s)) {
 		if (argv[0] == NULL)
 			bb_error_msg_and_die("need host name");
-		if (option_mask32 & ARP_OPT_s)
+		if (opts & ARP_OPT_s)
 			return arp_set(argv);
 		return arp_del(argv);
 	}
-	//if (option_mask32 & ARP_OPT_a) - default
+	//if (opts & ARP_OPT_a) - default
 	return arp_show(argv[0]);
 }

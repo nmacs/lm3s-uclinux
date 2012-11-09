@@ -4,37 +4,27 @@
  *
  * Copyright (C) 1999-2004 by Erik Andersen <andersen@codepoet.org>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
+//usage:#define logger_trivial_usage
+//usage:       "[OPTIONS] [MESSAGE]"
+//usage:#define logger_full_usage "\n\n"
+//usage:       "Write MESSAGE (or stdin) to syslog\n"
+//usage:     "\n	-s	Log to stderr as well as the system log"
+//usage:     "\n	-t TAG	Log using the specified tag (defaults to user name)"
+//usage:     "\n	-p PRIO	Priority (numeric or facility.level pair)"
+//usage:
+//usage:#define logger_example_usage
+//usage:       "$ logger \"hello\"\n"
+
+/*
+ * Done in syslogd_and_logger.c:
 #include "libbb.h"
-#ifndef CONFIG_SYSLOGD
 #define SYSLOG_NAMES
 #define SYSLOG_NAMES_CONST
 #include <syslog.h>
-#else
-/* brokenness alert. Everybody except dietlibc get's this wrong by neither
- * providing a typedef nor an extern for facilitynames and prioritynames
- * in syslog.h.
- */
-# include <syslog.h>
-# ifndef __dietlibc__
-/* We have to do this since the header file does neither provide a sane type
- * for this structure nor extern definitions.  Argh.... bad libc, bad, bad...
- */
-typedef struct _code {
-	char *c_name; /* FIXME: this should be const char *const c_name ! */
-	int c_val;
-} CODE;
-#  ifdef __UCLIBC__
-extern const CODE prioritynames[];
-extern const CODE facilitynames[];
-#  else
-extern CODE prioritynames[];
-extern CODE facilitynames[];
-#  endif
-# endif
-#endif
+*/
 
 /* Decode a symbolic name to a numeric value
  * this function is based on code
@@ -87,33 +77,31 @@ static int pencode(char *s)
 	return ((lev & LOG_PRIMASK) | (fac & LOG_FACMASK));
 }
 
+#define strbuf bb_common_bufsiz1
 
 int logger_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int logger_main(int argc, char **argv)
+int logger_main(int argc UNUSED_PARAM, char **argv)
 {
 	char *str_p, *str_t;
+	int opt;
 	int i = 0;
-	char name[80];
 
 	/* Fill out the name string early (may be overwritten later) */
-	bb_getpwuid(name, sizeof(name), geteuid());
-	str_t = name;
+	str_t = uid2uname_utoa(geteuid());
 
 	/* Parse any options */
-	getopt32(argv, "p:st:", &str_p, &str_t);
+	opt = getopt32(argv, "p:st:", &str_p, &str_t);
 
-	if (option_mask32 & 0x2) /* -s */
+	if (opt & 0x2) /* -s */
 		i |= LOG_PERROR;
-	//if (option_mask32 & 0x4) /* -t */
+	//if (opt & 0x4) /* -t */
 	openlog(str_t, i, 0);
 	i = LOG_USER | LOG_NOTICE;
-	if (option_mask32 & 0x1) /* -p */
+	if (opt & 0x1) /* -p */
 		i = pencode(str_p);
 
-	argc -= optind;
 	argv += optind;
-	if (!argc) {
-#define strbuf bb_common_bufsiz1
+	if (!argv[0]) {
 		while (fgets(strbuf, COMMON_BUFSIZE, stdin)) {
 			if (strbuf[0]
 			 && NOT_LONE_CHAR(strbuf, '\n')
@@ -139,10 +127,12 @@ int logger_main(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 
+/* Clean up. Needed because we are included from syslogd_and_logger.c */
+#undef strbuf
 
 /*-
  * Copyright (c) 1983, 1993
- *	The Regents of the University of California.  All rights reserved.
+ * The Regents of the University of California.  All rights reserved.
  *
  * This is the original license statement for the decode and pencode functions.
  *
@@ -155,8 +145,8 @@ int logger_main(int argc, char **argv)
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * 3. <BSD Advertising Clause omitted per the July 22, 1999 licensing change
- *		ftp://ftp.cs.berkeley.edu/pub/4bsd/README.Impt.License.Change>
+ * 3. BSD Advertising Clause omitted per the July 22, 1999 licensing change
+ *    ftp://ftp.cs.berkeley.edu/pub/4bsd/README.Impt.License.Change
  *
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software

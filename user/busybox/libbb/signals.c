@@ -6,25 +6,33 @@
  * Copyright (C) 2006 Rob Landley
  * Copyright (C) 2006 Denys Vlasenko
  *
- * Licensed under GPL version 2, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
 
+/* All known arches use small ints for signals */
+smallint bb_got_signal;
+
+void record_signo(int signo)
+{
+	bb_got_signal = signo;
+}
+
 /* Saves 2 bytes on x86! Oh my... */
-int sigaction_set(int signum, const struct sigaction *act)
+int FAST_FUNC sigaction_set(int signum, const struct sigaction *act)
 {
 	return sigaction(signum, act, NULL);
 }
 
-int sigprocmask_allsigs(int how)
+int FAST_FUNC sigprocmask_allsigs(int how)
 {
 	sigset_t set;
 	sigfillset(&set);
 	return sigprocmask(how, &set, NULL);
 }
 
-void bb_signals(int sigs, void (*f)(int))
+void FAST_FUNC bb_signals(int sigs, void (*f)(int))
 {
 	int sig_no = 0;
 	int bit = 1;
@@ -39,7 +47,7 @@ void bb_signals(int sigs, void (*f)(int))
 	}
 }
 
-void bb_signals_recursive(int sigs, void (*f)(int))
+void FAST_FUNC bb_signals_recursive_norestart(int sigs, void (*f)(int))
 {
 	int sig_no = 0;
 	int bit = 1;
@@ -60,7 +68,7 @@ void bb_signals_recursive(int sigs, void (*f)(int))
 	}
 }
 
-void sig_block(int sig)
+void FAST_FUNC sig_block(int sig)
 {
 	sigset_t ss;
 	sigemptyset(&ss);
@@ -68,7 +76,7 @@ void sig_block(int sig)
 	sigprocmask(SIG_BLOCK, &ss, NULL);
 }
 
-void sig_unblock(int sig)
+void FAST_FUNC sig_unblock(int sig)
 {
 	sigset_t ss;
 	sigemptyset(&ss);
@@ -76,7 +84,7 @@ void sig_unblock(int sig)
 	sigprocmask(SIG_UNBLOCK, &ss, NULL);
 }
 
-void wait_for_any_sig(void)
+void FAST_FUNC wait_for_any_sig(void)
 {
 	sigset_t ss;
 	sigemptyset(&ss);
@@ -84,15 +92,15 @@ void wait_for_any_sig(void)
 }
 
 /* Assuming the sig is fatal */
-void kill_myself_with_sig(int sig)
+void FAST_FUNC kill_myself_with_sig(int sig)
 {
 	signal(sig, SIG_DFL);
 	sig_unblock(sig);
 	raise(sig);
-	_exit(1); /* Should not reach it */
+	_exit(EXIT_FAILURE); /* Should not reach it */
 }
 
-void signal_SA_RESTART_empty_mask(int sig, void (*handler)(int))
+void FAST_FUNC signal_SA_RESTART_empty_mask(int sig, void (*handler)(int))
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -102,7 +110,7 @@ void signal_SA_RESTART_empty_mask(int sig, void (*handler)(int))
 	sigaction_set(sig, &sa);
 }
 
-void signal_no_SA_RESTART_empty_mask(int sig, void (*handler)(int))
+void FAST_FUNC signal_no_SA_RESTART_empty_mask(int sig, void (*handler)(int))
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));

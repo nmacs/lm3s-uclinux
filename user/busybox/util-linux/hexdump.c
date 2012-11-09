@@ -4,31 +4,50 @@
  * Based on code from util-linux v 2.11l
  *
  * Copyright (c) 1989
- *	The Regents of the University of California.  All rights reserved.
+ * The Regents of the University of California.  All rights reserved.
  *
- * Licensed under GPLv2 or later, see file License in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
-#include <getopt.h>
+//usage:#define hexdump_trivial_usage
+//usage:       "[-bcCdefnosvx" IF_FEATURE_HEXDUMP_REVERSE("R") "] [FILE]..."
+//usage:#define hexdump_full_usage "\n\n"
+//usage:       "Display FILEs (or stdin) in a user specified format\n"
+//usage:     "\n	-b		One-byte octal display"
+//usage:     "\n	-c		One-byte character display"
+//usage:     "\n	-C		Canonical hex+ASCII, 16 bytes per line"
+//usage:     "\n	-d		Two-byte decimal display"
+//usage:     "\n	-e FORMAT_STRING"
+//usage:     "\n	-f FORMAT_FILE"
+//usage:     "\n	-n LENGTH	Interpret only LENGTH bytes of input"
+//usage:     "\n	-o		Two-byte octal display"
+//usage:     "\n	-s OFFSET	Skip OFFSET bytes"
+//usage:     "\n	-v		Display all input data"
+//usage:     "\n	-x		Two-byte hexadecimal display"
+//usage:	IF_FEATURE_HEXDUMP_REVERSE(
+//usage:     "\n	-R		Reverse of 'hexdump -Cv'")
+//usage:
+//usage:#define hd_trivial_usage
+//usage:       "FILE..."
+//usage:#define hd_full_usage "\n\n"
+//usage:       "hd is an alias for hexdump -C"
+
 #include "libbb.h"
 #include "dump.h"
 
 /* This is a NOEXEC applet. Be very careful! */
 
-
-static void bb_dump_addfile(char *name)
+static void bb_dump_addfile(dumper_t *dumper, char *name)
 {
 	char *p;
 	FILE *fp;
 	char *buf;
 
-	fp = xfopen(name, "r");
-
-	while ((buf = xmalloc_getline(fp)) != NULL) {
+	fp = xfopen_for_read(name);
+	while ((buf = xmalloc_fgetline(fp)) != NULL) {
 		p = skip_whitespace(buf);
-
 		if (*p && (*p != '#')) {
-			bb_dump_add(p);
+			bb_dump_add(dumper, p);
 		}
 		free(buf);
 	}
@@ -36,36 +55,34 @@ static void bb_dump_addfile(char *name)
 }
 
 static const char *const add_strings[] = {
-	"\"%07.7_ax \" 16/1 \"%03o \" \"\\n\"",		/* b */
-	"\"%07.7_ax \" 16/1 \"%3_c \" \"\\n\"",		/* c */
-	"\"%07.7_ax \" 8/2 \"  %05u \" \"\\n\"",	/* d */
-	"\"%07.7_ax \" 8/2 \" %06o \" \"\\n\"",		/* o */
-	"\"%07.7_ax \" 8/2 \"   %04x \" \"\\n\"",	/* x */
+	"\"%07.7_ax \" 16/1 \"%03o \" \"\\n\"",   /* b */
+	"\"%07.7_ax \" 16/1 \"%3_c \" \"\\n\"",   /* c */
+	"\"%07.7_ax \" 8/2 \"  %05u \" \"\\n\"",  /* d */
+	"\"%07.7_ax \" 8/2 \" %06o \" \"\\n\"",   /* o */
+	"\"%07.7_ax \" 8/2 \"   %04x \" \"\\n\"", /* x */
 };
 
 static const char add_first[] ALIGN1 = "\"%07.7_Ax\n\"";
 
-static const char hexdump_opts[] ALIGN1 = "bcdoxCe:f:n:s:v" USE_FEATURE_HEXDUMP_REVERSE("R");
+static const char hexdump_opts[] ALIGN1 = "bcdoxCe:f:n:s:v" IF_FEATURE_HEXDUMP_REVERSE("R");
 
 static const struct suffix_mult suffixes[] = {
 	{ "b", 512 },
 	{ "k", 1024 },
 	{ "m", 1024*1024 },
-	{ }
+	{ "", 0 }
 };
 
 int hexdump_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 int hexdump_main(int argc, char **argv)
 {
+	dumper_t *dumper = alloc_dumper();
 	const char *p;
 	int ch;
 #if ENABLE_FEATURE_HEXDUMP_REVERSE
 	FILE *fp;
 	smallint rdump = 0;
 #endif
-
-	bb_dump_vflag = FIRST;
-	bb_dump_length = -1;
 
 	if (ENABLE_HD && !applet_name[2]) { /* we are "hd" */
 		ch = 'C';
@@ -79,30 +96,30 @@ int hexdump_main(int argc, char **argv)
 		if (!p)
 			bb_show_usage();
 		if ((p - hexdump_opts) < 5) {
-			bb_dump_add(add_first);
-			bb_dump_add(add_strings[(int)(p - hexdump_opts)]);
+			bb_dump_add(dumper, add_first);
+			bb_dump_add(dumper, add_strings[(int)(p - hexdump_opts)]);
 		}
 		/* Save a little bit of space below by omitting the 'else's. */
 		if (ch == 'C') {
  hd_applet:
-			bb_dump_add("\"%08.8_Ax\n\"");
-			bb_dump_add("\"%08.8_ax  \" 8/1 \"%02x \" \"  \" 8/1 \"%02x \" ");
-			bb_dump_add("\"  |\" 16/1 \"%_p\" \"|\\n\"");
+			bb_dump_add(dumper, "\"%08.8_Ax\n\"");
+			bb_dump_add(dumper, "\"%08.8_ax  \" 8/1 \"%02x \" \"  \" 8/1 \"%02x \" ");
+			bb_dump_add(dumper, "\"  |\" 16/1 \"%_p\" \"|\\n\"");
 		}
 		if (ch == 'e') {
-			bb_dump_add(optarg);
+			bb_dump_add(dumper, optarg);
 		} /* else */
 		if (ch == 'f') {
-			bb_dump_addfile(optarg);
+			bb_dump_addfile(dumper, optarg);
 		} /* else */
 		if (ch == 'n') {
-			bb_dump_length = xatoi_u(optarg);
+			dumper->dump_length = xatoi_positive(optarg);
 		} /* else */
-		if (ch == 's') {
-			bb_dump_skip = xatoul_range_sfx(optarg, 0, LONG_MAX, suffixes);
+		if (ch == 's') { /* compat: -s accepts hex numbers too */
+			dumper->dump_skip = xstrtoul_range_sfx(optarg, /*base:*/ 0, /*lo:*/ 0, /*hi:*/ LONG_MAX, suffixes);
 		} /* else */
 		if (ch == 'v') {
-			bb_dump_vflag = ALL;
+			dumper->dump_vflag = ALL;
 		}
 #if ENABLE_FEATURE_HEXDUMP_REVERSE
 		if (ch == 'R') {
@@ -111,18 +128,18 @@ int hexdump_main(int argc, char **argv)
 #endif
 	}
 
-	if (!bb_dump_fshead) {
-		bb_dump_add(add_first);
-		bb_dump_add("\"%07.7_ax \" 8/2 \"%04x \" \"\\n\"");
+	if (!dumper->fshead) {
+		bb_dump_add(dumper, add_first);
+		bb_dump_add(dumper, "\"%07.7_ax \" 8/2 \"%04x \" \"\\n\"");
 	}
 
 	argv += optind;
 
 #if !ENABLE_FEATURE_HEXDUMP_REVERSE
-	return bb_dump_dump(argv);
+	return bb_dump_dump(dumper, argv);
 #else
 	if (!rdump) {
-		return bb_dump_dump(argv);
+		return bb_dump_dump(dumper, argv);
 	}
 
 	/* -R: reverse of 'hexdump -Cv' */
@@ -134,9 +151,9 @@ int hexdump_main(int argc, char **argv)
 
 	do {
 		char *buf;
-		fp = xfopen(*argv, "r");
+		fp = xfopen_for_read(*argv);
  jump_in:
-		while ((buf = xmalloc_getline(fp)) != NULL) {
+		while ((buf = xmalloc_fgetline(fp)) != NULL) {
 			p = buf;
 			while (1) {
 				/* skip address or previous byte */

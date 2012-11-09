@@ -5,14 +5,21 @@
  *
  * by Sterling Huxley <sterling@europa.com>
  *
- * Licensed under GPL v2 or later, see file License for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
 */
+
+//usage:#define rdate_trivial_usage
+//usage:       "[-sp] HOST"
+//usage:#define rdate_full_usage "\n\n"
+//usage:       "Get and possibly set the system date and time from a remote HOST\n"
+//usage:     "\n	-s	Set the system date and time (default)"
+//usage:     "\n	-p	Print the date and time"
 
 #include "libbb.h"
 
 enum { RFC_868_BIAS = 2208988800UL };
 
-static void socket_timeout(int sig ATTRIBUTE_UNUSED)
+static void socket_timeout(int sig UNUSED_PARAM)
 {
 	bb_error_msg_and_die("timeout connecting to time server");
 }
@@ -43,7 +50,7 @@ static time_t askremotedate(const char *host)
 }
 
 int rdate_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int rdate_main(int argc ATTRIBUTE_UNUSED, char **argv)
+int rdate_main(int argc UNUSED_PARAM, char **argv)
 {
 	time_t remote_time;
 	unsigned long flags;
@@ -61,7 +68,7 @@ int rdate_main(int argc ATTRIBUTE_UNUSED, char **argv)
 			bb_error_msg("current time matches remote time");
 		else
 			if (stime(&remote_time) < 0)
-				bb_perror_msg_and_die("cannot set time of day");
+				bb_perror_msg_and_die("can't set time of day");
 	}
 
 	if ((flags & 1) == 0)

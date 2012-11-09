@@ -7,10 +7,29 @@
  * Original idea and code:
  *      Walter Harms <WHarms@bfs.de>
  *
- * Licensed under GPLv2, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  *
  * See RFC 1179 for protocol description.
  */
+
+//usage:#define lpr_trivial_usage
+//usage:       "-P queue[@host[:port]] -U USERNAME -J TITLE -Vmh [FILE]..."
+/* -C CLASS exists too, not shown.
+ * CLASS is supposed to be printed on banner page, if one is requested */
+//usage:#define lpr_full_usage "\n\n"
+//usage:       "	-P	lp service to connect to (else uses $PRINTER)"
+//usage:     "\n	-m	Send mail on completion"
+//usage:     "\n	-h	Print banner page too"
+//usage:     "\n	-V	Verbose"
+//usage:
+//usage:#define lpq_trivial_usage
+//usage:       "[-P queue[@host[:port]]] [-U USERNAME] [-d JOBID]... [-fs]"
+//usage:#define lpq_full_usage "\n\n"
+//usage:       "	-P	lp service to connect to (else uses $PRINTER)"
+//usage:     "\n	-d	Delete jobs"
+//usage:     "\n	-f	Force any waiting job to be printed"
+//usage:     "\n	-s	Short display"
+
 #include "libbb.h"
 
 /*
@@ -42,14 +61,14 @@ static void get_response_or_say_and_die(int fd, const char *errmsg)
 }
 
 int lpqr_main(int argc, char *argv[]) MAIN_EXTERNALLY_VISIBLE;
-int lpqr_main(int argc ATTRIBUTE_UNUSED, char *argv[])
+int lpqr_main(int argc UNUSED_PARAM, char *argv[])
 {
 	enum {
 		OPT_P           = 1 << 0, // -P queue[@host[:port]]. If no -P is given use $PRINTER, then "lp@localhost:515"
 		OPT_U           = 1 << 1, // -U username
 
 		LPR_V           = 1 << 2, // -V: be verbose
-		LPR_h           = 1 << 3, // -h: want banner printed    
+		LPR_h           = 1 << 3, // -h: want banner printed
 		LPR_C           = 1 << 4, // -C class: job "class" (? supposedly printed on banner)
 		LPR_J           = 1 << 5, // -J title: the job title for the banner page
 		LPR_m           = 1 << 6, // -m: send mail back to user
@@ -65,7 +84,7 @@ int lpqr_main(int argc ATTRIBUTE_UNUSED, char *argv[])
 	const char *server = "localhost"; // server[:port] of printer queue
 	char *hostname;
 	// N.B. IMHO getenv("USER") can be way easily spoofed!
-	const char *user = bb_getpwuid(NULL, -1, getuid());
+	const char *user = xuid2uname(getuid());
 	unsigned job;
 	unsigned opts;
 	int fd;
@@ -149,6 +168,7 @@ int lpqr_main(int argc ATTRIBUTE_UNUSED, char *argv[])
 
 	// process files
 	do {
+		unsigned cflen;
 		int dfd;
 		struct stat st;
 		char *c;
@@ -158,9 +178,7 @@ int lpqr_main(int argc ATTRIBUTE_UNUSED, char *argv[])
 		// if data file is stdin, we need to dump it first
 		if (LONE_DASH(*argv)) {
 			strcpy(tempfile, "/tmp/lprXXXXXX");
-			dfd = mkstemp(tempfile);
-			if (dfd < 0)
-				bb_perror_msg_and_die("mkstemp");
+			dfd = xmkstemp(tempfile);
 			bb_copyfd_eof(STDIN_FILENO, dfd);
 			xlseek(dfd, 0, SEEK_SET);
 			*argv = (char*)bb_msg_standard_input;
@@ -194,23 +212,30 @@ int lpqr_main(int argc ATTRIBUTE_UNUSED, char *argv[])
 		);
 		// delete possible "\nX\n" patterns
 		c = controlfile;
+		cflen = (unsigned)strlen(controlfile);
 		while ((c = strchr(c, '\n')) != NULL) {
-			c++;
-			while (c[0] && c[1] == '\n')
-				memmove(c, c+2, strlen(c+1)); /* strlen(c+1) == strlen(c+2) + 1 */
+			if (c[1] && c[2] == '\n') {
+				/* can't use strcpy, results are undefined */
+				memmove(c, c+2, cflen - (c-controlfile) - 1);
+				cflen -= 2;
+			} else {
+				c++;
+			}
 		}
 
 		// send control file
 		if (opts & LPR_V)
 			bb_error_msg("sending control file");
+		/* "Acknowledgement processing must occur as usual
+		 * after the command is sent." */
+		fdprintf(fd, "\x2" "%u c%s\n", cflen, remote_filename);
+		get_response_or_say_and_die(fd, "sending control file");
 		/* "Once all of the contents have
 		 * been delivered, an octet of zero bits is sent as
 		 * an indication that the file being sent is complete.
 		 * A second level of acknowledgement processing
 		 * must occur at this point." */
-		fdprintf(fd, "\x2" "%u c%s\n" "%s" "%c",
-				(unsigned)strlen(controlfile),
-				remote_filename, controlfile, '\0');
+		full_write(fd, controlfile, cflen + 1); /* writes NUL byte too */
 		get_response_or_say_and_die(fd, "sending control file");
 
 		// send data file, with name "dfaXXX"
@@ -219,6 +244,7 @@ int lpqr_main(int argc ATTRIBUTE_UNUSED, char *argv[])
 		st.st_size = 0; /* paranoia: fstat may theoretically fail */
 		fstat(dfd, &st);
 		fdprintf(fd, "\x3" "%"OFF_FMT"u d%s\n", st.st_size, remote_filename);
+		get_response_or_say_and_die(fd, "sending data file");
 		if (bb_copyfd_size(dfd, fd, st.st_size) != st.st_size) {
 			// We're screwed. We sent less bytes than we advertised.
 			bb_error_msg_and_die("local file changed size?!");

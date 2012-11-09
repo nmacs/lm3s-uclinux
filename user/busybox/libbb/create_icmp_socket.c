@@ -4,11 +4,13 @@
  *
  * create raw socket for icmp protocol
  * and drop root privileges if running setuid
+ *
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
 
-int create_icmp_socket(void)
+int FAST_FUNC create_icmp_socket(void)
 {
 	int sock;
 #if 0

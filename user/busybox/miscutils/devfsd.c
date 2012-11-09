@@ -1,6 +1,6 @@
 /* vi: set sw=4 ts=4: */
 /*
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 /*
@@ -53,6 +53,21 @@
     The postal address is:
       Richard Gooch, c/o ATNF, P. O. Box 76, Epping, N.S.W., 2121, Australia.
 */
+
+//usage:#define devfsd_trivial_usage
+//usage:       "mntpnt [-v]" IF_DEVFSD_FG_NP("[-fg][-np]")
+//usage:#define devfsd_full_usage "\n\n"
+//usage:       "Manage devfs permissions and old device name symlinks\n"
+//usage:     "\n	mntpnt	The mount point where devfs is mounted"
+//usage:     "\n	-v	Print the protocol version numbers for devfsd"
+//usage:     "\n		and the kernel-side protocol version and exit"
+//usage:	IF_DEVFSD_FG_NP(
+//usage:     "\n	-fg	Run in foreground"
+//usage:     "\n	-np	Exit after parsing the configuration file"
+//usage:     "\n		and processing synthetic REGISTER events,"
+//usage:     "\n		don't poll for events"
+//usage:	)
+
 #include "libbb.h"
 #include "xregex.h"
 #include <syslog.h>
@@ -75,7 +90,7 @@
 
 /* Various defines taken from linux/devfs_fs.h */
 #define DEVFSD_PROTOCOL_REVISION_KERNEL  5
-#define	DEVFSD_IOCTL_BASE	'd'
+#define DEVFSD_IOCTL_BASE	'd'
 /*  These are the various ioctls  */
 #define DEVFSDIOC_GET_PROTO_REV         _IOR(DEVFSD_IOCTL_BASE, 0, int)
 #define DEVFSDIOC_SET_EVENT_MASK        _IOW(DEVFSD_IOCTL_BASE, 2, int)
@@ -92,18 +107,18 @@
 #define DEVFS_PATHLEN               1024
 /*  Never change this otherwise the binary interface will change   */
 
-struct devfsd_notify_struct
-{   /*  Use native C types to ensure same types in kernel and user space     */
-    unsigned int type;           /*  DEVFSD_NOTIFY_* value                   */
-    unsigned int mode;           /*  Mode of the inode or device entry       */
-    unsigned int major;          /*  Major number of device entry            */
-    unsigned int minor;          /*  Minor number of device entry            */
-    unsigned int uid;            /*  Uid of process, inode or device entry   */
-    unsigned int gid;            /*  Gid of process, inode or device entry   */
-    unsigned int overrun_count;  /*  Number of lost events                   */
-    unsigned int namelen;        /*  Number of characters not including '\0' */
-    /*  The device name MUST come last                                       */
-    char devname[DEVFS_PATHLEN]; /*  This will be '\0' terminated            */
+struct devfsd_notify_struct {
+	/*  Use native C types to ensure same types in kernel and user space     */
+	unsigned int type;           /*  DEVFSD_NOTIFY_* value                   */
+	unsigned int mode;           /*  Mode of the inode or device entry       */
+	unsigned int major;          /*  Major number of device entry            */
+	unsigned int minor;          /*  Minor number of device entry            */
+	unsigned int uid;            /*  Uid of process, inode or device entry   */
+	unsigned int gid;            /*  Gid of process, inode or device entry   */
+	unsigned int overrun_count;  /*  Number of lost events                   */
+	unsigned int namelen;        /*  Number of characters not including '\0' */
+	/*  The device name MUST come last                                       */
+	char devname[DEVFS_PATHLEN]; /*  This will be '\0' terminated            */
 };
 
 #define BUFFER_SIZE 16384
@@ -151,32 +166,27 @@ struct devfsd_notify_struct
 #define AC_RMNEWCOMPAT				10
 #define AC_RESTORE					11
 
-struct permissions_type
-{
+struct permissions_type {
 	mode_t mode;
 	uid_t uid;
 	gid_t gid;
 };
 
-struct execute_type
-{
+struct execute_type {
 	char *argv[MAX_ARGS + 1];  /*  argv[0] must always be the programme  */
 };
 
-struct copy_type
-{
+struct copy_type {
 	const char *source;
 	const char *destination;
 };
 
-struct action_type
-{
+struct action_type {
 	unsigned int what;
 	unsigned int when;
 };
 
-struct config_entry_struct
-{
+struct config_entry_struct {
 	struct action_type action;
 	regex_t preg;
 	union
@@ -189,8 +199,7 @@ struct config_entry_struct
 	struct config_entry_struct *next;
 };
 
-struct get_variable_info
-{
+struct get_variable_info {
 	const struct devfsd_notify_struct *info;
 	const char *devname;
 	char devpath[STRING_LENGTH];
@@ -283,9 +292,9 @@ static const char bb_msg_variable_not_found[] ALIGN1 = "variable: %s not found";
 #else
 #define info_logger(p, fmt, args...)
 #define msg_logger(p, fmt, args...)
-#define msg_logger_and_die(p, fmt, args...)           exit(1)
+#define msg_logger_and_die(p, fmt, args...)           exit(EXIT_FAILURE)
 #define error_logger(p, fmt, args...)
-#define error_logger_and_die(p, fmt, args...)         exit(1)
+#define error_logger_and_die(p, fmt, args...)         exit(EXIT_FAILURE)
 #endif
 
 static void safe_memcpy(char *dest, const char *src, int len)
@@ -402,7 +411,7 @@ int devfsd_main(int argc, char **argv)
 	dir_operation(SERVICE, mount_point, 0, NULL);
 
 	if (ENABLE_DEVFSD_FG_NP && no_polling)
-		exit(0);
+		exit(EXIT_SUCCESS);
 
 	if (ENABLE_DEVFSD_VERBOSE || ENABLE_DEBUG)
 		logmode = LOGMODE_BOTH;
@@ -459,7 +468,7 @@ static void read_config_file(char *path, int optional, unsigned long *event_mask
 			free(p);
 			return;
 		}
-		fp = fopen(path, "r");
+		fp = fopen_for_read(path);
 		if (fp != NULL) {
 			while (fgets(buf, STRING_LENGTH, fp) != NULL) {
 				/*  Skip whitespace  */
@@ -643,7 +652,7 @@ static int do_servicing(int fd, unsigned long event_mask)
 	xioctl(fd, DEVFSDIOC_SET_EVENT_MASK, (void*)event_mask);
 	while (!caught_signal) {
 		errno = 0;
-		bytes = read(fd,(char *) &info, sizeof info);
+		bytes = read(fd, (char *) &info, sizeof info);
 		if (caught_signal)
 			break;      /*  Must test for this first     */
 		if (errno == EINTR)
@@ -741,7 +750,7 @@ static void action_permissions(const struct devfsd_notify_struct *info,
 }   /*  End Function action_permissions  */
 
 static void action_modload(const struct devfsd_notify_struct *info,
-			    const struct config_entry_struct *entry ATTRIBUTE_UNUSED)
+			    const struct config_entry_struct *entry UNUSED_PARAM)
 /*  [SUMMARY] Load a module.
     <info> The devfs change.
     <entry> The config file entry.
@@ -757,7 +766,7 @@ static void action_modload(const struct devfsd_notify_struct *info,
 	argv[4] = concat_path_file("/dev", info->devname); /* device */
 	argv[5] = NULL;
 
-	wait4pid(xspawn(argv));
+	spawn_and_wait(argv);
 	free(argv[4]);
 }  /*  End Function action_modload  */
 
@@ -789,7 +798,7 @@ static void action_execute(const struct devfsd_notify_struct *info,
 		argv[count] = largv[count];
 	}
 	argv[count] = NULL;
-	wait4pid(spawn(argv));
+	spawn_and_wait(argv);
 }   /*  End Function action_execute  */
 
 
@@ -947,10 +956,10 @@ static void restore(char *spath, struct stat source_stat, int rootlen)
 	lstat(dpath, &dest_stat);
 	free(dpath);
 	if (S_ISLNK(source_stat.st_mode) || (source_stat.st_mode & S_ISVTX))
-		copy_inode(dpath, &dest_stat,(source_stat.st_mode & ~S_ISVTX) , spath, &source_stat);
+		copy_inode(dpath, &dest_stat, (source_stat.st_mode & ~S_ISVTX), spath, &source_stat);
 
 	if (S_ISDIR(source_stat.st_mode))
-		dir_operation(RESTORE, spath, rootlen,NULL);
+		dir_operation(RESTORE, spath, rootlen, NULL);
 }
 
 
@@ -1001,7 +1010,7 @@ static int copy_inode(const char *destpath, const struct stat *dest_stat,
 				break;
 			un_addr.sun_family = AF_UNIX;
 			snprintf(un_addr.sun_path, sizeof(un_addr.sun_path), "%s", destpath);
-			val = bind(fd,(struct sockaddr *) &un_addr,(int) sizeof un_addr);
+			val = bind(fd, (struct sockaddr *) &un_addr, (int) sizeof un_addr);
 			close(fd);
 			if (val != 0 || chmod(destpath, new_mode & ~S_IFMT) != 0)
 				break;
@@ -1091,7 +1100,7 @@ static int get_uid_gid(int flag, const char *string)
 		msg = "group";
 
 	if (ENABLE_DEVFSD_VERBOSE)
-		msg_logger(LOG_ERR,"unknown %s: %s, defaulting to %cid=0",  msg, string, msg[0]);
+		msg_logger(LOG_ERR, "unknown %s: %s, defaulting to %cid=0",  msg, string, msg[0]);
 	return 0;
 }/*  End Function get_uid_gid  */
 
@@ -1336,8 +1345,7 @@ static void expand_regexp(char *output, size_t outsize, const char *input,
 
 /* from compat_name.c */
 
-struct translate_struct
-{
+struct translate_struct {
 	const char *match;    /*  The string to match to(up to length)                */
 	const char *format;   /*  Format of output, "%s" takes data past match string,
 			NULL is effectively "%s"(just more efficient)       */
@@ -1439,7 +1447,7 @@ const char *get_old_name(const char *devname, unsigned int namelen,
 
 	/* 2 ==scsi/disc, 4 == scsi/part */
 	if (i == 2 || i == 4)
-		compat_name = write_old_sd_name(buffer, major, minor,((i == 2) ? "" : (ptr + 4)));
+		compat_name = write_old_sd_name(buffer, major, minor, ((i == 2) ? "" : (ptr + 4)));
 
 	/* 5 == scsi/mt */
 	if (i == 5) {
@@ -1659,7 +1667,7 @@ static const char *expand_variable(char *buffer, unsigned int length,
 	ch = input[0];
 	if (ch == '$') {
 		/*  Special case for "$$": PID  */
-		sprintf(tmp, "%d",(int) getpid());
+		sprintf(tmp, "%d", (int) getpid());
 		len = strlen(tmp);
 		if (len + *out_pos >= length)
 			goto expand_variable_out;
@@ -1732,7 +1740,7 @@ static const char *expand_variable(char *buffer, unsigned int length,
 				--open_braces;
 				break;
 			case '\0':
-				info_logger(LOG_INFO,"\"}\" not found in: %s", input);
+				info_logger(LOG_INFO, "\"}\" not found in: %s", input);
 				return NULL;
 			default:
 				break;

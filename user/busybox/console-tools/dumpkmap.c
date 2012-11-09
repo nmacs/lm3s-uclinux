@@ -4,9 +4,18 @@
  *
  * Copyright (C) Arne Bernin <arne@matrix.loopback.org>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  *
  */
+/* no options, no getopt */
+
+//usage:#define dumpkmap_trivial_usage
+//usage:       "> keymap"
+//usage:#define dumpkmap_full_usage "\n\n"
+//usage:       "Print a binary keyboard translation table to stdout"
+//usage:
+//usage:#define dumpkmap_example_usage
+//usage:       "$ dumpkmap > keymap\n"
 
 #include "libbb.h"
 
@@ -23,18 +32,22 @@ struct kbentry {
 #define MAX_NR_KEYMAPS 256
 
 int dumpkmap_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int dumpkmap_main(int argc, char **argv)
+int dumpkmap_main(int argc UNUSED_PARAM, char **argv)
 {
 	struct kbentry ke;
 	int i, j, fd;
-	char flags[MAX_NR_KEYMAPS];
+	RESERVE_CONFIG_BUFFER(flags, MAX_NR_KEYMAPS);
 
-	if (argc >= 2 && argv[1][0] == '-')
+	/* When user accidentally runs "dumpkmap FILE"
+	 * instead of "dumpkmap >FILE", we'd dump binary stuff to tty.
+	 * Let's prevent it: */
+	if (argv[1])
 		bb_show_usage();
+/*	bb_warn_ignoring_args(argv[1]);*/
 
-	fd = xopen(CURRENT_VC, O_RDWR);
+	fd = get_console_fd_or_die();
 
-	write(1, "bkeymap", 7);
+	write(STDOUT_FILENO, "bkeymap", 7);
 
 	/* Here we want to set everything to 0 except for indexes:
 	 * [0-2] [4-6] [8-10] [12] */
@@ -43,7 +56,7 @@ int dumpkmap_main(int argc, char **argv)
 	flags[3] = flags[7] = flags[11] = 0;
 
 	/* dump flags */
-	write(1, flags, MAX_NR_KEYMAPS);
+	write(STDOUT_FILENO, flags, MAX_NR_KEYMAPS);
 
 	for (i = 0; i < MAX_NR_KEYMAPS; i++) {
 		if (flags[i] == 1) {
@@ -56,11 +69,14 @@ int dumpkmap_main(int argc, char **argv)
 						(char *)&ke.kb_table,
 						&ke.kb_value)
 				) {
-					write(1, (void*)&ke.kb_value, 2);
+					write(STDOUT_FILENO, (void*)&ke.kb_value, 2);
 				}
 			}
 		}
 	}
-	close(fd);
+	if (ENABLE_FEATURE_CLEAN_UP) {
+		close(fd);
+		RELEASE_CONFIG_BUFFER(flags);
+	}
 	return EXIT_SUCCESS;
 }

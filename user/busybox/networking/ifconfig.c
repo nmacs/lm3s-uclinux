@@ -10,7 +10,7 @@
  * Authors of the original ifconfig was:
  *              Fred N. van Kempen, <waltje@uwalt.nl.mugnet.org>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 /*
@@ -26,18 +26,34 @@
  * IPV6 support added by Bart Visscher <magick@linux-fan.com>
  */
 
+//usage:#define ifconfig_trivial_usage
+//usage:	IF_FEATURE_IFCONFIG_STATUS("[-a]") " interface [address]"
+//usage:#define ifconfig_full_usage "\n\n"
+//usage:       "Configure a network interface\n"
+//usage:     "\n"
+//usage:	IF_FEATURE_IPV6(
+//usage:       "	[add ADDRESS[/PREFIXLEN]]\n")
+//usage:	IF_FEATURE_IPV6(
+//usage:       "	[del ADDRESS[/PREFIXLEN]]\n")
+//usage:       "	[[-]broadcast [ADDRESS]] [[-]pointopoint [ADDRESS]]\n"
+//usage:       "	[netmask ADDRESS] [dstaddr ADDRESS]\n"
+//usage:	IF_FEATURE_IFCONFIG_SLIP(
+//usage:       "	[outfill NN] [keepalive NN]\n")
+//usage:       "	" IF_FEATURE_IFCONFIG_HW("[hw ether" IF_FEATURE_HWIB("|infiniband")" ADDRESS] ") "[metric NN] [mtu NN]\n"
+//usage:       "	[[-]trailers] [[-]arp] [[-]allmulti]\n"
+//usage:       "	[multicast] [[-]promisc] [txqueuelen NN] [[-]dynamic]\n"
+//usage:	IF_FEATURE_IFCONFIG_MEMSTART_IOADDR_IRQ(
+//usage:       "	[mem_start NN] [io_addr NN] [irq NN]\n")
+//usage:       "	[up|down] ..."
+
+#include "libbb.h"
+#include "inet_common.h"
 #include <net/if.h>
 #include <net/if_arp.h>
 #include <netinet/in.h>
-#if defined(__GLIBC__) && __GLIBC__ >=2 && __GLIBC_MINOR__ >= 1
-#include <netpacket/packet.h>
-#include <net/ethernet.h>
-#else
-#include <sys/types.h>
-#include <netinet/if_ether.h>
+#ifdef HAVE_NET_ETHERNET_H
+# include <net/ethernet.h>
 #endif
-#include "inet_common.h"
-#include "libbb.h"
 
 #if ENABLE_FEATURE_IFCONFIG_SLIP
 # include <net/if_slip.h>
@@ -220,7 +236,7 @@ static const struct options OptArray[] = {
 	{ "netmask",     N_ARG,         ARG_NETMASK,     0 },
 	{ "broadcast",   N_ARG | M_CLR, ARG_BROADCAST,   IFF_BROADCAST },
 #if ENABLE_FEATURE_IFCONFIG_HW
-	{ "hw",          N_ARG, ARG_HW,                  0 },
+	{ "hw",          N_ARG,         ARG_HW,          0 },
 #endif
 	{ "pointopoint", N_ARG | M_CLR, ARG_POINTOPOINT, IFF_POINTOPOINT },
 #ifdef SIOCSKEEPALIVE
@@ -252,7 +268,6 @@ static const struct options OptArray[] = {
 /*
  * A couple of prototypes.
  */
-
 #if ENABLE_FEATURE_IFCONFIG_HW
 static int in_ether(const char *bufp, struct sockaddr *sap);
 #endif
@@ -260,9 +275,8 @@ static int in_ether(const char *bufp, struct sockaddr *sap);
 /*
  * Our main function.
  */
-
 int ifconfig_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int ifconfig_main(int argc, char **argv)
+int ifconfig_main(int argc UNUSED_PARAM, char **argv)
 {
 	struct ifreq ifr;
 	struct sockaddr_in sai;
@@ -293,19 +307,17 @@ int ifconfig_main(int argc, char **argv)
 
 	/* skip argv[0] */
 	++argv;
-	--argc;
 
 #if ENABLE_FEATURE_IFCONFIG_STATUS
-	if (argc > 0 && (argv[0][0] == '-' && argv[0][1] == 'a' && !argv[0][2])) {
+	if (argv[0] && (argv[0][0] == '-' && argv[0][1] == 'a' && !argv[0][2])) {
 		interface_opt_a = 1;
-		--argc;
 		++argv;
 	}
 #endif
 
-	if (argc <= 1) {
+	if (!argv[0] || !argv[1]) { /* one or no args */
 #if ENABLE_FEATURE_IFCONFIG_STATUS
-		return display_interfaces(argc ? *argv : NULL);
+		return display_interfaces(argv[0] /* can be NULL */);
 #else
 		bb_error_msg_and_die("no support for status display");
 #endif
@@ -315,7 +327,7 @@ int ifconfig_main(int argc, char **argv)
 	sockfd = xsocket(AF_INET, SOCK_DGRAM, 0);
 
 	/* get interface name */
-	safe_strncpy(ifr.ifr_name, *argv, IFNAMSIZ);
+	strncpy_IFNAMSIZ(ifr.ifr_name, *argv);
 
 	/* Process the remaining arguments. */
 	while (*++argv != (char *) NULL) {
@@ -374,7 +386,7 @@ int ifconfig_main(int argc, char **argv)
 #endif
 						sai.sin_family = AF_INET;
 						sai.sin_port = 0;
-						if (!strcmp(host, bb_str_default)) {
+						if (strcmp(host, "default") == 0) {
 							/* Default is special, meaning 0.0.0.0. */
 							sai.sin_addr.s_addr = INADDR_ANY;
 						}
@@ -425,11 +437,13 @@ int ifconfig_main(int argc, char **argv)
 #if ENABLE_FEATURE_IFCONFIG_HW
 					} else {	/* A_CAST_HOST_COPY_IN_ETHER */
 						/* This is the "hw" arg case. */
-						if (strcmp("ether", *argv) || !*++argv)
+						smalluint hw_class= index_in_substrings("ether\0"
+								IF_FEATURE_HWIB("infiniband\0"), *argv) + 1;
+						if (!hw_class || !*++argv)
 							bb_show_usage();
 						/*safe_strncpy(host, *argv, sizeof(host));*/
 						host = *argv;
-						if (in_ether(host, &sa))
+						if (hw_class == 1 ? in_ether(host, &sa) : in_ib(host, &sa))
 							bb_error_msg_and_die("invalid hw-addr %s", host);
 						p = (char *) &sa;
 					}
@@ -506,7 +520,7 @@ static int in_ether(const char *bufp, struct sockaddr *sap)
 	unsigned char c;
 
 	sap->sa_family = ARPHRD_ETHER;
-	ptr = sap->sa_data;
+	ptr = (char *) sap->sa_data;
 
 	i = 0;
 	do {

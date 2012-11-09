@@ -110,11 +110,12 @@ int main(int argc, const char * argv [])
 
 	if (line[0] != '#')
 	    continue;
-	if ((str_config = strstr(line, "CONFIG_")) == NULL)
+	if ((str_config = strstr(line, " CONFIG_")) == NULL)
 	    continue;
 
-	/* Make the output file name. */
-	str_config += sizeof("CONFIG_") - 1;
+	/* We found #define CONFIG_foo or #undef CONFIG_foo.
+	 * Make the output file name. */
+	str_config += sizeof(" CONFIG_") - 1;
 	for (itarget = 0; !isspace(str_config[itarget]); itarget++)
 	{
 	    int c = (unsigned char) str_config[itarget];
@@ -154,7 +155,7 @@ int main(int argc, const char * argv [])
 	    }
 
 	    /* Write the file. */
-	    if ((fp_target = fopen(ptarget, "w" )) == NULL)
+	    if ((fp_target = fopen(ptarget,  "w")) == NULL)
 		ERROR_EXIT(ptarget);
 	    fputs(line, fp_target);
 	    if (ferror(fp_target) || fclose(fp_target) != 0)

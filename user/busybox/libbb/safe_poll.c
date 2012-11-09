@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 by Denys Vlasenko <vda.linux@googlemail.com>
  *
- * Licensed under GPLv2, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
@@ -12,7 +12,7 @@
 /* Wrapper which restarts poll on EINTR or ENOMEM.
  * On other errors does perror("poll") and returns.
  * Warning! May take longer than timeout_ms to return! */
-int safe_poll(struct pollfd *ufds, nfds_t nfds, int timeout)
+int FAST_FUNC safe_poll(struct pollfd *ufds, nfds_t nfds, int timeout)
 {
 	while (1) {
 		int n = poll(ufds, nfds, timeout);

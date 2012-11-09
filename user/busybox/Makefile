@@ -1,7 +1,7 @@
 VERSION = 1
-PATCHLEVEL = 10
+PATCHLEVEL = 20
 SUBLEVEL = 2
-EXTRAVERSION = -uc0
+EXTRAVERSION =
 NAME = Unnamed
 
 # *DOCUMENTATION*
@@ -37,9 +37,9 @@ ifdef V
     KBUILD_VERBOSE = $(V)
   endif
 endif
-ifndef KBUILD_VERBOSE
-  KBUILD_VERBOSE = 0
-endif
+#ifndef KBUILD_VERBOSE
+  KBUILD_VERBOSE = 1
+#endif
 
 # Call sparse as part of compilation of C files
 # Use 'make C=1' to enable sparse checking
@@ -142,17 +142,6 @@ VPATH		:= $(srctree)$(if $(KBUILD_EXTMOD),:$(KBUILD_EXTMOD))
 export srctree objtree VPATH TOPDIR
 
 
-# SUBARCH tells the usermode build what the underlying arch is.  That is set
-# first, and if a usermode build is happening, the "ARCH=um" on the command
-# line overrides the setting of ARCH below.  If a native build is happening,
-# then ARCH is assigned, getting whatever value it gets normally, and
-# SUBARCH is subsequently ignored.
-
-SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
-				  -e s/arm.*/arm/ -e s/sa110/arm/ \
-				  -e s/s390x/s390/ -e s/parisc64/parisc/ \
-				  -e s/ppc.*/powerpc/ -e s/mips.*/mips/ )
-
 # Cross compiling and selecting different set of gcc/bin-utils
 # ---------------------------------------------------------------------------
 #
@@ -172,8 +161,33 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
 # Default value for CROSS_COMPILE is not to prefix executables
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 
-ARCH		?= $(SUBARCH)
-CROSS_COMPILE	?=
+CROSS_COMPILE ?=
+# bbox: we may have CONFIG_CROSS_COMPILER_PREFIX in .config,
+# and it has not been included yet... thus using an awkward syntax.
+ifeq ($(CROSS_COMPILE),)
+CROSS_COMPILE := $(shell grep ^CONFIG_CROSS_COMPILER_PREFIX .config 2>/dev/null)
+CROSS_COMPILE := $(subst CONFIG_CROSS_COMPILER_PREFIX=,,$(CROSS_COMPILE))
+CROSS_COMPILE := $(subst ",,$(CROSS_COMPILE))
+#")
+endif
+
+# SUBARCH tells the usermode build what the underlying arch is.  That is set
+# first, and if a usermode build is happening, the "ARCH=um" on the command
+# line overrides the setting of ARCH below.  If a native build is happening,
+# then ARCH is assigned, getting whatever value it gets normally, and
+# SUBARCH is subsequently ignored.
+
+ifneq ($(CROSS_COMPILE),)
+SUBARCH := $(shell echo $(CROSS_COMPILE) | cut -d- -f1)
+else
+SUBARCH := $(shell uname -m)
+endif
+SUBARCH := $(shell echo $(SUBARCH) | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
+					 -e s/arm.*/arm/ -e s/sa110/arm/ \
+					 -e s/s390x/s390/ -e s/parisc64/parisc/ \
+					 -e s/ppc.*/powerpc/ -e s/mips.*/mips/ )
+
+ARCH ?= $(SUBARCH)
 
 # Architecture as present in compile.h
 UTS_MACHINE := $(ARCH)
@@ -276,13 +290,13 @@ MAKEFLAGS += -rR
 
 #AS		= $(CROSS_COMPILE)as
 #CC		= $(CROSS_COMPILE)gcc
-#LD		= $(CC) -nostdlib
+LD		= $(CC) -nostdlib
 #CPP		= $(CC) -E
-#AR		= $(CROSS_COMPILE)ar
-#NM		= $(CROSS_COMPILE)nm
-#STRIP		= $(CROSS_COMPILE)strip
-#OBJCOPY		= $(CROSS_COMPILE)objcopy
-#OBJDUMP		= $(CROSS_COMPILE)objdump
+AR		= $(CROSS_COMPILE)ar
+NM		= $(CROSS_COMPILE)nm
+STRIP		= $(CROSS_COMPILE)strip
+OBJCOPY		= $(CROSS_COMPILE)objcopy
+OBJDUMP		= $(CROSS_COMPILE)objdump
 AWK		= awk
 GENKSYMS	= scripts/genksyms/genksyms
 DEPMOD		= /sbin/depmod
@@ -302,6 +316,8 @@ AFLAGS_KERNEL	=
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
 CFLAGS		:= $(CFLAGS)
+# Added only to final link stage of busybox binary
+CFLAGS_busybox	:= $(CFLAGS_busybox)
 CPPFLAGS	:= $(CPPFLAGS)
 AFLAGS		:= $(AFLAGS)
 LDFLAGS		:= $(LDFLAGS)
@@ -342,6 +358,20 @@ scripts_basic:
 # To avoid any implicit rule to kick in, define an empty command.
 scripts/basic/%: scripts_basic ;
 
+# This target generates Kbuild's and Config.in's from *.c files
+PHONY += gen_build_files
+gen_build_files: $(wildcard $(srctree)/*/*.c) $(wildcard $(srctree)/*/*/*.c)
+	$(Q)$(srctree)/scripts/gen_build_files.sh $(srctree) $(objtree)
+
+# bbox: we have helpers in applets/
+# we depend on scripts_basic, since scripts/basic/fixdep
+# must be built before any other host prog
+PHONY += applets_dir
+applets_dir: scripts_basic gen_build_files
+	$(Q)$(MAKE) $(build)=applets
+
+applets/%: applets_dir ;
+
 PHONY += outputmakefile
 # outputmakefile generates a Makefile in the output directory, if using a
 # separate output directory. This allows convenient use of make in the
@@ -361,7 +391,8 @@ endif
 # of make so .config is not included in this case either (for *config).
 
 no-dot-config-targets := clean mrproper distclean \
-			 cscope TAGS tags help %docs check%
+			 cscope TAGS tags help %docs
+#bbox# check% is removed from above
 
 config-targets := 0
 mixed-targets  := 0
@@ -402,7 +433,12 @@ ifeq ($(config-targets),1)
 -include $(srctree)/arch/$(ARCH)/Makefile
 export KBUILD_DEFCONFIG
 
-config %config: scripts_basic outputmakefile FORCE
+config: scripts_basic outputmakefile gen_build_files FORCE
+	$(Q)mkdir -p include
+	$(Q)$(MAKE) $(build)=scripts/kconfig $@
+	$(Q)$(MAKE) -C $(srctree) KBUILD_SRC= .kernelrelease
+
+%config: scripts_basic outputmakefile gen_build_files FORCE
 	$(Q)mkdir -p include
 	$(Q)$(MAKE) $(build)=scripts/kconfig $@
 	$(Q)$(MAKE) -C $(srctree) KBUILD_SRC= .kernelrelease
@@ -415,9 +451,9 @@ else
 ifeq ($(KBUILD_EXTMOD),)
 # Additional helpers built in scripts/
 # Carefully list dependencies so we do not try to build scripts twice
-# in parrallel
+# in parallel
 PHONY += scripts
-scripts: scripts_basic include/config/MARKER
+scripts: gen_build_files scripts_basic include/config/MARKER
 	$(Q)$(MAKE) $(build)=$(@)
 
 scripts_basic: include/autoconf.h
@@ -428,7 +464,7 @@ core-y		:= \
 
 libs-y		:= \
 		archival/ \
-		archival/libunarchive/ \
+		archival/libarchive/ \
 		console-tools/ \
 		coreutils/ \
 		coreutils/libcoreutils/ \
@@ -440,6 +476,7 @@ libs-y		:= \
 		libbb/ \
 		libpwdgrp/ \
 		loginutils/ \
+		mailutils/ \
 		miscutils/ \
 		modutils/ \
 		networking/ \
@@ -468,26 +505,7 @@ ifeq ($(dot-config),1)
 # If .config needs to be updated, it will be done via the dependency
 # that autoconf has on .config.
 # To avoid any implicit rule to kick in, define an empty command
-.kconfig.d : ;
-
-Config.in: Kconfig
-	sh ./mkConfig.in
-
-.config: .config.mkconfig
-	cp .config.mkconfig .config
-	$(MAKE) clean
-
-.config.mkconfig: $(ROOTDIR)/config/.config Config.in
-	sh ./mkconfig > .config.tmp
-	if cmp -s .config.mkconfig .config.tmp ; \
-	then \
-		echo "CONFIGs the same!" ; \
-		rm -f .config.tmp ; \
-	else \
-		echo "CALLING make clean!" ; \
-		mv -f .config.tmp .config.mkconfig ; \
-	fi
-
+.config .kconfig.d: ;
 
 # Now we can define CFLAGS etc according to .config
 include $(srctree)/Makefile.flags
@@ -496,8 +514,10 @@ include $(srctree)/Makefile.flags
 # with it and forgot to run make oldconfig.
 # If kconfig.d is missing then we are probarly in a cleaned tree so
 # we execute the config step to be sure to catch updated Kconfig files
-include/autoconf.h: .kconfig.d .config
+include/autoconf.h: .kconfig.d .config $(wildcard $(srctree)/*/*.c) $(wildcard $(srctree)/*/*/*.c) | gen_build_files
 	$(Q)$(MAKE) -f $(srctree)/Makefile silentoldconfig
+
+include/usage.h: gen_build_files
 
 else
 # Dummy target needed, because used as prerequisite
@@ -508,19 +528,13 @@ endif
 # command line.
 # This allow a user to issue only 'make' to build a kernel including modules
 # Defaults busybox but it is usually overridden in the arch makefile
-all: busybox
+all: busybox doc
 
 -include $(srctree)/arch/$(ARCH)/Makefile
 
 # arch Makefile may override CC so keep this after arch Makefile is included
 #bbox# NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 CHECKFLAGS += $(NOSTDINC_FLAGS)
-
-# warn about C99 declaration after statement
-CFLAGS += $(call cc-option,-Wdeclaration-after-statement,)
-
-# disable pointer signedness warnings in gcc 4.0
-CFLAGS += $(call cc-option,-Wno-pointer-sign,)
 
 # Default kernel image to build when no specific target is given.
 # KBUILD_IMAGE may be overruled on the commandline or
@@ -591,11 +605,11 @@ quiet_cmd_busybox__ ?= LINK    $@
       cmd_busybox__ ?= $(srctree)/scripts/trylink \
       "$@" \
       "$(CC)" \
-      "$(CFLAGS)" \
+      "$(CFLAGS) $(CFLAGS_busybox)" \
       "$(LDFLAGS) $(EXTRA_LDFLAGS)" \
       "$(core-y)" \
       "$(libs-y)" \
-      "$(LDLIBS) $(LDLIBS$(LDLIBS_$@))"
+      "$(LDLIBS)"
 
 # Generate System.map
 quiet_cmd_sysmap = SYSMAP
@@ -707,6 +721,8 @@ ifeq ($(SKIP_STRIP),y)
 else
 	$(Q)$(STRIP) -s --remove-section=.note --remove-section=.comment \
 		busybox_unstripped -o $@
+# strip is confused by PIE executable and does not set exec bits
+	$(Q)chmod a+x $@
 endif
 
 # The actual objects are generated when descending,
@@ -802,7 +818,7 @@ ifneq ($(KBUILD_MODULES),)
 	$(Q)rm -f $(MODVERDIR)/*
 endif
 
-archprepare: prepare1 scripts_basic
+archprepare: prepare1 scripts_basic applets_dir
 
 prepare0: archprepare FORCE
 	$(Q)$(MAKE) $(build)=.
@@ -826,13 +842,11 @@ export CPPFLAGS_busybox.lds += -P -C -U$(ARCH)
 
 # 	Split autoconf.h into include/linux/config/*
 quiet_cmd_gen_bbconfigopts = GEN     include/bbconfigopts.h
-      cmd_gen_bbconfigopts = $(srctree)/scripts/mkconfigs > include/bbconfigopts.h
+      cmd_gen_bbconfigopts = $(srctree)/scripts/mkconfigs include/bbconfigopts.h include/bbconfigopts_bz2.h
 quiet_cmd_split_autoconf   = SPLIT   include/autoconf.h -> include/config/*
       cmd_split_autoconf   = scripts/basic/split-include include/autoconf.h include/config
 #bbox# piggybacked generation of few .h files
 include/config/MARKER: scripts/basic/split-include include/autoconf.h
-	chmod +x $(srctree)/scripts/mkconfigs
-	chmod +x $(srctree)/applets/usage_compressed
 	$(call cmd,split_autoconf)
 	$(call cmd,gen_bbconfigopts)
 	@touch $@
@@ -918,7 +932,7 @@ PHONY += _modinst_post
 _modinst_post: _modinst_
 	if [ -r System.map -a -x $(DEPMOD) ]; then $(DEPMOD) -ae -F System.map $(depmod_opts) $(KERNELRELEASE); fi
 
-else # _CONFIG_MODULES
+else # CONFIG_MODULES
 
 # Modules not configured
 # ---------------------------------------------------------------------------
@@ -931,7 +945,7 @@ modules modules_install: FORCE
 	@echo
 	@exit 1
 
-endif # _CONFIG_MODULES
+endif # CONFIG_MODULES
 
 ###
 # Cleaning is done on three levels.
@@ -941,19 +955,25 @@ endif # _CONFIG_MODULES
 # make distclean Remove editor backup files, patch leftover files and the like
 
 # Directories & files removed with 'make clean'
-CLEAN_DIRS  += $(MODVERDIR)
-CLEAN_FILES +=	busybox* System.map .kernelrelease \
+CLEAN_DIRS  += $(MODVERDIR) _install 0_lib
+CLEAN_FILES +=	busybox busybox_unstripped* busybox.links \
+                System.map .kernelrelease \
                 .tmp_kallsyms* .tmp_version .tmp_busybox* .tmp_System.map
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config include2
 MRPROPER_FILES += .config .config.old include/asm .version .old_version \
+		  include/NUM_APPLETS.h \
 		  include/autoconf.h \
 		  include/bbconfigopts.h \
+		  include/bbconfigopts_bz2.h \
 		  include/usage_compressed.h \
 		  include/applet_tables.h \
+		  include/applets.h \
+		  include/usage.h \
 		  applets/usage \
-		  .kernelrelease Module.symvers tags TAGS cscope*
+		  .kernelrelease Module.symvers tags TAGS cscope* \
+		  busybox_old
 
 # clean - Delete most, but leave enough to build external modules
 #
@@ -969,9 +989,15 @@ clean: archclean $(clean-dirs)
 	$(call cmd,rmdirs)
 	$(call cmd,rmfiles)
 	@find . $(RCS_FIND_IGNORE) \
-	 	\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
+		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \) \
 		-type f -print | xargs rm -f
+
+PHONY += doc-clean
+doc-clean: rm-files := docs/busybox.pod \
+		  docs/BusyBox.html docs/busybox.1 docs/BusyBox.txt
+doc-clean:
+	$(call cmd,rmfiles)
 
 # mrproper - Delete all generated files, including .config
 #
@@ -984,9 +1010,10 @@ $(mrproper-dirs):
 	$(Q)$(MAKE) $(clean)=$(patsubst _mrproper_%,%,$@)
 
 mrproper: clean archmrproper $(mrproper-dirs)
-	@find . -name Config.in | xargs rm -f
 	$(call cmd,rmdirs)
 	$(call cmd,rmfiles)
+	@find . -name Config.src | sed 's/.src$$/.in/' | xargs -r rm -f
+	@find . -name Kbuild.src | sed 's/.src$$//' | xargs -r rm -f
 
 # distclean
 #
@@ -994,9 +1021,9 @@ PHONY += distclean
 
 distclean: mrproper
 	@find $(srctree) $(RCS_FIND_IGNORE) \
-	 	\( -name '*.orig' -o -name '*.rej' -o -name '*~' \
+		\( -name '*.orig' -o -name '*.rej' -o -name '*~' \
 		-o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
-	 	-o -name '.*.rej' -o -name '*.tmp' -o -size 0 \
+		-o -name '.*.rej' -o -name '*.tmp' -o -size 0 \
 		-o -name '*%' -o -name '.*.cmd' -o -name 'core' \) \
 		-type f -print | xargs rm -f
 
@@ -1015,7 +1042,7 @@ rpm: FORCE
 # Brief documentation of the typical targets used
 # ---------------------------------------------------------------------------
 
-boards := $(wildcard $(srctree)/arch/$(ARCH)/configs/*_defconfig)
+boards := $(wildcard $(srctree)/configs/*_defconfig)
 boards := $(notdir $(boards))
 
 -include $(srctree)/Makefile.help
@@ -1100,18 +1127,9 @@ clean:	rm-dirs := $(MODVERDIR)
 clean: $(clean-dirs)
 	$(call cmd,rmdirs)
 	@find $(KBUILD_EXTMOD) $(RCS_FIND_IGNORE) \
-	 	\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
+		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \) \
 		-type f -print | xargs rm -f
-
-help:
-	@echo  '  Building external modules.'
-	@echo  '  Syntax: make -C path/to/kernel/src M=$$PWD target'
-	@echo  ''
-	@echo  '  modules         - default target, build the module(s)'
-	@echo  '  modules_install - install the module'
-	@echo  '  clean           - remove generated files in module directory only'
-	@echo  ''
 
 # Dummies...
 PHONY += prepare scripts
@@ -1267,9 +1285,13 @@ endif
 	$(Q)$(MAKE) $(build)=$(build-dir) $(target-dir)$(notdir $@)
 
 # Modules
-/ %/: prepare scripts FORCE
+%/: prepare scripts FORCE
 	$(Q)$(MAKE) KBUILD_MODULES=$(if $(CONFIG_MODULES),1) \
 	$(build)=$(build-dir)
+/: prepare scripts FORCE
+	$(Q)$(MAKE) KBUILD_MODULES=$(if $(CONFIG_MODULES),1) \
+	$(build)=$(build-dir)
+
 %.ko: prepare scripts FORCE
 	$(Q)$(MAKE) KBUILD_MODULES=$(if $(CONFIG_MODULES),1)   \
 	$(build)=$(build-dir) $(@:.ko=.o)

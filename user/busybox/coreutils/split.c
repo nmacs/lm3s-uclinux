@@ -1,14 +1,26 @@
 /* vi: set sw=4 ts=4: */
 /*
  * split - split a file into pieces
- * Copyright (c) 2007 Bernhard Fischer
+ * Copyright (c) 2007 Bernhard Reutner-Fischer
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 /* BB_AUDIT: SUSv3 compliant
  * SUSv3 requirements:
  * http://www.opengroup.org/onlinepubs/009695399/utilities/split.html
  */
+
+//usage:#define split_trivial_usage
+//usage:       "[OPTIONS] [INPUT [PREFIX]]"
+//usage:#define split_full_usage "\n\n"
+//usage:       "	-b N[k|m]	Split by N (kilo|mega)bytes"
+//usage:     "\n	-l N		Split by N lines"
+//usage:     "\n	-a N		Use N letters as suffix"
+//usage:
+//usage:#define split_example_usage
+//usage:       "$ split TODO foo\n"
+//usage:       "$ cat TODO | split -a 2 -l 2 TODO_\n"
+
 #include "libbb.h"
 
 static const struct suffix_mult split_suffices[] = {
@@ -20,7 +32,7 @@ static const struct suffix_mult split_suffices[] = {
 #if ENABLE_FEATURE_SPLIT_FANCY
 	{ "g", 1024*1024*1024 },
 #endif
-	{ }
+	{ "", 0 }
 };
 
 /* Increment the suffix part of the filename.
@@ -32,7 +44,7 @@ static char *next_file(char *old, unsigned suffix_len)
 	unsigned i = 1;
 	char *curr;
 
-	do {
+	while (1) {
 		curr = old + end - i;
 		if (*curr < 'z') {
 			*curr += 1;
@@ -43,7 +55,7 @@ static char *next_file(char *old, unsigned suffix_len)
 			return NULL;
 		}
 		*curr = 'a';
-	} while (1);
+	}
 
 	return old;
 }
@@ -56,7 +68,7 @@ enum { READ_BUFFER_SIZE = COMMON_BUFSIZE - 1 };
 #define SPLIT_OPT_a (1<<2)
 
 int split_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int split_main(int argc ATTRIBUTE_UNUSED, char **argv)
+int split_main(int argc UNUSED_PARAM, char **argv)
 {
 	unsigned suffix_len = 2;
 	char *pfx;
@@ -79,9 +91,11 @@ int split_main(int argc ATTRIBUTE_UNUSED, char **argv)
 
 	argv += optind;
 	if (argv[0]) {
+		int fd;
 		if (argv[1])
 			sfx = argv[1];
-		xmove_fd(xopen(argv[0], O_RDONLY), 0);
+		fd = xopen_stdin(argv[0]);
+		xmove_fd(fd, STDIN_FILENO);
 	} else {
 		argv[0] = (char *) bb_msg_standard_input;
 	}
@@ -98,7 +112,7 @@ int split_main(int argc ATTRIBUTE_UNUSED, char **argv)
 	}
 
 	while (1) {
-		bytes_read = safe_read(0, read_buffer, READ_BUFFER_SIZE);
+		bytes_read = safe_read(STDIN_FILENO, read_buffer, READ_BUFFER_SIZE);
 		if (!bytes_read)
 			break;
 		if (bytes_read < 0)
@@ -130,7 +144,7 @@ int split_main(int argc ATTRIBUTE_UNUSED, char **argv)
 				}
 			}
 
-			xwrite(1, src, to_write);
+			xwrite(STDOUT_FILENO, src, to_write);
 			bytes_read -= to_write;
 			src += to_write;
 		} while (bytes_read);

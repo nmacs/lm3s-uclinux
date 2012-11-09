@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2003  Manuel Novoa III  <mjn3@codepoet.org>
  *
- * Licensed under GPLv2, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
@@ -59,12 +59,12 @@ unsigned bb_strtoui(const char *str, char **end, int b)
 
 /* A few special cases */
 
-int xatoi_u(const char *numstr)
+int FAST_FUNC xatoi_positive(const char *numstr)
 {
 	return xatou_range(numstr, 0, INT_MAX);
 }
 
-uint16_t xatou16(const char *numstr)
+uint16_t FAST_FUNC xatou16(const char *numstr)
 {
 	return xatou_range(numstr, 0, 0xffff);
 }

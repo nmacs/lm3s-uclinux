@@ -4,8 +4,18 @@
  *
  * Copyright (C) 2007 Denys Vlasenko
  *
- * Licensed under GPL version 2, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
+
+//usage:#define fakeidentd_trivial_usage
+//usage:       "[-fiw] [-b ADDR] [STRING]"
+//usage:#define fakeidentd_full_usage "\n\n"
+//usage:       "Provide fake ident (auth) service\n"
+//usage:     "\n	-f	Run in foreground"
+//usage:     "\n	-i	Inetd mode"
+//usage:     "\n	-w	Inetd 'wait' mode"
+//usage:     "\n	-b ADDR	Bind to specified address"
+//usage:     "\n	STRING	Ident answer string (default: nobody)"
 
 #include "libbb.h"
 #include <syslog.h>
@@ -61,7 +71,7 @@ static int do_rd(int fd, void **paramp)
 	p = strpbrk(cur, "\r\n");
 	if (p)
 		*p = '\0';
-	if (!p && sz && buf->pos <= sizeof(buf->buf))
+	if (!p && sz && buf->pos <= (int)sizeof(buf->buf))
 		goto ok;
 	/* Terminate session. If we are in server mode, then
 	 * fd is still in nonblocking mode - we never block here */
@@ -76,7 +86,7 @@ static int do_rd(int fd, void **paramp)
 	return retval;
 }
 
-static int do_timeout(void **paramp ATTRIBUTE_UNUSED)
+static int do_timeout(void **paramp UNUSED_PARAM)
 {
 	return 1; /* terminate session */
 }
@@ -93,7 +103,7 @@ static void inetd_mode(void)
 }
 
 int fakeidentd_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int fakeidentd_main(int argc ATTRIBUTE_UNUSED, char **argv)
+int fakeidentd_main(int argc UNUSED_PARAM, char **argv)
 {
 	enum {
 		OPT_foreground = 0x1,
@@ -113,7 +123,7 @@ int fakeidentd_main(int argc ATTRIBUTE_UNUSED, char **argv)
 		strncpy(bogouser, argv[optind], sizeof(bogouser));
 
 	/* Daemonize if no -f and no -i and no -w */
-	if (!(opt & OPT_fiw));
+	if (!(opt & OPT_fiw))
 		bb_daemonize_or_rexec(0, argv);
 
 	/* Where to log in inetd modes? "Classic" inetd
@@ -122,7 +132,7 @@ int fakeidentd_main(int argc ATTRIBUTE_UNUSED, char **argv)
 	 * log to stderr. I like daemontools more. Go their way.
 	 * (Or maybe we need yet another option "log to syslog") */
 	if (!(opt & OPT_fiw) /* || (opt & OPT_syslog) */) {
-		openlog(applet_name, 0, LOG_DAEMON);
+		openlog(applet_name, LOG_PID, LOG_DAEMON);
 		logmode = LOGMODE_SYSLOG;
 	}
 

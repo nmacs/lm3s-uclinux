@@ -8,18 +8,61 @@
  * 2002-04-20
  * IPV6 support added by Bart Visscher <magick@linux-fan.com>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * 2008-07-10
+ * optional '-p' flag support ported from net-tools by G. Somlo <somlo@cmu.edu>
+ *
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
 #include "inet_common.h"
 
+//usage:#define netstat_trivial_usage
+//usage:       "[-"IF_ROUTE("r")"al] [-tuwx] [-en"IF_FEATURE_NETSTAT_WIDE("W")IF_FEATURE_NETSTAT_PRG("p")"]"
+//usage:#define netstat_full_usage "\n\n"
+//usage:       "Display networking information\n"
+//usage:	IF_ROUTE(
+//usage:     "\n	-r	Routing table"
+//usage:	)
+//usage:     "\n	-a	All sockets"
+//usage:     "\n	-l	Listening sockets"
+//usage:     "\n		Else: connected sockets"
+//usage:     "\n	-t	TCP sockets"
+//usage:     "\n	-u	UDP sockets"
+//usage:     "\n	-w	Raw sockets"
+//usage:     "\n	-x	Unix sockets"
+//usage:     "\n		Else: all socket types"
+//usage:     "\n	-e	Other/more information"
+//usage:     "\n	-n	Don't resolve names"
+//usage:	IF_FEATURE_NETSTAT_WIDE(
+//usage:     "\n	-W	Wide display"
+//usage:	)
+//usage:	IF_FEATURE_NETSTAT_PRG(
+//usage:     "\n	-p	Show PID/program name for sockets"
+//usage:	)
+
+#define NETSTAT_OPTS "laentuwx" \
+	IF_ROUTE(               "r") \
+	IF_FEATURE_NETSTAT_WIDE("W") \
+	IF_FEATURE_NETSTAT_PRG( "p")
+
 enum {
-	OPT_extended = 0x4,
-	OPT_showroute = 0x100,
-	OPT_widedisplay = 0x200 * ENABLE_FEATURE_NETSTAT_WIDE,
+	OPT_sock_listen = 1 << 0, // l
+	OPT_sock_all    = 1 << 1, // a
+	OPT_extended    = 1 << 2, // e
+	OPT_noresolve   = 1 << 3, // n
+	OPT_sock_tcp    = 1 << 4, // t
+	OPT_sock_udp    = 1 << 5, // u
+	OPT_sock_raw    = 1 << 6, // w
+	OPT_sock_unix   = 1 << 7, // x
+	OPTBIT_x        = 7,
+	IF_ROUTE(               OPTBIT_ROUTE,)
+	IF_FEATURE_NETSTAT_WIDE(OPTBIT_WIDE ,)
+	IF_FEATURE_NETSTAT_PRG( OPTBIT_PRG  ,)
+	OPT_route       = IF_ROUTE(               (1 << OPTBIT_ROUTE)) + 0, // r
+	OPT_wide        = IF_FEATURE_NETSTAT_WIDE((1 << OPTBIT_WIDE )) + 0, // W
+	OPT_prg         = IF_FEATURE_NETSTAT_PRG( (1 << OPTBIT_PRG  )) + 0, // p
 };
-# define NETSTAT_OPTS "laentuwxr"USE_FEATURE_NETSTAT_WIDE("W")
 
 #define NETSTAT_CONNECTED 0x01
 #define NETSTAT_LISTENING 0x02
@@ -31,7 +74,6 @@ enum {
 #define NETSTAT_UNIX      0x80
 #define NETSTAT_ALLPROTO  (NETSTAT_TCP|NETSTAT_UDP|NETSTAT_RAW|NETSTAT_UNIX)
 
-static smallint flags = NETSTAT_CONNECTED | NETSTAT_ALLPROTO;
 
 enum {
 	TCP_ESTABLISHED = 1,
@@ -44,7 +86,7 @@ enum {
 	TCP_CLOSE_WAIT,
 	TCP_LAST_ACK,
 	TCP_LISTEN,
-	TCP_CLOSING /* now a valid state */
+	TCP_CLOSING, /* now a valid state */
 };
 
 static const char *const tcp_state[] = {
@@ -70,26 +112,221 @@ typedef enum {
 	SS_DISCONNECTING /* in process of disconnecting  */
 } socket_state;
 
-#define SO_ACCEPTCON (1<<16)	/* performed a listen           */
-#define SO_WAITDATA  (1<<17)	/* wait data to read            */
-#define SO_NOSPACE   (1<<18)	/* no space to write            */
+#define SO_ACCEPTCON (1<<16)  /* performed a listen           */
+#define SO_WAITDATA  (1<<17)  /* wait data to read            */
+#define SO_NOSPACE   (1<<18)  /* no space to write            */
 
-/* Standard printout size */
-#define PRINT_IP_MAX_SIZE           23
-#define PRINT_NET_CONN              "%s   %6ld %6ld %-23s %-23s %-12s\n"
-#define PRINT_NET_CONN_HEADER       "\nProto Recv-Q Send-Q %-23s %-23s State\n"
-
+#define ADDR_NORMAL_WIDTH        23
 /* When there are IPv6 connections the IPv6 addresses will be
  * truncated to none-recognition. The '-W' option makes the
  * address columns wide enough to accomodate for longest possible
  * IPv6 addresses, i.e. addresses of the form
  * xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:ddd.ddd.ddd.ddd
  */
-#define PRINT_IP_MAX_SIZE_WIDE      51  /* INET6_ADDRSTRLEN + 5 for the port number */
-#define PRINT_NET_CONN_WIDE         "%s   %6ld %6ld %-51s %-51s %-12s\n"
-#define PRINT_NET_CONN_HEADER_WIDE  "\nProto Recv-Q Send-Q %-51s %-51s State\n"
+#define ADDR_WIDE                51  /* INET6_ADDRSTRLEN + 5 for the port number */
+#if ENABLE_FEATURE_NETSTAT_WIDE
+# define FMT_NET_CONN_DATA       "%s   %6ld %6ld %-*s %-*s %-12s"
+# define FMT_NET_CONN_HEADER     "\nProto Recv-Q Send-Q %-*s %-*s State       %s\n"
+#else
+# define FMT_NET_CONN_DATA       "%s   %6ld %6ld %-23s %-23s %-12s"
+# define FMT_NET_CONN_HEADER     "\nProto Recv-Q Send-Q %-23s %-23s State       %s\n"
+#endif
 
-static const char *net_conn_line = PRINT_NET_CONN;
+#define PROGNAME_WIDTH     20
+#define PROGNAME_WIDTH_STR "20"
+/* PROGNAME_WIDTH chars: 12345678901234567890 */
+#define PROGNAME_BANNER "PID/Program name    "
+
+struct prg_node {
+	struct prg_node *next;
+	long inode;
+	char name[PROGNAME_WIDTH];
+};
+
+#define PRG_HASH_SIZE 211
+
+struct globals {
+	smallint flags;
+#if ENABLE_FEATURE_NETSTAT_PRG
+	smallint prg_cache_loaded;
+	struct prg_node *prg_hash[PRG_HASH_SIZE];
+#endif
+#if ENABLE_FEATURE_NETSTAT_PRG
+	const char *progname_banner;
+#endif
+#if ENABLE_FEATURE_NETSTAT_WIDE
+	unsigned addr_width;
+#endif
+};
+#define G (*ptr_to_globals)
+#define flags            (G.flags           )
+#define prg_cache_loaded (G.prg_cache_loaded)
+#define prg_hash         (G.prg_hash        )
+#if ENABLE_FEATURE_NETSTAT_PRG
+# define progname_banner (G.progname_banner )
+#else
+# define progname_banner ""
+#endif
+#define INIT_G() do { \
+	SET_PTR_TO_GLOBALS(xzalloc(sizeof(G))); \
+	flags = NETSTAT_CONNECTED | NETSTAT_ALLPROTO; \
+} while (0)
+
+
+#if ENABLE_FEATURE_NETSTAT_PRG
+
+/* Deliberately truncating long to unsigned *int* */
+#define PRG_HASHIT(x) ((unsigned)(x) % PRG_HASH_SIZE)
+
+static void prg_cache_add(long inode, char *name)
+{
+	unsigned hi = PRG_HASHIT(inode);
+	struct prg_node **pnp, *pn;
+
+	prg_cache_loaded = 2;
+	for (pnp = prg_hash + hi; (pn = *pnp) != NULL; pnp = &pn->next) {
+		if (pn->inode == inode) {
+			/* Some warning should be appropriate here
+			   as we got multiple processes for one i-node */
+			return;
+		}
+	}
+	*pnp = xzalloc(sizeof(struct prg_node));
+	pn = *pnp;
+	pn->inode = inode;
+	safe_strncpy(pn->name, name, PROGNAME_WIDTH);
+}
+
+static const char *prg_cache_get(long inode)
+{
+	unsigned hi = PRG_HASHIT(inode);
+	struct prg_node *pn;
+
+	for (pn = prg_hash[hi]; pn; pn = pn->next)
+		if (pn->inode == inode)
+			return pn->name;
+	return "-";
+}
+
+#if ENABLE_FEATURE_CLEAN_UP
+static void prg_cache_clear(void)
+{
+	struct prg_node **pnp, *pn;
+
+	for (pnp = prg_hash; pnp < prg_hash + PRG_HASH_SIZE; pnp++) {
+		while ((pn = *pnp) != NULL) {
+			*pnp = pn->next;
+			free(pn);
+		}
+	}
+}
+#else
+#define prg_cache_clear() ((void)0)
+#endif
+
+static long extract_socket_inode(const char *lname)
+{
+	long inode = -1;
+
+	if (strncmp(lname, "socket:[", sizeof("socket:[")-1) == 0) {
+		/* "socket:[12345]", extract the "12345" as inode */
+		inode = bb_strtoul(lname + sizeof("socket:[")-1, (char**)&lname, 0);
+		if (*lname != ']')
+			inode = -1;
+	} else if (strncmp(lname, "[0000]:", sizeof("[0000]:")-1) == 0) {
+		/* "[0000]:12345", extract the "12345" as inode */
+		inode = bb_strtoul(lname + sizeof("[0000]:")-1, NULL, 0);
+		if (errno) /* not NUL terminated? */
+			inode = -1;
+	}
+
+#if 0 /* bb_strtol returns all-ones bit pattern on ERANGE anyway */
+	if (errno == ERANGE)
+		inode = -1;
+#endif
+	return inode;
+}
+
+static int FAST_FUNC add_to_prg_cache_if_socket(const char *fileName,
+		struct stat *statbuf UNUSED_PARAM,
+		void *pid_slash_progname,
+		int depth UNUSED_PARAM)
+{
+	char *linkname;
+	long inode;
+
+	linkname = xmalloc_readlink(fileName);
+	if (linkname != NULL) {
+		inode = extract_socket_inode(linkname);
+		free(linkname);
+		if (inode >= 0)
+			prg_cache_add(inode, (char *)pid_slash_progname);
+	}
+	return TRUE;
+}
+
+static int FAST_FUNC dir_act(const char *fileName,
+		struct stat *statbuf UNUSED_PARAM,
+		void *userData UNUSED_PARAM,
+		int depth)
+{
+	const char *pid;
+	char *pid_slash_progname;
+	char proc_pid_fname[sizeof("/proc/%u/cmdline") + sizeof(long)*3];
+	char cmdline_buf[512];
+	int n, len;
+
+	if (depth == 0) /* "/proc" itself */
+		return TRUE; /* continue looking one level below /proc */
+
+	pid = fileName + sizeof("/proc/")-1; /* point after "/proc/" */
+	if (!isdigit(pid[0])) /* skip /proc entries which aren't processes */
+		return SKIP;
+
+	len = snprintf(proc_pid_fname, sizeof(proc_pid_fname), "%s/cmdline", fileName);
+	n = open_read_close(proc_pid_fname, cmdline_buf, sizeof(cmdline_buf) - 1);
+	if (n < 0)
+		return FALSE;
+	cmdline_buf[n] = '\0';
+
+	/* go through all files in /proc/PID/fd and check whether they are sockets */
+	strcpy(proc_pid_fname + len - (sizeof("cmdline")-1), "fd");
+	pid_slash_progname = concat_path_file(pid, bb_basename(cmdline_buf)); /* "PID/argv0" */
+	n = recursive_action(proc_pid_fname,
+			ACTION_RECURSE | ACTION_QUIET,
+			add_to_prg_cache_if_socket,
+			NULL,
+			(void *)pid_slash_progname,
+			0);
+	free(pid_slash_progname);
+
+	if (!n)
+		return FALSE; /* signal permissions error to caller */
+
+	return SKIP; /* caller should not recurse further into this dir */
+}
+
+static void prg_cache_load(void)
+{
+	int load_ok;
+
+	prg_cache_loaded = 1;
+	load_ok = recursive_action("/proc", ACTION_RECURSE | ACTION_QUIET,
+				NULL, dir_act, NULL, 0);
+	if (load_ok)
+		return;
+
+	if (prg_cache_loaded == 1)
+		bb_error_msg("can't scan /proc - are you root?");
+	else
+		bb_error_msg("showing only processes with your user ID");
+}
+
+#else
+
+#define prg_cache_clear()       ((void)0)
+
+#endif //ENABLE_FEATURE_NETSTAT_PRG
 
 
 #if ENABLE_FEATURE_IPV6
@@ -102,21 +339,16 @@ static void build_ipv6_addr(char* local_addr, struct sockaddr_in6* localaddr)
 		   &in6.s6_addr32[0], &in6.s6_addr32[1],
 		   &in6.s6_addr32[2], &in6.s6_addr32[3]);
 	inet_ntop(AF_INET6, &in6, addr6, sizeof(addr6));
-	inet_pton(AF_INET6, addr6, (struct sockaddr *) &localaddr->sin6_addr);
+	inet_pton(AF_INET6, addr6, &localaddr->sin6_addr);
 
 	localaddr->sin6_family = AF_INET6;
 }
 #endif
 
-#if ENABLE_FEATURE_IPV6
-static void build_ipv4_addr(char* local_addr, struct sockaddr_in6* localaddr)
-#else
 static void build_ipv4_addr(char* local_addr, struct sockaddr_in* localaddr)
-#endif
 {
-	sscanf(local_addr, "%X",
-		   &((struct sockaddr_in *) localaddr)->sin_addr.s_addr);
-	((struct sockaddr *) localaddr)->sa_family = AF_INET;
+	sscanf(local_addr, "%X", &localaddr->sin_addr.s_addr);
+	localaddr->sin_family = AF_INET;
 }
 
 static const char *get_sname(int port, const char *proto, int numeric)
@@ -134,11 +366,10 @@ static const char *get_sname(int port, const char *proto, int numeric)
 
 static char *ip_port_str(struct sockaddr *addr, int port, const char *proto, int numeric)
 {
-	enum { salen = USE_FEATURE_IPV6(sizeof(struct sockaddr_in6)) SKIP_FEATURE_IPV6(sizeof(struct sockaddr_in)) };
 	char *host, *host_port;
 
-	/* Code which used "*" for INADDR_ANY is removed: it's ambiguous in IPv6,
-	 * while "0.0.0.0" is not. */
+	/* Code which used "*" for INADDR_ANY is removed: it's ambiguous
+	 * in IPv6, while "0.0.0.0" is not. */
 
 	host = numeric ? xmalloc_sockaddr2dotted_noport(addr)
 	               : xmalloc_sockaddr2host_noport(addr);
@@ -148,209 +379,150 @@ static char *ip_port_str(struct sockaddr *addr, int port, const char *proto, int
 	return host_port;
 }
 
-static int tcp_do_one(int lnr, char *line)
-{
-	char local_addr[64], rem_addr[64];
-	char more[512];
-	int num, local_port, rem_port, d, state, timer_run, uid, timeout;
+struct inet_params {
+	int local_port, rem_port, state, uid;
+	union {
+		struct sockaddr     sa;
+		struct sockaddr_in  sin;
 #if ENABLE_FEATURE_IPV6
-	struct sockaddr_in6 localaddr, remaddr;
-#else
-	struct sockaddr_in localaddr, remaddr;
+		struct sockaddr_in6 sin6;
 #endif
-	unsigned long rxq, txq, time_len, retr, inode;
+	} localaddr, remaddr;
+	unsigned long rxq, txq, inode;
+};
 
-	if (lnr == 0)
-		return 0;
+static int scan_inet_proc_line(struct inet_params *param, char *line)
+{
+	int num;
+	/* IPv6 /proc files use 32-char hex representation
+	 * of IPv6 address, followed by :PORT_IN_HEX
+	 */
+	char local_addr[33], rem_addr[33]; /* 32 + 1 for NUL */
 
-	more[0] = '\0';
 	num = sscanf(line,
-			"%d: %64[0-9A-Fa-f]:%X %64[0-9A-Fa-f]:%X %X %lX:%lX %X:%lX %lX %d %d %ld %512s\n",
-			&d, local_addr, &local_port,
-			rem_addr, &rem_port, &state,
-			&txq, &rxq, &timer_run, &time_len, &retr, &uid, &timeout, &inode, more);
-
-	if (num < 10) {
+			"%*d: %32[0-9A-Fa-f]:%X "
+			"%32[0-9A-Fa-f]:%X %X "
+			"%lX:%lX %*X:%*X "
+			"%*X %d %*d %ld ",
+			local_addr, &param->local_port,
+			rem_addr, &param->rem_port, &param->state,
+			&param->txq, &param->rxq,
+			&param->uid, &param->inode);
+	if (num < 9) {
 		return 1; /* error */
 	}
 
 	if (strlen(local_addr) > 8) {
 #if ENABLE_FEATURE_IPV6
-		build_ipv6_addr(local_addr, &localaddr);
-		build_ipv6_addr(rem_addr, &remaddr);
+		build_ipv6_addr(local_addr, &param->localaddr.sin6);
+		build_ipv6_addr(rem_addr, &param->remaddr.sin6);
 #endif
 	} else {
-		build_ipv4_addr(local_addr, &localaddr);
-		build_ipv4_addr(rem_addr, &remaddr);
+		build_ipv4_addr(local_addr, &param->localaddr.sin);
+		build_ipv4_addr(rem_addr, &param->remaddr.sin);
 	}
+	return 0;
+}
 
-	if ((rem_port && (flags & NETSTAT_CONNECTED))
-	 || (!rem_port && (flags & NETSTAT_LISTENING))
+static void print_inet_line(struct inet_params *param,
+		const char *state_str, const char *proto, int is_connected)
+{
+	if ((is_connected && (flags & NETSTAT_CONNECTED))
+	 || (!is_connected && (flags & NETSTAT_LISTENING))
 	) {
 		char *l = ip_port_str(
-				(struct sockaddr *) &localaddr, local_port,
-				"tcp", flags & NETSTAT_NUMERIC);
+				&param->localaddr.sa, param->local_port,
+				proto, flags & NETSTAT_NUMERIC);
 		char *r = ip_port_str(
-				(struct sockaddr *) &remaddr, rem_port,
-				"tcp", flags & NETSTAT_NUMERIC);
-		printf(net_conn_line,
-			"tcp", rxq, txq, l, r, tcp_state[state]);
+				&param->remaddr.sa, param->rem_port,
+				proto, flags & NETSTAT_NUMERIC);
+		printf(FMT_NET_CONN_DATA,
+			proto, param->rxq, param->txq,
+			IF_FEATURE_NETSTAT_WIDE(G.addr_width,) l,
+			IF_FEATURE_NETSTAT_WIDE(G.addr_width,) r,
+			state_str);
+#if ENABLE_FEATURE_NETSTAT_PRG
+		if (option_mask32 & OPT_prg)
+			printf("%."PROGNAME_WIDTH_STR"s", prg_cache_get(param->inode));
+#endif
+		bb_putchar('\n');
 		free(l);
 		free(r);
 	}
+}
+
+static int FAST_FUNC tcp_do_one(char *line)
+{
+	struct inet_params param;
+
+	memset(&param, 0, sizeof(param));
+	if (scan_inet_proc_line(&param, line))
+		return 1;
+
+	print_inet_line(&param, tcp_state[param.state], "tcp", param.rem_port);
 	return 0;
 }
 
-static int udp_do_one(int lnr, char *line)
-{
-	char local_addr[64], rem_addr[64];
-	const char *state_str;
-	char more[512];
-	int num, local_port, rem_port, d, state, timer_run, uid, timeout;
 #if ENABLE_FEATURE_IPV6
-	struct sockaddr_in6 localaddr, remaddr;
-#else
-	struct sockaddr_in localaddr, remaddr;
-#endif
-	unsigned long rxq, txq, time_len, retr, inode;
-
-	if (lnr == 0)
-		return 0;
-
-	more[0] = '\0';
-	num = sscanf(line,
-			"%d: %64[0-9A-Fa-f]:%X %64[0-9A-Fa-f]:%X %X %lX:%lX %X:%lX %lX %d %d %ld %512s\n",
-			&d, local_addr, &local_port,
-			rem_addr, &rem_port, &state,
-			&txq, &rxq, &timer_run, &time_len, &retr, &uid, &timeout, &inode, more);
-
-	if (strlen(local_addr) > 8) {
-#if ENABLE_FEATURE_IPV6
-		/* Demangle what the kernel gives us */
-		build_ipv6_addr(local_addr, &localaddr);
-		build_ipv6_addr(rem_addr, &remaddr);
-#endif
-	} else {
-		build_ipv4_addr(local_addr, &localaddr);
-		build_ipv4_addr(rem_addr, &remaddr);
-	}
-
-	if (num < 10) {
-		return 1; /* error */
-	}
-	switch (state) {
-		case TCP_ESTABLISHED:
-			state_str = "ESTABLISHED";
-			break;
-		case TCP_CLOSE:
-			state_str = "";
-			break;
-		default:
-			state_str = "UNKNOWN";
-			break;
-	}
-
-#if ENABLE_FEATURE_IPV6
-# define notnull(A) ( \
-	( (A.sin6_family == AF_INET6)                               \
-	  && (A.sin6_addr.s6_addr32[0] | A.sin6_addr.s6_addr32[1] | \
-	      A.sin6_addr.s6_addr32[2] | A.sin6_addr.s6_addr32[3])  \
-	) || (                                                      \
-	  (A.sin6_family == AF_INET)                                \
-	  && ((struct sockaddr_in*)&A)->sin_addr.s_addr             \
-	)                                                           \
+# define NOT_NULL_ADDR(A) ( \
+	( (A.sa.sa_family == AF_INET6) \
+	  && (A.sin6.sin6_addr.s6_addr32[0] | A.sin6.sin6_addr.s6_addr32[1] | \
+	      A.sin6.sin6_addr.s6_addr32[2] | A.sin6.sin6_addr.s6_addr32[3])  \
+	) || ( \
+	  (A.sa.sa_family == AF_INET) \
+	  && A.sin.sin_addr.s_addr != 0 \
+	) \
 )
 #else
-# define notnull(A) (A.sin_addr.s_addr)
+# define NOT_NULL_ADDR(A) (A.sin.sin_addr.s_addr)
 #endif
-	{
-		int have_remaddr = notnull(remaddr);
-		if ((have_remaddr && (flags & NETSTAT_CONNECTED))
-		 || (!have_remaddr && (flags & NETSTAT_LISTENING))
-		) {
-			char *l = ip_port_str(
-				(struct sockaddr *) &localaddr, local_port,
-				"udp", flags & NETSTAT_NUMERIC);
-			char *r = ip_port_str(
-				(struct sockaddr *) &remaddr, rem_port,
-				"udp", flags & NETSTAT_NUMERIC);
-			printf(net_conn_line,
-				"udp", rxq, txq, l, r, state_str);
-			free(l);
-			free(r);
-		}
-	}
-	return 0;
-}
 
-static int raw_do_one(int lnr, char *line)
+static int FAST_FUNC udp_do_one(char *line)
 {
-	char local_addr[64], rem_addr[64];
-	char more[512];
-	int num, local_port, rem_port, d, state, timer_run, uid, timeout;
-#if ENABLE_FEATURE_IPV6
-	struct sockaddr_in6 localaddr, remaddr;
-#else
-	struct sockaddr_in localaddr, remaddr;
-#endif
-	unsigned long rxq, txq, time_len, retr, inode;
+	int have_remaddr;
+	const char *state_str;
+	struct inet_params param;
 
-	if (lnr == 0)
-		return 0;
+	memset(&param, 0, sizeof(param)); /* otherwise we display garbage IPv6 scope_ids */
+	if (scan_inet_proc_line(&param, line))
+		return 1;
 
-	more[0] = '\0';
-	num = sscanf(line,
-			"%d: %64[0-9A-Fa-f]:%X %64[0-9A-Fa-f]:%X %X %lX:%lX %X:%lX %lX %d %d %ld %512s\n",
-			&d, local_addr, &local_port,
-			rem_addr, &rem_port, &state,
-			&txq, &rxq, &timer_run, &time_len, &retr, &uid, &timeout, &inode, more);
-
-	if (strlen(local_addr) > 8) {
-#if ENABLE_FEATURE_IPV6
-		build_ipv6_addr(local_addr, &localaddr);
-		build_ipv6_addr(rem_addr, &remaddr);
-#endif
-	} else {
-		build_ipv4_addr(local_addr, &localaddr);
-		build_ipv4_addr(rem_addr, &remaddr);
+	state_str = "UNKNOWN";
+	switch (param.state) {
+	case TCP_ESTABLISHED:
+		state_str = "ESTABLISHED";
+		break;
+	case TCP_CLOSE:
+		state_str = "";
+		break;
 	}
 
-	if (num < 10) {
-		return 1; /* error */
-	}
-
-	{
-		int have_remaddr = notnull(remaddr);
-		if ((have_remaddr && (flags & NETSTAT_CONNECTED))
-		 || (!have_remaddr && (flags & NETSTAT_LISTENING))
-		) {
-			char *l = ip_port_str(
-				(struct sockaddr *) &localaddr, local_port,
-				"raw", flags & NETSTAT_NUMERIC);
-			char *r = ip_port_str(
-				(struct sockaddr *) &remaddr, rem_port,
-				"raw", flags & NETSTAT_NUMERIC);
-			printf(net_conn_line,
-				"raw", rxq, txq, l, r, itoa(state));
-			free(l);
-			free(r);
-		}
-	}
+	have_remaddr = NOT_NULL_ADDR(param.remaddr);
+	print_inet_line(&param, state_str, "udp", have_remaddr);
 	return 0;
 }
 
-static int unix_do_one(int nr, char *line)
+static int FAST_FUNC raw_do_one(char *line)
+{
+	int have_remaddr;
+	struct inet_params param;
+
+	if (scan_inet_proc_line(&param, line))
+		return 1;
+
+	have_remaddr = NOT_NULL_ADDR(param.remaddr);
+	print_inet_line(&param, itoa(param.state), "raw", have_remaddr);
+	return 0;
+}
+
+static int FAST_FUNC unix_do_one(char *line)
 {
 	unsigned long refcnt, proto, unix_flags;
 	unsigned long inode;
 	int type, state;
 	int num, path_ofs;
-	void *d;
 	const char *ss_proto, *ss_state, *ss_type;
 	char ss_flags[32];
-
-	if (nr == 0)
-		return 0; /* skip header */
 
 	/* 2.6.15 may report lines like "... @/tmp/fam-user-^@^@^@^@^@^@^@..."
 	 * Other users report long lines filled by NUL bytes.
@@ -359,9 +531,9 @@ static int unix_do_one(int nr, char *line)
 		return 0;
 
 	path_ofs = 0; /* paranoia */
-	num = sscanf(line, "%p: %lX %lX %lX %X %X %lu %n",
-			&d, &refcnt, &proto, &unix_flags, &type, &state, &inode, &path_ofs);
-	if (num < 7) {
+	num = sscanf(line, "%*p: %lX %lX %lX %X %X %lu %n",
+			&refcnt, &proto, &unix_flags, &type, &state, &inode, &path_ofs);
+	if (num < 6) {
 		return 1; /* error */
 	}
 	if ((flags & (NETSTAT_LISTENING|NETSTAT_CONNECTED)) != (NETSTAT_LISTENING|NETSTAT_CONNECTED)) {
@@ -443,6 +615,11 @@ static int unix_do_one(int nr, char *line)
 		ss_proto, refcnt, ss_flags, ss_type, ss_state, inode
 		);
 
+#if ENABLE_FEATURE_NETSTAT_PRG
+	if (option_mask32 & OPT_prg)
+		printf("%-"PROGNAME_WIDTH_STR"s", prg_cache_get(inode));
+#endif
+
 	/* TODO: currently we stop at first NUL byte. Is it a problem? */
 	line += path_ofs;
 	*strchrnul(line, '\n') = '\0';
@@ -452,77 +629,68 @@ static int unix_do_one(int nr, char *line)
 	return 0;
 }
 
-#define _PATH_PROCNET_UDP "/proc/net/udp"
-#define _PATH_PROCNET_UDP6 "/proc/net/udp6"
-#define _PATH_PROCNET_TCP "/proc/net/tcp"
-#define _PATH_PROCNET_TCP6 "/proc/net/tcp6"
-#define _PATH_PROCNET_RAW "/proc/net/raw"
-#define _PATH_PROCNET_RAW6 "/proc/net/raw6"
-#define _PATH_PROCNET_UNIX "/proc/net/unix"
-
-static void do_info(const char *file, const char *name, int (*proc)(int, char *))
+static void do_info(const char *file, int FAST_FUNC (*proc)(char *))
 {
 	int lnr;
 	FILE *procinfo;
 	char *buffer;
 
-	procinfo = fopen(file, "r");
+	/* _stdin is just to save "r" param */
+	procinfo = fopen_or_warn_stdin(file);
 	if (procinfo == NULL) {
-		if (errno != ENOENT) {
-			bb_simple_perror_msg(file);
-		} else {
-			bb_error_msg("no kernel support for %s", name);
-		}
 		return;
 	}
 	lnr = 0;
-	/* Why? because xmalloc_fgets_str doesn't stop on NULs */
+	/* Why xmalloc_fgets_str? because it doesn't stop on NULs */
 	while ((buffer = xmalloc_fgets_str(procinfo, "\n")) != NULL) {
-		if (proc(lnr++, buffer))
-			bb_error_msg("%s: bogus data on line %d", file, lnr);
+		/* line 0 is skipped */
+		if (lnr && proc(buffer))
+			bb_error_msg("%s: bogus data on line %d", file, lnr + 1);
+		lnr++;
 		free(buffer);
 	}
 	fclose(procinfo);
 }
 
 int netstat_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int netstat_main(int argc ATTRIBUTE_UNUSED, char **argv)
+int netstat_main(int argc UNUSED_PARAM, char **argv)
 {
-	const char *net_conn_line_header = PRINT_NET_CONN_HEADER;
 	unsigned opt;
-#if ENABLE_FEATURE_IPV6
-	smallint inet = 1;
-	smallint inet6 = 1;
-#else
-	enum { inet = 1, inet6 = 0 };
-#endif
+
+	INIT_G();
 
 	/* Option string must match NETSTAT_xxx constants */
 	opt = getopt32(argv, NETSTAT_OPTS);
-	if (opt & 0x1) { // -l
+	if (opt & OPT_sock_listen) { // -l
 		flags &= ~NETSTAT_CONNECTED;
 		flags |= NETSTAT_LISTENING;
 	}
-	if (opt & 0x2) flags |= NETSTAT_LISTENING | NETSTAT_CONNECTED; // -a
-	//if (opt & 0x4) // -e
-	if (opt & 0x8) flags |= NETSTAT_NUMERIC; // -n
-	//if (opt & 0x10) // -t: NETSTAT_TCP
-	//if (opt & 0x20) // -u: NETSTAT_UDP
-	//if (opt & 0x40) // -w: NETSTAT_RAW
-	//if (opt & 0x80) // -x: NETSTAT_UNIX
-	if (opt & OPT_showroute) { // -r
+	if (opt & OPT_sock_all) flags |= NETSTAT_LISTENING | NETSTAT_CONNECTED; // -a
+	//if (opt & OPT_extended) // -e
+	if (opt & OPT_noresolve) flags |= NETSTAT_NUMERIC; // -n
+	//if (opt & OPT_sock_tcp) // -t: NETSTAT_TCP
+	//if (opt & OPT_sock_udp) // -u: NETSTAT_UDP
+	//if (opt & OPT_sock_raw) // -w: NETSTAT_RAW
+	//if (opt & OPT_sock_unix) // -x: NETSTAT_UNIX
 #if ENABLE_ROUTE
+	if (opt & OPT_route) { // -r
 		bb_displayroutes(flags & NETSTAT_NUMERIC, !(opt & OPT_extended));
 		return 0;
-#else
-		bb_show_usage();
+	}
 #endif
+#if ENABLE_FEATURE_NETSTAT_WIDE
+	G.addr_width = ADDR_NORMAL_WIDTH;
+	if (opt & OPT_wide) { // -W
+		G.addr_width = ADDR_WIDE;
 	}
-
-	if (opt & OPT_widedisplay) { // -W
-		net_conn_line = PRINT_NET_CONN_WIDE;
-		net_conn_line_header = PRINT_NET_CONN_HEADER_WIDE;
+#endif
+#if ENABLE_FEATURE_NETSTAT_PRG
+	progname_banner = "";
+	if (opt & OPT_prg) { // -p
+		progname_banner = PROGNAME_BANNER;
+		prg_cache_load();
 	}
+#endif
 
 	opt &= NETSTAT_ALLPROTO;
 	if (opt) {
@@ -530,7 +698,7 @@ int netstat_main(int argc ATTRIBUTE_UNUSED, char **argv)
 		flags |= opt;
 	}
 	if (flags & (NETSTAT_TCP|NETSTAT_UDP|NETSTAT_RAW)) {
-		printf("Active Internet connections ");	/* xxx */
+		printf("Active Internet connections "); /* xxx */
 
 		if ((flags & (NETSTAT_LISTENING|NETSTAT_CONNECTED)) == (NETSTAT_LISTENING|NETSTAT_CONNECTED))
 			printf("(servers and established)");
@@ -538,26 +706,30 @@ int netstat_main(int argc ATTRIBUTE_UNUSED, char **argv)
 			printf("(only servers)");
 		else
 			printf("(w/o servers)");
-		printf(net_conn_line_header, "Local Address", "Foreign Address");
+		printf(FMT_NET_CONN_HEADER,
+				IF_FEATURE_NETSTAT_WIDE(G.addr_width,) "Local Address",
+				IF_FEATURE_NETSTAT_WIDE(G.addr_width,) "Foreign Address",
+				progname_banner
+		);
 	}
-	if (inet && flags & NETSTAT_TCP)
-		do_info(_PATH_PROCNET_TCP, "AF INET (tcp)", tcp_do_one);
+	if (flags & NETSTAT_TCP) {
+		do_info("/proc/net/tcp", tcp_do_one);
 #if ENABLE_FEATURE_IPV6
-	if (inet6 && flags & NETSTAT_TCP)
-		do_info(_PATH_PROCNET_TCP6, "AF INET6 (tcp)", tcp_do_one);
+		do_info("/proc/net/tcp6", tcp_do_one);
 #endif
-	if (inet && flags & NETSTAT_UDP)
-		do_info(_PATH_PROCNET_UDP, "AF INET (udp)", udp_do_one);
+	}
+	if (flags & NETSTAT_UDP) {
+		do_info("/proc/net/udp", udp_do_one);
 #if ENABLE_FEATURE_IPV6
-	if (inet6 && flags & NETSTAT_UDP)
-		do_info(_PATH_PROCNET_UDP6, "AF INET6 (udp)", udp_do_one);
+		do_info("/proc/net/udp6", udp_do_one);
 #endif
-	if (inet && flags & NETSTAT_RAW)
-		do_info(_PATH_PROCNET_RAW, "AF INET (raw)", raw_do_one);
+	}
+	if (flags & NETSTAT_RAW) {
+		do_info("/proc/net/raw", raw_do_one);
 #if ENABLE_FEATURE_IPV6
-	if (inet6 && flags & NETSTAT_RAW)
-		do_info(_PATH_PROCNET_RAW6, "AF INET6 (raw)", raw_do_one);
+		do_info("/proc/net/raw6", raw_do_one);
 #endif
+	}
 	if (flags & NETSTAT_UNIX) {
 		printf("Active UNIX domain sockets ");
 		if ((flags & (NETSTAT_LISTENING|NETSTAT_CONNECTED)) == (NETSTAT_LISTENING|NETSTAT_CONNECTED))
@@ -566,8 +738,9 @@ int netstat_main(int argc ATTRIBUTE_UNUSED, char **argv)
 			printf("(only servers)");
 		else
 			printf("(w/o servers)");
-		printf("\nProto RefCnt Flags       Type       State         I-Node Path\n");
-		do_info(_PATH_PROCNET_UNIX, "AF UNIX", unix_do_one);
+		printf("\nProto RefCnt Flags       Type       State         I-Node %sPath\n", progname_banner);
+		do_info("/proc/net/unix", unix_do_one);
 	}
+	prg_cache_clear();
 	return 0;
 }

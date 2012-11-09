@@ -4,8 +4,10 @@
  *
  * Copyright (C) 2007 Denys Vlasenko.
  *
- * Licensed under GPLv2, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
+
+PUSH_AND_SET_FUNCTION_VISIBILITY_TO_HIDDEN
 
 struct hcc {
 	char *ip;
@@ -27,3 +29,5 @@ void ipsvd_perhost_remove(int pid);
 
 //unsigned ipsvd_perhost_setpid(int pid);
 //void ipsvd_perhost_free(void);
+
+POP_SAVED_FUNCTION_VISIBILITY

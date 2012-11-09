@@ -12,10 +12,10 @@
 
 /*
  * History:
- * 93/10/30	- Creation
- * 93/11/13	- Replace stat() calls by lstat() to avoid loops
- * 94/02/27	- Integrated in Ted's distribution
- * 98/12/29	- Display version info only when -V specified (G M Sipe)
+ * 93/10/30 - Creation
+ * 93/11/13 - Replace stat() calls by lstat() to avoid loops
+ * 94/02/27 - Integrated in Ted's distribution
+ * 98/12/29 - Display version info only when -V specified (G M Sipe)
  */
 
 #include <sys/types.h>
@@ -56,10 +56,10 @@ static void list_attributes(const char *name)
 
 	if (flags & OPT_PF_LONG) {
 		printf("%-28s ", name);
-		print_flags(stdout, fsflags, PFOPT_LONG);
+		print_e2flags(stdout, fsflags, PFOPT_LONG);
 		bb_putchar('\n');
 	} else {
-		print_flags(stdout, fsflags, 0);
+		print_e2flags(stdout, fsflags, 0);
 		printf(" %s\n", name);
 	}
 

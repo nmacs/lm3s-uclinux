@@ -4,17 +4,17 @@
  *
  * Copyright (c) 2008 Denys Vlasenko
  *
- * Licensed under GPLv2, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
 
-int bb_pstrcmp(const void *a, const void *b)
+int /* not FAST_FUNC! */ bb_pstrcmp(const void *a, const void *b)
 {
 	return strcmp(*(char**)a, *(char**)b);
 }
 
-void qsort_string_vector(char **sv, unsigned count)
+void FAST_FUNC qsort_string_vector(char **sv, unsigned count)
 {
 	qsort(sv, count, sizeof(char*), bb_pstrcmp);
 }

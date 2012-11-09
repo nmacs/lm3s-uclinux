@@ -4,24 +4,24 @@
  *
  * Copyright (C) 2001 Matt Kraai <kraai@alumni.carnegiemellon.edu>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
 
 /* Used from NOFORK applets. Must not allocate anything */
 
-int remove_file(const char *path, int flags)
+int FAST_FUNC remove_file(const char *path, int flags)
 {
 	struct stat path_stat;
 
 	if (lstat(path, &path_stat) < 0) {
 		if (errno != ENOENT) {
-			bb_perror_msg("cannot stat '%s'", path);
+			bb_perror_msg("can't stat '%s'", path);
 			return -1;
 		}
 		if (!(flags & FILEUTILS_FORCE)) {
-			bb_perror_msg("cannot remove '%s'", path);
+			bb_perror_msg("can't remove '%s'", path);
 			return -1;
 		}
 		return 0;
@@ -63,7 +63,7 @@ int remove_file(const char *path, int flags)
 		}
 
 		if (closedir(dp) < 0) {
-			bb_perror_msg("cannot close '%s'", path);
+			bb_perror_msg("can't close '%s'", path);
 			return -1;
 		}
 
@@ -74,7 +74,7 @@ int remove_file(const char *path, int flags)
 		}
 
 		if (rmdir(path) < 0) {
-			bb_perror_msg("cannot remove '%s'", path);
+			bb_perror_msg("can't remove '%s'", path);
 			return -1;
 		}
 
@@ -82,8 +82,10 @@ int remove_file(const char *path, int flags)
 	}
 
 	/* !ISDIR */
-	if ((!(flags & FILEUTILS_FORCE) && access(path, W_OK) < 0
-			&& !S_ISLNK(path_stat.st_mode) && isatty(0))
+	if ((!(flags & FILEUTILS_FORCE)
+	     && access(path, W_OK) < 0
+	     && !S_ISLNK(path_stat.st_mode)
+	     && isatty(0))
 	 || (flags & FILEUTILS_INTERACTIVE)
 	) {
 		fprintf(stderr, "%s: remove '%s'? ", applet_name, path);
@@ -92,7 +94,7 @@ int remove_file(const char *path, int flags)
 	}
 
 	if (unlink(path) < 0) {
-		bb_perror_msg("cannot remove '%s'", path);
+		bb_perror_msg("can't remove '%s'", path);
 		return -1;
 	}
 

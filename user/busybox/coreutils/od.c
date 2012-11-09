@@ -4,28 +4,30 @@
  * Based on code from util-linux v 2.11l
  *
  * Copyright (c) 1990
- *	The Regents of the University of California.  All rights reserved.
+ * The Regents of the University of California.  All rights reserved.
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  *
  * Original copyright notice is retained at the end of this file.
  */
 
+//usage:#if !ENABLE_DESKTOP
+//usage:#define od_trivial_usage
+//usage:       "[-aBbcDdeFfHhIiLlOovXx] [FILE]"
+//usage:#define od_full_usage "\n\n"
+//usage:       "Print FILE (or stdin) unambiguously, as octal bytes by default"
+//usage:#endif
 
 #include "libbb.h"
 #if ENABLE_DESKTOP
 /* This one provides -t (busybox's own build script needs it) */
 #include "od_bloaty.c"
 #else
-#include <getopt.h>
 
 #include "dump.h"
 
-#define isdecdigit(c) isdigit(c)
-#define ishexdigit(c) (isxdigit)(c)
-
 static void
-odoffset(int argc, char ***argvp)
+odoffset(dumper_t *dumper, int argc, char ***argvp)
 {
 	char *num, *p;
 	int base;
@@ -52,18 +54,18 @@ odoffset(int argc, char ***argvp)
 
 	if ((*p != '+')
 		&& (argc < 2
-			|| (!isdecdigit(p[0])
-				&& ((p[0] != 'x') || !ishexdigit(p[1])))))
+			|| (!isdigit(p[0])
+				&& ((p[0] != 'x') || !isxdigit(p[1])))))
 		return;
 
 	base = 0;
 	/*
-	 * bb_dump_skip over leading '+', 'x[0-9a-fA-f]' or '0x', and
+	 * skip over leading '+', 'x[0-9a-fA-f]' or '0x', and
 	 * set base.
 	 */
 	if (p[0] == '+')
 		++p;
-	if (p[0] == 'x' && ishexdigit(p[1])) {
+	if (p[0] == 'x' && isxdigit(p[1])) {
 		++p;
 		base = 16;
 	} else if (p[0] == '0' && p[1] == 'x') {
@@ -71,11 +73,13 @@ odoffset(int argc, char ***argvp)
 		base = 16;
 	}
 
-	/* bb_dump_skip over the number */
+	/* skip over the number */
 	if (base == 16)
-		for (num = p; ishexdigit(*p); ++p);
+		for (num = p; isxdigit(*p); ++p)
+			continue;
 	else
-		for (num = p; isdecdigit(*p); ++p);
+		for (num = p; isdigit(*p); ++p)
+			continue;
 
 	/* check for no number */
 	if (num == p)
@@ -88,23 +92,23 @@ odoffset(int argc, char ***argvp)
 		base = 10;
 	}
 
-	bb_dump_skip = strtol(num, &end, base ? base : 8);
+	dumper->dump_skip = strtol(num, &end, base ? base : 8);
 
 	/* if end isn't the same as p, we got a non-octal digit */
 	if (end != p)
-		bb_dump_skip = 0;
+		dumper->dump_skip = 0;
 	else {
 		if (*p) {
 			if (*p == 'b') {
-				bb_dump_skip *= 512;
+				dumper->dump_skip *= 512;
 				++p;
 			} else if (*p == 'B') {
-				bb_dump_skip *= 1024;
+				dumper->dump_skip *= 1024;
 				++p;
 			}
 		}
 		if (*p)
-			bb_dump_skip = 0;
+			dumper->dump_skip = 0;
 		else {
 			++*argvp;
 			/*
@@ -112,7 +116,7 @@ odoffset(int argc, char ***argvp)
 			 * the offset is changed as well.  This isn't pretty,
 			 * but it's easy.
 			 */
-#define	TYPE_OFFSET	7
+#define TYPE_OFFSET 7
 			{
 				char x_or_d;
 				if (base == 16) {
@@ -121,9 +125,9 @@ odoffset(int argc, char ***argvp)
 				}
 				if (base == 10) {
 					x_or_d = 'd';
-				DO_X_OR_D:
-					bb_dump_fshead->nextfu->fmt[TYPE_OFFSET]
-						= bb_dump_fshead->nextfs->nextfu->fmt[TYPE_OFFSET]
+ DO_X_OR_D:
+					dumper->fshead->nextfu->fmt[TYPE_OFFSET]
+						= dumper->fshead->nextfs->nextfu->fmt[TYPE_OFFSET]
 						= x_or_d;
 				}
 			}
@@ -132,19 +136,19 @@ odoffset(int argc, char ***argvp)
 }
 
 static const char *const add_strings[] = {
-	"16/1 \"%3_u \" \"\\n\"",				/* a */
-	"8/2 \" %06o \" \"\\n\"",				/* B, o */
-	"16/1 \"%03o \" \"\\n\"",				/* b */
-	"16/1 \"%3_c \" \"\\n\"",				/* c */
-	"8/2 \"  %05u \" \"\\n\"",				/* d */
-	"4/4 \"     %010u \" \"\\n\"",			/* D */
-	"2/8 \"          %21.14e \" \"\\n\"",	/* e (undocumented in od), F */
-	"4/4 \" %14.7e \" \"\\n\"",				/* f */
-	"4/4 \"       %08x \" \"\\n\"",			/* H, X */
-	"8/2 \"   %04x \" \"\\n\"",				/* h, x */
-	"4/4 \"    %11d \" \"\\n\"",			/* I, L, l */
-	"8/2 \" %6d \" \"\\n\"",				/* i */
-	"4/4 \"    %011o \" \"\\n\"",			/* O */
+	"16/1 \"%3_u \" \"\\n\"",              /* a */
+	"8/2 \" %06o \" \"\\n\"",              /* B, o */
+	"16/1 \"%03o \" \"\\n\"",              /* b */
+	"16/1 \"%3_c \" \"\\n\"",              /* c */
+	"8/2 \"  %05u \" \"\\n\"",             /* d */
+	"4/4 \"     %010u \" \"\\n\"",         /* D */
+	"2/8 \"          %21.14e \" \"\\n\"",  /* e (undocumented in od), F */
+	"4/4 \" %14.7e \" \"\\n\"",            /* f */
+	"4/4 \"       %08x \" \"\\n\"",        /* H, X */
+	"8/2 \"   %04x \" \"\\n\"",            /* h, x */
+	"4/4 \"    %11d \" \"\\n\"",           /* I, L, l */
+	"8/2 \" %6d \" \"\\n\"",               /* i */
+	"4/4 \"    %011o \" \"\\n\"",          /* O */
 };
 
 static const char od_opts[] ALIGN1 = "aBbcDdeFfHhIiLlOoXxv";
@@ -162,36 +166,35 @@ int od_main(int argc, char **argv)
 	int ch;
 	int first = 1;
 	char *p;
-	bb_dump_vflag = FIRST;
-	bb_dump_length = -1;
+	dumper_t *dumper = alloc_dumper();
 
 	while ((ch = getopt(argc, argv, od_opts)) > 0) {
 		if (ch == 'v') {
-			bb_dump_vflag = ALL;
+			dumper->dump_vflag = ALL;
 		} else if (((p = strchr(od_opts, ch)) != NULL) && (*p != '\0')) {
 			if (first) {
 				first = 0;
-				bb_dump_add("\"%07.7_Ao\n\"");
-				bb_dump_add("\"%07.7_ao  \"");
+				bb_dump_add(dumper, "\"%07.7_Ao\n\"");
+				bb_dump_add(dumper, "\"%07.7_ao  \"");
 			} else {
-				bb_dump_add("\"         \"");
+				bb_dump_add(dumper, "\"         \"");
 			}
-			bb_dump_add(add_strings[(int)od_o2si[(p-od_opts)]]);
-		} else {	/* P, p, s, w, or other unhandled */
+			bb_dump_add(dumper, add_strings[(int)od_o2si[(p - od_opts)]]);
+		} else {  /* P, p, s, w, or other unhandled */
 			bb_show_usage();
 		}
 	}
-	if (!bb_dump_fshead) {
-		bb_dump_add("\"%07.7_Ao\n\"");
-		bb_dump_add("\"%07.7_ao  \" 8/2 \"%06o \" \"\\n\"");
+	if (!dumper->fshead) {
+		bb_dump_add(dumper, "\"%07.7_Ao\n\"");
+		bb_dump_add(dumper, "\"%07.7_ao  \" 8/2 \"%06o \" \"\\n\"");
 	}
 
 	argc -= optind;
 	argv += optind;
 
-	odoffset(argc, &argv);
+	odoffset(dumper, argc, &argv);
 
-	return bb_dump_dump(argv);
+	return bb_dump_dump(dumper, argv);
 }
 #endif /* ENABLE_DESKTOP */
 

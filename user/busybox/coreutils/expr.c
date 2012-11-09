@@ -11,7 +11,7 @@
  *  - reduced 464 bytes.
  *  - 64 math support
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 /* This program evaluates expressions.  Each token (operator, operand,
@@ -25,15 +25,43 @@
 
 /* no getopt needed */
 
+//usage:#define expr_trivial_usage
+//usage:       "EXPRESSION"
+//usage:#define expr_full_usage "\n\n"
+//usage:       "Print the value of EXPRESSION to stdout\n"
+//usage:    "\n"
+//usage:       "EXPRESSION may be:\n"
+//usage:       "	ARG1 | ARG2	ARG1 if it is neither null nor 0, otherwise ARG2\n"
+//usage:       "	ARG1 & ARG2	ARG1 if neither argument is null or 0, otherwise 0\n"
+//usage:       "	ARG1 < ARG2	1 if ARG1 is less than ARG2, else 0. Similarly:\n"
+//usage:       "	ARG1 <= ARG2\n"
+//usage:       "	ARG1 = ARG2\n"
+//usage:       "	ARG1 != ARG2\n"
+//usage:       "	ARG1 >= ARG2\n"
+//usage:       "	ARG1 > ARG2\n"
+//usage:       "	ARG1 + ARG2	Sum of ARG1 and ARG2. Similarly:\n"
+//usage:       "	ARG1 - ARG2\n"
+//usage:       "	ARG1 * ARG2\n"
+//usage:       "	ARG1 / ARG2\n"
+//usage:       "	ARG1 % ARG2\n"
+//usage:       "	STRING : REGEXP		Anchored pattern match of REGEXP in STRING\n"
+//usage:       "	match STRING REGEXP	Same as STRING : REGEXP\n"
+//usage:       "	substr STRING POS LENGTH Substring of STRING, POS counted from 1\n"
+//usage:       "	index STRING CHARS	Index in STRING where any CHARS is found, or 0\n"
+//usage:       "	length STRING		Length of STRING\n"
+//usage:       "	quote TOKEN		Interpret TOKEN as a string, even if\n"
+//usage:       "				it is a keyword like 'match' or an\n"
+//usage:       "				operator like '/'\n"
+//usage:       "	(EXPRESSION)		Value of EXPRESSION\n"
+//usage:       "\n"
+//usage:       "Beware that many operators need to be escaped or quoted for shells.\n"
+//usage:       "Comparisons are arithmetic if both ARGs are numbers, else\n"
+//usage:       "lexicographical. Pattern matches return the string matched between\n"
+//usage:       "\\( and \\) or null; if \\( and \\) are not used, they return the number\n"
+//usage:       "of characters matched or 0."
+
 #include "libbb.h"
 #include "xregex.h"
-
-/* The kinds of value we can have.  */
-enum valtype {
-	integer,
-	string
-};
-typedef enum valtype TYPE;
 
 #if ENABLE_EXPR_MATH_SUPPORT_64
 typedef int64_t arith_t;
@@ -51,10 +79,16 @@ typedef long arith_t;
 
 /* TODO: use bb_strtol[l]? It's easier to check for errors... */
 
+/* The kinds of value we can have.  */
+enum {
+	INTEGER,
+	STRING
+};
+
 /* A value is.... */
 struct valinfo {
-	TYPE type;			/* Which kind. */
-	union {				/* The value itself. */
+	smallint type;                  /* Which kind. */
+	union {                         /* The value itself. */
 		arith_t i;
 		char *s;
 	} u;
@@ -64,8 +98,9 @@ typedef struct valinfo VALUE;
 /* The arguments given to the program, minus the program name.  */
 struct globals {
 	char **args;
-};
+} FIX_ALIASING;
 #define G (*(struct globals*)&bb_common_bufsiz1)
+#define INIT_G() do { } while (0)
 
 /* forward declarations */
 static VALUE *eval(void);
@@ -77,8 +112,9 @@ static VALUE *int_value(arith_t i)
 {
 	VALUE *v;
 
-	v = xmalloc(sizeof(VALUE));
-	v->type = integer;
+	v = xzalloc(sizeof(VALUE));
+	if (INTEGER) /* otherwise xzaaloc did it already */
+		v->type = INTEGER;
 	v->u.i = i;
 	return v;
 }
@@ -89,46 +125,47 @@ static VALUE *str_value(const char *s)
 {
 	VALUE *v;
 
-	v = xmalloc(sizeof(VALUE));
-	v->type = string;
+	v = xzalloc(sizeof(VALUE));
+	if (STRING) /* otherwise xzaaloc did it already */
+		v->type = STRING;
 	v->u.s = xstrdup(s);
 	return v;
 }
 
 /* Free VALUE V, including structure components.  */
 
-static void freev(VALUE * v)
+static void freev(VALUE *v)
 {
-	if (v->type == string)
+	if (v->type == STRING)
 		free(v->u.s);
 	free(v);
 }
 
 /* Return nonzero if V is a null-string or zero-number.  */
 
-static int null(VALUE * v)
+static int null(VALUE *v)
 {
-	if (v->type == integer)
+	if (v->type == INTEGER)
 		return v->u.i == 0;
-	/* string: */
+	/* STRING: */
 	return v->u.s[0] == '\0' || LONE_CHAR(v->u.s, '0');
 }
 
-/* Coerce V to a string value (can't fail).  */
+/* Coerce V to a STRING value (can't fail).  */
 
-static void tostring(VALUE * v)
+static void tostring(VALUE *v)
 {
-	if (v->type == integer) {
+	if (v->type == INTEGER) {
 		v->u.s = xasprintf("%" PF_REZ "d", PF_REZ_TYPE v->u.i);
-		v->type = string;
+		v->type = STRING;
 	}
 }
 
-/* Coerce V to an integer value.  Return 1 on success, 0 on failure.  */
+/* Coerce V to an INTEGER value.  Return 1 on success, 0 on failure.  */
 
-static bool toarith(VALUE * v)
+static bool toarith(VALUE *v)
 {
-	if (v->type == string) {
+	if (v->type == STRING) {
 		arith_t i;
 		char *e;
 
@@ -139,50 +176,54 @@ static bool toarith(VALUE * v)
 			return 0;
 		free(v->u.s);
 		v->u.i = i;
-		v->type = integer;
+		v->type = INTEGER;
 	}
 	return 1;
 }
 
-/* Return nonzero if the next token matches STR exactly.
+/* Return str[0]+str[1] if the next token matches STR exactly.
    STR must not be NULL.  */
 
-static bool nextarg(const char *str)
+static int nextarg(const char *str)
 {
-	if (*G.args == NULL)
+	if (*G.args == NULL || strcmp(*G.args, str) != 0)
 		return 0;
-	return strcmp(*G.args, str) == 0;
+	return (unsigned char)str[0] + (unsigned char)str[1];
 }
 
 /* The comparison operator handling functions.  */
 
-static int cmp_common(VALUE * l, VALUE * r, int op)
+static int cmp_common(VALUE *l, VALUE *r, int op)
 {
-	int cmpval;
+	arith_t ll, rr;
 
-	if (l->type == string || r->type == string) {
+	ll = l->u.i;
+	rr = r->u.i;
+	if (l->type == STRING || r->type == STRING) {
 		tostring(l);
 		tostring(r);
-		cmpval = strcmp(l->u.s, r->u.s);
-	} else
-		cmpval = l->u.i - r->u.i;
+		ll = strcmp(l->u.s, r->u.s);
+		rr = 0;
+	}
+	/* calculating ll - rr and checking the result is prone to overflows.
+	 * We'll do it differently: */
 	if (op == '<')
-		return cmpval < 0;
-	if (op == ('L' + 'E'))
-		return cmpval <= 0;
-	if (op == '=')
-		return cmpval == 0;
-	if (op == '!')
-		return cmpval != 0;
+		return ll < rr;
+	if (op == ('<' + '='))
+		return ll <= rr;
+	if (op == '=' || (op == '=' + '='))
+		return ll == rr;
+	if (op == '!' + '=')
+		return ll != rr;
 	if (op == '>')
-		return cmpval > 0;
+		return ll > rr;
 	/* >= */
-	return cmpval >= 0;
+	return ll >= rr;
 }
 
 /* The arithmetic operator handling functions.  */
 
-static arith_t arithmetic_common(VALUE * l, VALUE * r, int op)
+static arith_t arithmetic_common(VALUE *l, VALUE *r, int op)
 {
 	arith_t li, ri;
 
@@ -190,69 +231,55 @@ static arith_t arithmetic_common(VALUE * l, VALUE * r, int op)
 		bb_error_msg_and_die("non-numeric argument");
 	li = l->u.i;
 	ri = r->u.i;
-	if ((op == '/' || op == '%') && ri == 0)
-		bb_error_msg_and_die("division by zero");
 	if (op == '+')
 		return li + ri;
-	else if (op == '-')
+	if (op == '-')
 		return li - ri;
-	else if (op == '*')
+	if (op == '*')
 		return li * ri;
-	else if (op == '/')
+	if (ri == 0)
+		bb_error_msg_and_die("division by zero");
+	if (op == '/')
 		return li / ri;
-	else
-		return li % ri;
+	return li % ri;
 }
 
 /* Do the : operator.
    SV is the VALUE for the lhs (the string),
    PV is the VALUE for the rhs (the pattern).  */
 
-static VALUE *docolon(VALUE * sv, VALUE * pv)
+static VALUE *docolon(VALUE *sv, VALUE *pv)
 {
+	enum { NMATCH = 2 };
 	VALUE *v;
-#if defined(__UC_LIBC__)
-	regexp *re_buffer;
-    int len;
-#else
 	regex_t re_buffer;
-	const int NMATCH = 2;
 	regmatch_t re_regs[NMATCH];
-#endif
 
 	tostring(sv);
 	tostring(pv);
 
 	if (pv->u.s[0] == '^') {
-		bb_error_msg("\
-warning: unportable BRE: `%s': using `^' as the first character\n\
-of a basic regular expression is not portable; it is being ignored", pv->u.s);
+		bb_error_msg(
+"warning: '%s': using '^' as the first character\n"
+"of a basic regular expression is not portable; it is ignored", pv->u.s);
 	}
 
-#if defined(__UC_LIBC__)
-	re_buffer = regcomp(pv->u.s);
-	if (re_buffer == NULL) {
-		regerror("NULL buffer");
-		exit(1);
-	}
-	len = regexec(re_buffer, sv->u.s);
-	v = int_value(len);
-	free(re_buffer);
-#else
 	memset(&re_buffer, 0, sizeof(re_buffer));
-	memset(re_regs, 0, sizeof(*re_regs));
+	memset(re_regs, 0, sizeof(re_regs));
 	xregcomp(&re_buffer, pv->u.s, 0);
 
 	/* expr uses an anchored pattern match, so check that there was a
 	 * match and that the match starts at offset 0. */
-	if (regexec(&re_buffer, sv->u.s, NMATCH, re_regs, 0) != REG_NOMATCH &&
-		re_regs[0].rm_so == 0) {
+	if (regexec(&re_buffer, sv->u.s, NMATCH, re_regs, 0) != REG_NOMATCH
+	 && re_regs[0].rm_so == 0
+	) {
 		/* Were \(...\) used? */
-		if (re_buffer.re_nsub > 0) {
+		if (re_buffer.re_nsub > 0 && re_regs[1].rm_so >= 0) {
 			sv->u.s[re_regs[1].rm_eo] = '\0';
 			v = str_value(sv->u.s + re_regs[1].rm_so);
-		} else
+		} else {
 			v = int_value(re_regs[0].rm_eo);
+		}
 	} else {
 		/* Match failed -- return the right kind of null.  */
 		if (re_buffer.re_nsub > 0)
@@ -260,8 +287,7 @@ of a basic regular expression is not portable; it is being ignored", pv->u.s);
 		else
 			v = int_value(0);
 	}
-#endif
-//FIXME: sounds like here is a bit missing: regfree(&re_buffer);
+	regfree(&re_buffer);
 	return v;
 }
 
@@ -343,7 +369,7 @@ static VALUE *eval6(void)
 			v = str_value("");
 		else {
 			v = xmalloc(sizeof(VALUE));
-			v->type = string;
+			v->type = STRING;
 			v->u.s = xstrndup(l->u.s + i1->u.i - 1, i2->u.i);
 		}
 		freev(l);
@@ -351,7 +377,6 @@ static VALUE *eval6(void)
 		freev(i2);
 	}
 	return v;
-
 }
 
 /* Handle : operator (pattern matching).
@@ -383,14 +408,11 @@ static VALUE *eval4(void)
 
 	l = eval5();
 	while (1) {
-		if (nextarg("*"))
-			op = '*';
-		else if (nextarg("/"))
-			op = '/';
-		else if (nextarg("%"))
-			op = '%';
-		else
-			return l;
+		op = nextarg("*");
+		if (!op) { op = nextarg("/");
+		 if (!op) { op = nextarg("%");
+		  if (!op) return l;
+		}}
 		G.args++;
 		r = eval5();
 		val = arithmetic_common(l, r, op);
@@ -410,12 +432,11 @@ static VALUE *eval3(void)
 
 	l = eval4();
 	while (1) {
-		if (nextarg("+"))
-			op = '+';
-		else if (nextarg("-"))
-			op = '-';
-		else
-			return l;
+		op = nextarg("+");
+		if (!op) {
+			op = nextarg("-");
+			if (!op) return l;
+		}
 		G.args++;
 		r = eval4();
 		val = arithmetic_common(l, r, op);
@@ -435,20 +456,15 @@ static VALUE *eval2(void)
 
 	l = eval3();
 	while (1) {
-		if (nextarg("<"))
-			op = '<';
-		else if (nextarg("<="))
-			op = 'L' + 'E';
-		else if (nextarg("=") || nextarg("=="))
-			op = '=';
-		else if (nextarg("!="))
-			op = '!';
-		else if (nextarg(">="))
-			op = 'G' + 'E';
-		else if (nextarg(">"))
-			op = '>';
-		else
-			return l;
+		op = nextarg("<");
+		if (!op) { op = nextarg("<=");
+		 if (!op) { op = nextarg("=");
+		  if (!op) { op = nextarg("==");
+		   if (!op) { op = nextarg("!=");
+		    if (!op) { op = nextarg(">=");
+		     if (!op) { op = nextarg(">");
+		      if (!op) return l;
+		}}}}}}
 		G.args++;
 		r = eval3();
 		toarith(l);
@@ -500,24 +516,23 @@ static VALUE *eval(void)
 }
 
 int expr_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int expr_main(int argc, char **argv)
+int expr_main(int argc UNUSED_PARAM, char **argv)
 {
 	VALUE *v;
 
-	if (argc == 1) {
+	INIT_G();
+
+	xfunc_error_retval = 2; /* coreutils compat */
+	G.args = argv + 1;
+	if (*G.args == NULL) {
 		bb_error_msg_and_die("too few arguments");
 	}
-
-	G.args = argv + 1;
-
 	v = eval();
 	if (*G.args)
 		bb_error_msg_and_die("syntax error");
-
-	if (v->type == integer)
+	if (v->type == INTEGER)
 		printf("%" PF_REZ "d\n", PF_REZ_TYPE v->u.i);
 	else
 		puts(v->u.s);
-
 	fflush_stdout_and_exit(null(v));
 }

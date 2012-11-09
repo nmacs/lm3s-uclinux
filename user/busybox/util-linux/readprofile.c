@@ -4,7 +4,7 @@
  *
  *  Copyright (C) 1994,1996 Alessandro Rubini (rubini@ipvvis.unipv.it)
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 /*
@@ -32,6 +32,20 @@
  * Paul Mundt <lethal@linux-sh.org>.
  */
 
+//usage:#define readprofile_trivial_usage
+//usage:       "[OPTIONS]"
+//usage:#define readprofile_full_usage "\n\n"
+//usage:       "	-m mapfile	(Default: /boot/System.map)"
+//usage:     "\n	-p profile	(Default: /proc/profile)"
+//usage:     "\n	-M NUM		Set the profiling multiplier to NUM"
+//usage:     "\n	-i		Print only info about the sampling step"
+//usage:     "\n	-v		Verbose"
+//usage:     "\n	-a		Print all symbols, even if count is 0"
+//usage:     "\n	-b		Print individual histogram-bin counts"
+//usage:     "\n	-s		Print individual counters within functions"
+//usage:     "\n	-r		Reset all the counters (root only)"
+//usage:     "\n	-n		Disable byte order auto-detection"
+
 #include "libbb.h"
 #include <sys/utsname.h>
 
@@ -42,7 +56,7 @@ static const char defaultmap[] ALIGN1 = "/boot/System.map";
 static const char defaultpro[] ALIGN1 = "/proc/profile";
 
 int readprofile_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int readprofile_main(int argc ATTRIBUTE_UNUSED, char **argv)
+int readprofile_main(int argc UNUSED_PARAM, char **argv)
 {
 	FILE *map;
 	const char *mapFile, *proFile;
@@ -97,7 +111,7 @@ int readprofile_main(int argc ATTRIBUTE_UNUSED, char **argv)
 		 */
 		to_write = sizeof(int);
 		if (!optMult)
-			to_write = 1;	/* sth different from sizeof(int) */
+			to_write = 1;  /* sth different from sizeof(int) */
 
 		fd = xopen(defaultpro, O_WRONLY);
 		xwrite(fd, &multiplier, to_write);
@@ -109,9 +123,9 @@ int readprofile_main(int argc ATTRIBUTE_UNUSED, char **argv)
 	 * Use an fd for the profiling buffer, to skip stdio overhead
 	 */
 	len = MAXINT(ssize_t);
-	buf = xmalloc_open_read_close(proFile, &len);
+	buf = xmalloc_xopen_read_close(proFile, &len);
 	if (!optNative) {
-		int entries = len/sizeof(*buf);
+		int entries = len / sizeof(*buf);
 		int big = 0, small = 0, i;
 		unsigned *p;
 
@@ -144,7 +158,7 @@ int readprofile_main(int argc ATTRIBUTE_UNUSED, char **argv)
 
 	total = 0;
 
-	map = xfopen(mapFile, "r");
+	map = xfopen_for_read(mapFile);
 
 	while (fgets(mapline, S_LEN, map)) {
 		if (sscanf(mapline, "%llx %s %s", &fn_add, mode, fn_name) != 3)
@@ -176,9 +190,11 @@ int readprofile_main(int argc ATTRIBUTE_UNUSED, char **argv)
 		/* ignore any LEADING (before a '[tT]' symbol is found)
 		   Absolute symbols */
 		if ((*mode == 'A' || *mode == '?') && total == 0) continue;
-		if (*mode != 'T' && *mode != 't' &&
-		    *mode != 'W' && *mode != 'w')
-			break;	/* only text is profiled */
+		if (*mode != 'T' && *mode != 't'
+		 && *mode != 'W' && *mode != 'w'
+		) {
+			break;  /* only text is profiled */
+		}
 
 		if (indx >= len / sizeof(*buf))
 			bb_error_msg_and_die("profile address out of range. "

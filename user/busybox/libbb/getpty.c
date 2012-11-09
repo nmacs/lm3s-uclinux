@@ -3,28 +3,38 @@
  * Mini getpty implementation for busybox
  * Bjorn Wesen, Axis Communications AB (bjornw@axis.com)
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
 
 #define DEBUG 0
 
-int getpty(char *line)
+int FAST_FUNC xgetpty(char *line)
 {
 	int p;
+
 #if ENABLE_FEATURE_DEVPTS
 	p = open("/dev/ptmx", O_RDWR);
 	if (p > 0) {
-		const char *name;
-		grantpt(p);
-		unlockpt(p);
-		name = ptsname(p);
-		if (!name) {
-			bb_perror_msg("ptsname error (is /dev/pts mounted?)");
-			return -1;
+		grantpt(p); /* chmod+chown corresponding slave pty */
+		unlockpt(p); /* (what does this do?) */
+# ifndef HAVE_PTSNAME_R
+		{
+			const char *name;
+			name = ptsname(p); /* find out the name of slave pty */
+			if (!name) {
+				bb_perror_msg_and_die("ptsname error (is /dev/pts mounted?)");
+			}
+			safe_strncpy(line, name, GETPTY_BUFSIZE);
 		}
-		safe_strncpy(line, name, GETPTY_BUFSIZE);
+# else
+		/* find out the name of slave pty */
+		if (ptsname_r(p, line, GETPTY_BUFSIZE-1) != 0) {
+			bb_perror_msg_and_die("ptsname error (is /dev/pts mounted?)");
+		}
+		line[GETPTY_BUFSIZE-1] = '\0';
+# endif
 		return p;
 	}
 #else
@@ -52,7 +62,5 @@ int getpty(char *line)
 		}
 	}
 #endif /* FEATURE_DEVPTS */
-	return -1;
+	bb_error_msg_and_die("can't find free pty");
 }
-
-

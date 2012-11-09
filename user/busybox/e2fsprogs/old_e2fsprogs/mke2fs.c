@@ -5,8 +5,7 @@
  * Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
  *	2003, 2004, 2005 by Theodore Ts'o.
  *
- * This file may be redistributed under the terms of the GNU Public
- * License.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
 
 /* Usage: mke2fs [options] device
@@ -176,7 +175,7 @@ static void mke2fs_error_msg_and_die(int retval, const char *fmt, ...)
 
 	if (retval) {
 		va_start(ap, fmt);
-		fprintf(stderr,"\nCould not ");
+		fprintf(stderr, "\nCould not ");
 		vfprintf(stderr, fmt, ap);
 		fprintf(stderr, "\n");
 		va_end(ap);
@@ -209,7 +208,7 @@ static void mke2fs_warning_msg(int retval, char *fmt, ... )
 
 	if (retval) {
 		va_start(ap, fmt);
-		fprintf(stderr,"\nWarning: ");
+		fprintf(stderr, "\nWarning: ");
 		vfprintf(stderr, fmt, ap);
 		fprintf(stderr, "\n");
 		va_end(ap);
@@ -225,7 +224,7 @@ static void read_bb_file(ext2_filsys fs, badblocks_list *bb_list,
 	FILE		*f;
 	errcode_t	retval;
 
-	f = xfopen(bad_blocks_file, "r");
+	f = xfopen_for_read(bad_blocks_file);
 	retval = ext2fs_read_bb_FILE(fs, f, bb_list, invalid_block);
 	fclose (f);
 	mke2fs_error_msg_and_die(retval, "read bad blocks from list");
@@ -246,7 +245,7 @@ static void test_disk(ext2_filsys fs, badblocks_list *bb_list)
 	mke2fs_verbose("Running command: %s\n", buf);
 	f = popen(buf, "r");
 	if (!f) {
-		bb_perror_msg_and_die("cannot run '%s'", buf);
+		bb_perror_msg_and_die("can't run '%s'", buf);
 	}
 	retval = ext2fs_read_bb_FILE(fs, f, bb_list, invalid_block);
 	pclose(f);
@@ -676,7 +675,7 @@ static int set_os(struct ext2_super_block *sb, char *os)
 		return 1;
 	}
 
-	if((sb->s_creator_os = e2p_string2os(os)) >= 0) {
+	if ((sb->s_creator_os = e2p_string2os(os)) >= 0) {
 		return 1;
 	} else if (!strcasecmp("GNU", os)) {
 		sb->s_creator_os = EXT2_OS_HURD;
@@ -758,7 +757,7 @@ static void parse_extended_opts(struct ext2_super_block *sb_param,
 
 			if (rsv_gdb > 0) {
 				sb_param->s_feature_compat |=
-					EXT2_FEATURE_COMPAT_RESIZE_INODE;
+					EXT2_FEATURE_COMPAT_RESIZE_INO;
 
 				sb_param->s_reserved_gdt_blocks = rsv_gdb;
 			}
@@ -779,7 +778,7 @@ static void parse_extended_opts(struct ext2_super_block *sb_param,
 
 static __u32 ok_features[3] = {
 	EXT3_FEATURE_COMPAT_HAS_JOURNAL |
-		EXT2_FEATURE_COMPAT_RESIZE_INODE |
+		EXT2_FEATURE_COMPAT_RESIZE_INO |
 		EXT2_FEATURE_COMPAT_DIR_INDEX,  /* Compat */
 	EXT2_FEATURE_INCOMPAT_FILETYPE|         /* Incompat */
 		EXT3_FEATURE_INCOMPAT_JOURNAL_DEV|
@@ -800,8 +799,8 @@ static int PRS(int argc, char **argv)
 	int		show_version_only = 0;
 	ext2_ino_t	num_inodes = 0;
 	errcode_t	retval;
-	char *		extended_opts = 0;
-	const char *	fs_type = 0;
+	char *		extended_opts = NULL;
+	const char *	fs_type = NULL;
 	blk_t		dev_size;
 	long		sysval;
 
@@ -896,7 +895,7 @@ static int PRS(int argc, char **argv)
 			creator_os = optarg;
 			break;
 		case 'r':
-			param.s_rev_level = xatoi_u(optarg);
+			param.s_rev_level = xatoi_positive(optarg);
 			if (param.s_rev_level == EXT2_GOOD_OLD_REV) {
 				param.s_feature_incompat = 0;
 				param.s_feature_compat = 0;
@@ -913,11 +912,11 @@ static int PRS(int argc, char **argv)
 			break;
 #ifdef EXT2_DYNAMIC_REV
 		case 'I':
-			inode_size = xatoi_u(optarg);
+			inode_size = xatoi_positive(optarg);
 			break;
 #endif
 		case 'N':
-			num_inodes = xatoi_u(optarg);
+			num_inodes = xatoi_positive(optarg);
 			break;
 		case 'v':
 			quiet = 0;
@@ -1124,7 +1123,7 @@ static int PRS(int argc, char **argv)
 	/* Since sparse_super is the default, we would only have a problem
 	 * here if it was explicitly disabled.
 	 */
-	if ((param.s_feature_compat & EXT2_FEATURE_COMPAT_RESIZE_INODE) &&
+	if ((param.s_feature_compat & EXT2_FEATURE_COMPAT_RESIZE_INO) &&
 	    !(param.s_feature_ro_compat&EXT2_FEATURE_RO_COMPAT_SPARSE_SUPER)) {
 		bb_error_msg_and_die("reserved online resize blocks not supported "
 			  "on non-sparse filesystem");
@@ -1187,7 +1186,7 @@ int mke2fs_main (int argc, char **argv)
 
 	if (ENABLE_FEATURE_CLEAN_UP)
 		atexit(mke2fs_clean_up);
-	if(!PRS(argc, argv))
+	if (!PRS(argc, argv))
 		return 0;
 
 #ifdef CONFIG_TESTIO_DEBUG
@@ -1306,14 +1305,14 @@ int mke2fs_main (int argc, char **argv)
 			retval = zero_blocks(fs, start, blocks - start,
 					     NULL, &ret_blk, NULL);
 
-		mke2fs_warning_msg(retval, "cannot zero block %u at end of filesystem", ret_blk);
+		mke2fs_warning_msg(retval, "can't zero block %u at end of filesystem", ret_blk);
 		write_inode_tables(fs);
 		create_root_dir(fs);
 		create_lost_and_found(fs);
 		reserve_inodes(fs);
 		create_bad_block_inode(fs, bb_list);
 		if (fs->super->s_feature_compat &
-		    EXT2_FEATURE_COMPAT_RESIZE_INODE) {
+		    EXT2_FEATURE_COMPAT_RESIZE_INO) {
 			retval = ext2fs_create_resize_inode(fs);
 			mke2fs_error_msg_and_die(retval, "reserve blocks for online resize");
 		}

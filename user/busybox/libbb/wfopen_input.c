@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2003  Manuel Novoa III  <mjn3@codepoet.org>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 /* A number of applets need to open a file for reading, where the filename
@@ -14,7 +14,7 @@
 
 #include "libbb.h"
 
-FILE *fopen_or_warn_stdin(const char *filename)
+FILE* FAST_FUNC fopen_or_warn_stdin(const char *filename)
 {
 	FILE *fp = stdin;
 
@@ -26,15 +26,15 @@ FILE *fopen_or_warn_stdin(const char *filename)
 	return fp;
 }
 
-FILE *xfopen_stdin(const char *filename)
+FILE* FAST_FUNC xfopen_stdin(const char *filename)
 {
 	FILE *fp = fopen_or_warn_stdin(filename);
 	if (fp)
 		return fp;
-	xfunc_die();	/* We already output an error message. */
+	xfunc_die();  /* We already output an error message. */
 }
 
-int open_or_warn_stdin(const char *filename)
+int FAST_FUNC open_or_warn_stdin(const char *filename)
 {
 	int fd = STDIN_FILENO;
 
@@ -45,4 +45,12 @@ int open_or_warn_stdin(const char *filename)
 	}
 
 	return fd;
+}
+
+int FAST_FUNC xopen_stdin(const char *filename)
+{
+	int fd = open_or_warn_stdin(filename);
+	if (fd >= 0)
+		return fd;
+	xfunc_die();  /* We already output an error message. */
 }

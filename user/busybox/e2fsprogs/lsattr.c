@@ -18,6 +18,16 @@
  * 98/12/29	- Display version info only when -V specified (G M Sipe)
  */
 
+//usage:#define lsattr_trivial_usage
+//usage:       "[-Radlv] [FILE]..."
+//usage:#define lsattr_full_usage "\n\n"
+//usage:       "List file attributes on an ext2 fs\n"
+//usage:     "\n	-R	Recurse"
+//usage:     "\n	-a	Don't hide entries starting with ."
+//usage:     "\n	-d	List directory entries instead of contents"
+//usage:     "\n	-l	List long flag names"
+//usage:     "\n	-v	List the file's version/generation number"
+
 #include "libbb.h"
 #include "e2fs_lib.h"
 
@@ -45,10 +55,10 @@ static void list_attributes(const char *name)
 
 	if (option_mask32 & OPT_PF_LONG) {
 		printf("%-28s ", name);
-		print_flags(stdout, fsflags, PFOPT_LONG);
+		print_e2flags(stdout, fsflags, PFOPT_LONG);
 		bb_putchar('\n');
 	} else {
-		print_flags(stdout, fsflags, 0);
+		print_e2flags(stdout, fsflags, 0);
 		printf(" %s\n", name);
 	}
 
@@ -57,8 +67,9 @@ static void list_attributes(const char *name)
 	bb_perror_msg("reading %s", name);
 }
 
-static int lsattr_dir_proc(const char *dir_name, struct dirent *de,
-			   void *private ATTRIBUTE_UNUSED)
+static int FAST_FUNC lsattr_dir_proc(const char *dir_name,
+		struct dirent *de,
+		void *private UNUSED_PARAM)
 {
 	struct stat st;
 	char *path;
@@ -96,7 +107,7 @@ static void lsattr_args(const char *name)
 }
 
 int lsattr_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int lsattr_main(int argc ATTRIBUTE_UNUSED, char **argv)
+int lsattr_main(int argc UNUSED_PARAM, char **argv)
 {
 	getopt32(argv, "Radlv");
 	argv += optind;

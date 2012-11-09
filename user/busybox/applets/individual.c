@@ -2,7 +2,7 @@
  *
  * Copyright 2005 Rob Landley <rob@landley.net
  *
- * Licensed under GPL version 2, see file LICENSE in this tarball for details
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
 
 const char *applet_name;
@@ -14,13 +14,11 @@ const char *applet_name;
 int main(int argc, char **argv)
 {
 	applet_name = argv[0];
-
 	return APPLET_main(argc,argv);
 }
 
 void bb_show_usage(void)
 {
-	printf(APPLET_full_usage "\n");
-
-	exit(1);
+	fputs(APPLET_full_usage "\n", stdout);
+	exit(EXIT_FAILURE);
 }

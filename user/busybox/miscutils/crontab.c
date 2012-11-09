@@ -7,48 +7,43 @@
  * Copyright 1994 Matthew Dillon (dillon@apollo.west.oic.com)
  * Vladimir Oleynik <dzo@simtreas.ru> (C) 2002
  *
- * Licensed under the GPL v2 or later, see the file LICENSE in this tarball.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
+
+//usage:#define crontab_trivial_usage
+//usage:       "[-c DIR] [-u USER] [-ler]|[FILE]"
+//usage:#define crontab_full_usage "\n\n"
+//usage:       "	-c	Crontab directory"
+//usage:     "\n	-u	User"
+//usage:     "\n	-l	List crontab"
+//usage:     "\n	-e	Edit crontab"
+//usage:     "\n	-r	Delete crontab"
+//usage:     "\n	FILE	Replace crontab by FILE ('-': stdin)"
 
 #include "libbb.h"
 
-#ifndef CRONTABS
-#define CRONTABS        "/var/spool/cron/crontabs"
-#endif
+#define CRONTABS        CONFIG_FEATURE_CROND_DIR "/crontabs"
 #ifndef CRONUPDATE
 #define CRONUPDATE      "cron.update"
 #endif
 
-static void change_user(const struct passwd *pas)
-{
-	setenv("USER", pas->pw_name, 1);
-	setenv("HOME", pas->pw_dir, 1);
-	setenv("SHELL", DEFAULT_SHELL, 1);
-
-	/* initgroups, setgid, setuid */
-	change_identity(pas);
-
-	if (chdir(pas->pw_dir) < 0) {
-		bb_perror_msg("chdir(%s) by %s failed",
-				pas->pw_dir, pas->pw_name);
-		xchdir("/tmp");
-	}
-}
-
 static void edit_file(const struct passwd *pas, const char *file)
 {
 	const char *ptr;
-	int pid = vfork();
+	pid_t pid;
 
-	if (pid < 0) /* failure */
-		bb_perror_msg_and_die("vfork");
+	pid = xvfork();
 	if (pid) { /* parent */
 		wait4pid(pid);
 		return;
 	}
 
 	/* CHILD - change user and run editor */
-	change_user(pas);
+	/* initgroups, setgid, setuid */
+	change_identity(pas);
+	setup_environment(pas->pw_shell,
+			SETUP_ENV_CHANGEENV | SETUP_ENV_TO_TMP,
+			pas);
 	ptr = getenv("VISUAL");
 	if (!ptr) {
 		ptr = getenv("EDITOR");
@@ -57,7 +52,7 @@ static void edit_file(const struct passwd *pas, const char *file)
 	}
 
 	BB_EXECLP(ptr, ptr, file, NULL);
-	bb_perror_msg_and_die("exec %s", ptr);
+	bb_perror_msg_and_die("can't execute '%s'", ptr);
 }
 
 static int open_as_user(const struct passwd *pas, const char *file)
@@ -65,9 +60,7 @@ static int open_as_user(const struct passwd *pas, const char *file)
 	pid_t pid;
 	char c;
 
-	pid = vfork();
-	if (pid < 0) /* ERROR */
-		bb_perror_msg_and_die("vfork");
+	pid = xvfork();
 	if (pid) { /* PARENT */
 		if (wait4pid(pid) == 0) {
 			/* exitcode 0: child says it can read */
@@ -85,7 +78,7 @@ static int open_as_user(const struct passwd *pas, const char *file)
 }
 
 int crontab_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int crontab_main(int argc ATTRIBUTE_UNUSED, char **argv)
+int crontab_main(int argc UNUSED_PARAM, char **argv)
 {
 	const struct passwd *pas;
 	const char *crontab_dir = CRONTABS;
@@ -93,6 +86,7 @@ int crontab_main(int argc ATTRIBUTE_UNUSED, char **argv)
 	char *new_fname;
 	char *user_name;  /* -u USER */
 	int fd;
+	int src_fd;
 	int opt_ler;
 
 	/* file [opts]     Replace crontab from file
@@ -119,21 +113,15 @@ int crontab_main(int argc ATTRIBUTE_UNUSED, char **argv)
 	argv += optind;
 
 	if (sanitize_env_if_suid()) { /* Clears dangerous stuff, sets PATH */
-		/* run by non-root? */
+		/* Run by non-root */
 		if (opt_ler & (OPT_u|OPT_c))
-			bb_error_msg_and_die("only root can use -c or -u");
+			bb_error_msg_and_die(bb_msg_you_must_be_root);
 	}
 
 	if (opt_ler & OPT_u) {
-		pas = getpwnam(user_name);
-		if (!pas)
-			bb_error_msg_and_die("user %s is not known", user_name);
+		pas = xgetpwnam(user_name);
 	} else {
-		uid_t my_uid = getuid();
-		pas = getpwuid(my_uid);
-		if (!pas)
-			bb_perror_msg_and_die("no user record for UID %u",
-					(unsigned)my_uid);
+		pas = xgetpwuid(getuid());
 	}
 
 #define user_name DONT_USE_ME_BEYOND_THIS_POINT
@@ -144,15 +132,15 @@ int crontab_main(int argc ATTRIBUTE_UNUSED, char **argv)
 		bb_show_usage();
 
 	/* Read replacement file under user's UID/GID/group vector */
+	src_fd = STDIN_FILENO;
 	if (!opt_ler) { /* Replace? */
 		if (!argv[0])
 			bb_show_usage();
 		if (NOT_LONE_DASH(argv[0])) {
-			fd = open_as_user(pas, argv[0]);
-			if (fd < 0)
+			src_fd = open_as_user(pas, argv[0]);
+			if (src_fd < 0)
 				bb_error_msg_and_die("user %s cannot read %s",
 						pas->pw_name, argv[0]);
-			xmove_fd(fd, STDIN_FILENO);
 		}
 	}
 
@@ -180,27 +168,27 @@ int crontab_main(int argc ATTRIBUTE_UNUSED, char **argv)
 		tmp_fname = xasprintf("%s.%u", crontab_dir, (unsigned)getpid());
 		/* No O_EXCL: we don't want to be stuck if earlier crontabs
 		 * were killed, leaving stale temp file behind */
-		fd = xopen3(tmp_fname, O_RDWR|O_CREAT|O_TRUNC, 0600);
-		xmove_fd(fd, STDIN_FILENO);
-		fchown(STDIN_FILENO, pas->pw_uid, pas->pw_gid);
+		src_fd = xopen3(tmp_fname, O_RDWR|O_CREAT|O_TRUNC, 0600);
+		fchown(src_fd, pas->pw_uid, pas->pw_gid);
 		fd = open(pas->pw_name, O_RDONLY);
 		if (fd >= 0) {
-			bb_copyfd_eof(fd, STDIN_FILENO);
+			bb_copyfd_eof(fd, src_fd);
 			close(fd);
+			xlseek(src_fd, 0, SEEK_SET);
 		}
+		close_on_exec_on(src_fd); /* don't want editor to see this fd */
 		edit_file(pas, tmp_fname);
-		xlseek(STDIN_FILENO, 0, SEEK_SET);
 		/* fall through */
 
 	case 0: /* Replace (no -l, -e, or -r were given) */
 		new_fname = xasprintf("%s.new", pas->pw_name);
 		fd = open(new_fname, O_WRONLY|O_CREAT|O_TRUNC|O_APPEND, 0600);
 		if (fd >= 0) {
-			bb_copyfd_eof(STDIN_FILENO, fd);
+			bb_copyfd_eof(src_fd, fd);
 			close(fd);
 			xrename(new_fname, pas->pw_name);
 		} else {
-			bb_error_msg("cannot create %s/%s",
+			bb_error_msg("can't create %s/%s",
 					crontab_dir, new_fname);
 		}
 		if (tmp_fname)
@@ -227,7 +215,7 @@ int crontab_main(int argc ATTRIBUTE_UNUSED, char **argv)
 		/* loop */
 	}
 	if (fd < 0) {
-		bb_error_msg("cannot append to %s/%s",
+		bb_error_msg("can't append to %s/%s",
 				crontab_dir, CRONUPDATE);
 	}
 	return 0;

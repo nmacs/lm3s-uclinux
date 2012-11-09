@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2006 Gabriel Somlo <somlo at cmu.edu>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
@@ -13,21 +13,26 @@
  * return 1 if found;
  * return 0 otherwise;
  */
-int execable_file(const char *name)
+int FAST_FUNC execable_file(const char *name)
 {
 	struct stat s;
 	return (!access(name, X_OK) && !stat(name, &s) && S_ISREG(s.st_mode));
 }
 
-/* search $PATH for an executable file;
+/* search (*PATHp) for an executable file;
  * return allocated string containing full path if found;
- * return NULL otherwise;
+ *  PATHp points to the component after the one where it was found
+ *  (or NULL),
+ *  you may call find_execable again with this PATHp to continue
+ *  (if it's not NULL).
+ * return NULL otherwise; (PATHp is undefined)
+ * in all cases (*PATHp) contents will be trashed (s/:/NUL/).
  */
-char *find_execable(const char *filename)
+char* FAST_FUNC find_execable(const char *filename, char **PATHp)
 {
-	char *path, *p, *n;
+	char *p, *n;
 
-	p = path = xstrdup(getenv("PATH"));
+	p = *PATHp;
 	while (p) {
 		n = strchr(p, ':');
 		if (n)
@@ -35,24 +40,26 @@ char *find_execable(const char *filename)
 		if (*p != '\0') { /* it's not a PATH="foo::bar" situation */
 			p = concat_path_file(p, filename);
 			if (execable_file(p)) {
-				free(path);
+				*PATHp = n;
 				return p;
 			}
 			free(p);
 		}
 		p = n;
-	}
-	free(path);
-	return NULL;
+	} /* on loop exit p == NULL */
+	return p;
 }
 
 /* search $PATH for an executable file;
  * return 1 if found;
  * return 0 otherwise;
  */
-int exists_execable(const char *filename)
+int FAST_FUNC exists_execable(const char *filename)
 {
-	char *ret = find_execable(filename);
+	char *path = xstrdup(getenv("PATH"));
+	char *tmp = path;
+	char *ret = find_execable(filename, &tmp);
+	free(path);
 	if (ret) {
 		free(ret);
 		return 1;
@@ -61,11 +68,19 @@ int exists_execable(const char *filename)
 }
 
 #if ENABLE_FEATURE_PREFER_APPLETS
-/* just like the real execvp, but try to launch an applet named 'file' first
- */
-int bb_execvp(const char *file, char *const argv[])
+/* just like the real execvp, but try to launch an applet named 'file' first */
+int FAST_FUNC BB_EXECVP(const char *file, char *const argv[])
 {
-	return execvp(find_applet_by_name(file) >= 0 ? bb_busybox_exec_path : file,
-					argv);
+	if (find_applet_by_name(file) >= 0)
+		execvp(bb_busybox_exec_path, argv);
+	return execvp(file, argv);
 }
 #endif
+
+int FAST_FUNC BB_EXECVP_or_die(char **argv)
+{
+	BB_EXECVP(argv[0], argv);
+	/* SUSv3-mandated exit codes */
+	xfunc_error_retval = (errno == ENOENT) ? 127 : 126;
+	bb_perror_msg_and_die("can't execute '%s'", argv[0]);
+}

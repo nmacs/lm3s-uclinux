@@ -4,13 +4,13 @@
  *
  * Copyright (C) 1999-2004 by Erik Andersen <andersen@codepoet.org>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
 
 /* try to open up the specified device */
-int device_open(const char *device, int mode)
+int FAST_FUNC device_open(const char *device, int mode)
 {
 	int m, f, fd;
 

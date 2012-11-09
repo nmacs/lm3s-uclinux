@@ -29,26 +29,21 @@
 
 void strprint();
 
-int
-main(argc, argv)
-int	argc;
-char	**argv;
+int main(int argc, char **argv)
 {
-	register int	i;
+	int i;
 
 	for (i = 1; i < argc; i++) {
 		printf("argv[%d] = <", i);
 		strprint(argv[i]);
 		printf(">\n");
 	}
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
-void
-strprint(str)
-char	*str;
+void strprint(char *str)
 {
-	register unsigned char *s;
+	unsigned char *s;
 
 	for (s = (unsigned char *)str; s && *s; s++) {
 		if (*s < ' ') {

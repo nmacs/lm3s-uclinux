@@ -4,8 +4,15 @@
  *
  * Copyright 2006 Rob Landley <rob@landley.net>
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
+
+//config:config FEATURE_RTMINMAX
+//config:	bool "Support RTMIN[+n] and RTMAX[-n] signal names"
+//config:	default y
+//config:	help
+//config:	  Support RTMIN[+n] and RTMAX[-n] signal names
+//config:	  in kill, killall etc. This costs ~250 bytes.
 
 #include "libbb.h"
 
@@ -117,13 +124,23 @@ static const char signals[][7] = {
 #ifdef SIGSYS
 	[SIGSYS   ] = "SYS",
 #endif
+#if ENABLE_FEATURE_RTMINMAX
+# ifdef __SIGRTMIN
+	[__SIGRTMIN] = "RTMIN",
+# endif
+// This makes array about x2 bigger.
+// More compact approach is to special-case SIGRTMAX in print_signames()
+//# ifdef __SIGRTMAX
+//	[__SIGRTMAX] = "RTMAX",
+//# endif
+#endif
 };
 
 // Convert signal name to number.
 
-int get_signum(const char *name)
+int FAST_FUNC get_signum(const char *name)
 {
-	int i;
+	unsigned i;
 
 	i = bb_strtou(name, NULL, 10);
 	if (!errno)
@@ -134,20 +151,54 @@ int get_signum(const char *name)
 		if (strcasecmp(name, signals[i]) == 0)
 			return i;
 
-#if ENABLE_DESKTOP && (defined(SIGIOT) || defined(SIGIO))
+#if ENABLE_DESKTOP
+# if defined(SIGIOT) || defined(SIGIO)
 	/* SIGIO[T] are aliased to other names,
 	 * thus cannot be stored in the signals[] array.
 	 * Need special code to recognize them */
 	if ((name[0] | 0x20) == 'i' && (name[1] | 0x20) == 'o') {
-#ifdef SIGIO
+#  ifdef SIGIO
 		if (!name[2])
 			return SIGIO;
-#endif
-#ifdef SIGIOT
+#  endif
+#  ifdef SIGIOT
 		if ((name[2] | 0x20) == 't' && !name[3])
 			return SIGIOT;
-#endif
+#  endif
 	}
+# endif
+#endif
+
+#if ENABLE_FEATURE_RTMINMAX
+# if defined(SIGRTMIN) && defined(SIGRTMAX)
+/* libc may use some rt sigs for pthreads and therefore "remap" SIGRTMIN/MAX,
+ * but we want to use "raw" SIGRTMIN/MAX. Underscored names, if exist, provide
+ * them. If they don't exist, fall back to non-underscored ones: */
+#  if !defined(__SIGRTMIN)
+#   define __SIGRTMIN SIGRTMIN
+#  endif
+#  if !defined(__SIGRTMAX)
+#   define __SIGRTMAX SIGRTMAX
+#  endif
+	if (strncasecmp(name, "RTMIN", 5) == 0) {
+		if (!name[5])
+			return __SIGRTMIN;
+		if (name[5] == '+') {
+			i = bb_strtou(name + 6, NULL, 10);
+			if (!errno && i <= __SIGRTMAX - __SIGRTMIN)
+				return __SIGRTMIN + i;
+		}
+	}
+	else if (strncasecmp(name, "RTMAX", 5) == 0) {
+		if (!name[5])
+			return __SIGRTMAX;
+		if (name[5] == '-') {
+			i = bb_strtou(name + 6, NULL, 10);
+			if (!errno && i <= __SIGRTMAX - __SIGRTMIN)
+				return __SIGRTMAX - i;
+		}
+	}
+# endif
 #endif
 
 	return -1;
@@ -155,7 +206,7 @@ int get_signum(const char *name)
 
 // Convert signal number to name
 
-const char *get_signame(int number)
+const char* FAST_FUNC get_signame(int number)
 {
 	if ((unsigned)number < ARRAY_SIZE(signals)) {
 		if (signals[number][0]) /* if it's not an empty str */
@@ -168,13 +219,18 @@ const char *get_signame(int number)
 
 // Print the whole signal list
 
-void print_signames(void)
+void FAST_FUNC print_signames(void)
 {
-	int signo;
+	unsigned signo;
 
 	for (signo = 1; signo < ARRAY_SIZE(signals); signo++) {
 		const char *name = signals[signo];
 		if (name[0])
-			puts(name);
+			printf("%2u) %s\n", signo, name);
 	}
+#if ENABLE_FEATURE_RTMINMAX
+# ifdef __SIGRTMAX
+	printf("%2u) %s\n", __SIGRTMAX, "RTMAX");
+# endif
+#endif
 }

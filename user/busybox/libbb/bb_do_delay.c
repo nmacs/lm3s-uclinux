@@ -4,19 +4,18 @@
  *
  * Copyright (C) 2005 by Tito Ragusa <tito-wolit@tiscali.it>
  *
- * Licensed under the GPL v2, see the file LICENSE in this tarball.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
 
-void bb_do_delay(int seconds)
+void FAST_FUNC bb_do_delay(int seconds)
 {
 	time_t start, now;
 
-	time(&start);
-	now = start;
-	while (difftime(now, start) < seconds) {
+	start = time(NULL);
+	do {
 		sleep(seconds);
-		time(&now);
-	}
+		now = time(NULL);
+	} while ((now - start) < seconds);
 }

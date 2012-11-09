@@ -78,7 +78,7 @@ errcode_t ext2fs_get_device_size(const char *file, int blocksize,
 
 	dev = CreateFile(file, GENERIC_READ,
 			 FILE_SHARE_READ | FILE_SHARE_WRITE ,
-			 NULL,  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,  NULL);
+			 NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (dev == INVALID_HANDLE_VALUE)
 		return EBADF;
@@ -174,9 +174,9 @@ errcode_t ext2fs_get_device_size(const char *file, int blocksize,
 
 #ifdef BLKGETSIZE64
 #ifdef __linux__
-	if ((uname(&ut) == 0) &&
-	    ((ut.release[0] == '2') && (ut.release[1] == '.') &&
-	     (ut.release[2] < '6') && (ut.release[3] == '.')))
+	uname(&ut);
+	if ((ut.release[0] == '2') && (ut.release[1] == '.') &&
+	     (ut.release[2] < '6') && (ut.release[3] == '.'))
 		valid_blkgetsize64 = 0;
 #endif
 	if (valid_blkgetsize64 &&

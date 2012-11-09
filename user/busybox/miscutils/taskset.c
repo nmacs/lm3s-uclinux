@@ -1,47 +1,85 @@
 /* vi: set sw=4 ts=4: */
 /*
  * taskset - retrieve or set a processes' CPU affinity
- * Copyright (c) 2006 Bernhard Fischer
+ * Copyright (c) 2006 Bernhard Reutner-Fischer
  *
- * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
+//usage:#define taskset_trivial_usage
+//usage:       "[-p] [MASK] [PID | PROG ARGS]"
+//usage:#define taskset_full_usage "\n\n"
+//usage:       "Set or get CPU affinity\n"
+//usage:     "\n	-p	Operate on an existing PID"
+//usage:
+//usage:#define taskset_example_usage
+//usage:       "$ taskset 0x7 ./dgemm_test&\n"
+//usage:       "$ taskset -p 0x1 $!\n"
+//usage:       "pid 4790's current affinity mask: 7\n"
+//usage:       "pid 4790's new affinity mask: 1\n"
+//usage:       "$ taskset 0x7 /bin/sh -c './taskset -p 0x1 $$'\n"
+//usage:       "pid 6671's current affinity mask: 1\n"
+//usage:       "pid 6671's new affinity mask: 1\n"
+//usage:       "$ taskset -p 1\n"
+//usage:       "pid 1's current affinity mask: 3\n"
+
 #include <sched.h>
-#include <getopt.h> /* optind */
 #include "libbb.h"
 
 #if ENABLE_FEATURE_TASKSET_FANCY
 #define TASKSET_PRINTF_MASK "%s"
-#define from_cpuset(x) __from_cpuset(&x)
 /* craft a string from the mask */
-static char *__from_cpuset(cpu_set_t *mask)
+static char *from_cpuset(cpu_set_t *mask)
 {
 	int i;
-	char *ret = 0, *str = xzalloc(9);
+	char *ret = NULL;
+	char *str = xzalloc((CPU_SETSIZE / 4) + 1); /* we will leak it */
 
 	for (i = CPU_SETSIZE - 4; i >= 0; i -= 4) {
-		char val = 0;
+		int val = 0;
 		int off;
 		for (off = 0; off <= 3; ++off)
-			if (CPU_ISSET(i+off, mask))
-				val |= 1<<off;
-
+			if (CPU_ISSET(i + off, mask))
+				val |= 1 << off;
 		if (!ret && val)
 			ret = str;
-		*str++ = (val-'0'<=9) ? (val+48) : (val+87);
+		*str++ = bb_hexdigits_upcase[val] | 0x20;
 	}
 	return ret;
 }
 #else
-#define TASKSET_PRINTF_MASK "%x"
-/* (void*) cast is for battling gcc: */
-/* "dereferencing type-punned pointer will break strict-aliasing rules" */
-#define from_cpuset(mask) (*(unsigned*)(void*)&(mask))
+#define TASKSET_PRINTF_MASK "%llx"
+static unsigned long long from_cpuset(cpu_set_t *mask)
+{
+	struct BUG_CPU_SETSIZE_is_too_small {
+		char BUG_CPU_SETSIZE_is_too_small[
+			CPU_SETSIZE < sizeof(int) ? -1 : 1];
+	};
+	char *p = (void*)mask;
+
+	/* Take the least significant bits. Careful!
+	 * Consider both CPU_SETSIZE=4 and CPU_SETSIZE=1024 cases
+	 */
+#if BB_BIG_ENDIAN
+	/* For big endian, it means LAST bits */
+	if (CPU_SETSIZE < sizeof(long))
+		p += CPU_SETSIZE - sizeof(int);
+	else if (CPU_SETSIZE < sizeof(long long))
+		p += CPU_SETSIZE - sizeof(long);
+	else
+		p += CPU_SETSIZE - sizeof(long long);
+#endif
+	if (CPU_SETSIZE < sizeof(long))
+		return *(unsigned*)p;
+	if (CPU_SETSIZE < sizeof(long long))
+		return *(unsigned long*)p;
+	return *(unsigned long long*)p;
+}
 #endif
 
 
 int taskset_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
-int taskset_main(int argc ATTRIBUTE_UNUSED, char **argv)
+int taskset_main(int argc UNUSED_PARAM, char **argv)
 {
 	cpu_set_t mask;
 	pid_t pid = 0;
@@ -79,7 +117,7 @@ int taskset_main(int argc ATTRIBUTE_UNUSED, char **argv)
 		if (sched_getaffinity(pid, sizeof(mask), &mask) < 0)
 			bb_perror_msg_and_die("can't %cet pid %d's affinity", 'g', pid);
 		printf("pid %d's %s affinity mask: "TASKSET_PRINTF_MASK"\n",
-				pid, current_new, from_cpuset(mask));
+				pid, current_new, from_cpuset(&mask));
 		if (!*argv) {
 			/* Either it was just "-p <pid>",
 			 * or it was "-p <aff> <pid>" and we came here
@@ -108,9 +146,8 @@ int taskset_main(int argc ATTRIBUTE_UNUSED, char **argv)
 	if (sched_setaffinity(pid, sizeof(mask), &mask))
 		bb_perror_msg_and_die("can't %cet pid %d's affinity", 's', pid);
 
-	if (!*argv) /* "-p <aff> <pid> [...ignored...]" */
+	if (!argv[0]) /* "-p <aff> <pid> [...ignored...]" */
 		goto print_aff; /* print new affinity and exit */
 
-	BB_EXECVP(*argv, argv);
-	bb_simple_perror_msg_and_die(*argv);
+	BB_EXECVP_or_die(argv);
 }

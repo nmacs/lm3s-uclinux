@@ -2,9 +2,9 @@
 
 # mkfs.minix tests.
 # Copyright 2007 by Denys Vlasenko
-# Licensed under GPL v2, see file LICENSE for details.
+# Licensed under GPLv2, see file LICENSE in this source tree.
 
-. testing.sh
+. ./testing.sh
 
 # testing "test name" "options" "expected result" "file input" "stdin"
 

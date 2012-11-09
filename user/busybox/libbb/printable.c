@@ -4,12 +4,12 @@
  *
  * Copyright (C) 2007 Denys Vlasenko
  *
- * Licensed under GPL version 2, see file LICENSE in this tarball for details.
+ * Licensed under GPLv2, see file LICENSE in this source tree.
  */
 
 #include "libbb.h"
 
-void fputc_printable(int ch, FILE *file)
+void FAST_FUNC fputc_printable(int ch, FILE *file)
 {
 	if ((ch & (0x80 + PRINTABLE_META)) == (0x80 + PRINTABLE_META)) {
 		fputs("M-", file);
