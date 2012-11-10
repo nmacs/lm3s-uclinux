@@ -4164,10 +4164,6 @@ config USER_BUSYBOX_BUSYBOX
 	  findutils, textutils, grep, gzip, tar, etc.  Simply select those
 	  utilities and options you want.
 
-if USER_BUSYBOX_BUSYBOX
-source ../user/busybox/Kconfig
-endif
-
 endmenu
 
 #############################################################################
