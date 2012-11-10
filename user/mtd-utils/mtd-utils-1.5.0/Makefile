@@ -1,9 +1,11 @@
 
 # -*- sh -*-
 
-VERSION = 1.5.0
+VERSION    = 1.5.0
+STACK_SIZE = 8192
 
-CPPFLAGS += -I./include -I$(BUILDDIR)/include -I./ubi-utils/include $(ZLIBCPPFLAGS) $(LZOCPPFLAGS)
+CPPFLAGS += -I./include -I$(BUILDDIR)/include -I./ubi-utils/include $(ZLIBCPPFLAGS) $(LZOCPPFLAGS) -Wl,-elf2flt="-s$(STACK_SIZE)"
+CFLAGS   += -Wl,-elf2flt="-s$(STACK_SIZE)"
 
 ifeq ($(WITHOUT_XATTR), 1)
   CPPFLAGS += -DWITHOUT_XATTR
