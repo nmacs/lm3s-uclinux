@@ -84,16 +84,21 @@ void vfork_daemon_rexec(int nochdir, int noclose, int argc, char **argv, char *f
 		if (vfork())
 			_exit(0);
 		execvp(vfork_args[0], vfork_args);
+#ifndef WATCHDOG_SILENT
 		perror("execv");
+#endif
 		exit(-1);
 	case -1:		/* error */
+#ifndef WATCHDOG_SILENT
 		perror("vfork");
+#endif
 		exit(-1);
 	default:		/* parent */
 		exit(0);
 	}
 }
 
+#ifndef WATCHDOG_SILENT
 static void usage(char *argv[])
 {
 	printf(
@@ -108,6 +113,7 @@ static void usage(char *argv[])
 		"\t--help|-h write this help message and exit\n",
 		argv[0]);
 }
+#endif
 
 /*
  * The main program.
@@ -122,6 +128,7 @@ int main(int argc, char *argv[])
 	int ac = argc;
 	char **av = argv;
 
+
 	memset(&sa, 0, sizeof(sa));
 
 	/* TODO: rewrite this to use getopt() */
@@ -130,67 +137,95 @@ int main(int argc, char *argv[])
 		if (strcmp(*av, "-w") == 0) {
 			if (--ac) {
 				wd_count = atoi(*++av);
+#ifndef WATCHDOG_SILENT
 				printf("-w switch: set watchdog counter to %d sec.\n", wd_count);
+#endif
 			} else {
+#ifndef WATCHDOG_SILENT
 				fprintf(stderr, "-w switch must be followed to seconds of watchdog counter.\n");
 				fflush(stderr);
+#endif
 				break;
 			}
 		} else if (strcmp(*av, "-k") == 0) {
 			if (--ac) {
 				wd_keep_alive = atoi(*++av);
+#ifndef WATCHDOG_SILENT
 				printf("-k switch: set the heartbeat of keepalives in %d sec.\n", wd_keep_alive);
+#endif
 			} else {
+#ifndef WATCHDOG_SILENT
 				fprintf(stderr, "-k switch must be followed to seconds of heartbeat of keepalives.\n");
 				fflush(stderr);
+#endif
 				break;
 			}
 		} else if (strcmp(*av, "-s") == 0) {
+#ifndef WATCHDOG_SILENT
 			printf("-s switch: safe exit (CTRL-C and kill).\n");
+#endif
 			sa.sa_handler = safe_exit;
 			sigaction(SIGHUP, &sa, NULL);
 			sigaction(SIGINT, &sa, NULL);
 			sigaction(SIGTERM, &sa, NULL);
 		} else if (strcmp(*av, FOREGROUND_FLAG) == 0) {
 			background = 0;
+#ifndef WATCHDOG_SILENT
 			printf("Start in foreground mode.\n");
-		} else if ((strcmp(*av, "-h") == 0) || (strcmp(*av, "--help") == 0)) {
+#endif
+		}
+#ifndef WATCHDOG_SILENT
+		else if ((strcmp(*av, "-h") == 0) || (strcmp(*av, "--help") == 0)) {
 			usage(argv);
 			exit(0);
-		} else {
+		}
+#endif
+		else {
+#ifndef WATCHDOG_SILENT
 			fprintf(stderr, "Unrecognized option \"%s\".\n", *av);
 			usage(argv);
+#endif
 			exit(1);
 		}
 	}
 
 	if (background) {
+#ifndef WATCHDOG_SILENT
 		printf("Start in daemon mode.\n");
+#endif
 		vfork_daemon_rexec(1, 0, argc, argv, FOREGROUND_FLAG);
 	}
 
 	fd = open("/dev/watchdog", O_WRONLY);
 
 	if (fd == -1) {
+#ifndef WATCHDOG_SILENT
 		perror("Watchdog device not enabled");
 		fflush(stderr);
+#endif
 		exit(-1);
 	}
 
 	if (set_wd_counter(wd_count)) {
+#ifndef WATCHDOG_SILENT
 		fprintf(stderr, "-w switch: wrong value. Please look at kernel log for more dettails.\n Continue with the old value\n");
 		fflush(stderr);
+#endif
 	}
 
 	real_wd_count = get_wd_counter();
 	if (real_wd_count < 0) {
+#ifndef WATCHDOG_SILENT
 		perror("Error while issue IOCTL WDIOC_GETTIMEOUT");
+#endif
 	} else {
 		if (real_wd_count <= wd_keep_alive) {
+#ifndef WATCHDOG_SILENT
 			fprintf(stderr,
 				"Warning watchdog counter less or equal to the heartbeat of keepalives: %d <= %d\n",
 				real_wd_count, wd_keep_alive);
 			fflush(stderr);
+#endif
 		}
 	}
 

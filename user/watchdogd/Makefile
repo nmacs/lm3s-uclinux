@@ -1,4 +1,4 @@
-CFLAGS += -Wall
+CFLAGS += -Wall -DWATCHDOG_SILENT
 EXEC   =  watchdogd
 
 all: $(EXEC)
