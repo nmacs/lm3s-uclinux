@@ -37,9 +37,9 @@ ifdef V
     KBUILD_VERBOSE = $(V)
   endif
 endif
-#ifndef KBUILD_VERBOSE
-  KBUILD_VERBOSE = 1
-#endif
+ifndef KBUILD_VERBOSE
+  KBUILD_VERBOSE = 0
+endif
 
 # Call sparse as part of compilation of C files
 # Use 'make C=1' to enable sparse checking
@@ -315,7 +315,7 @@ AFLAGS_KERNEL	=
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
-CFLAGS		:= $(CFLAGS)
+CFLAGS		:= $(CFLAGS) -Wl,-elf2flt="-s8192"
 # Added only to final link stage of busybox binary
 CFLAGS_busybox	:= $(CFLAGS_busybox)
 CPPFLAGS	:= $(CPPFLAGS)
