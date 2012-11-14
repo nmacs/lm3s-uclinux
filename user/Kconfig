@@ -2989,6 +2989,12 @@ endmenu
 
 menu "Miscellaneous Applications"
 
+config USER_UCI_UCI
+	bool "uci"
+	help
+	  UCI is a small utility written in C (a shell script-wrapper is available as well) and is
+	  intended to centralize the whole configuration of a device.
+
 config USER_SOCAT_SOCAT
 	bool "socat"
 	help
