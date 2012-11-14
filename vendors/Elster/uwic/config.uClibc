@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Tue Oct  2 12:49:50 2012
+# Wed Nov 14 16:55:37 2012
 #
 # TARGET_alpha is not set
 TARGET_arm=y
@@ -93,6 +93,7 @@ MALLOC=y
 # MALLOC_SIMPLE is not set
 # MALLOC_STANDARD is not set
 MALLOC_GLIBC_COMPAT=y
+UCLIBC_CLEANUP_ON_EXIT=y
 UCLIBC_DYNAMIC_ATEXIT=y
 # COMPAT_ATEXIT is not set
 # UCLIBC_SUSV3_LEGACY is not set
@@ -105,7 +106,7 @@ ASSUME_DEVPTS=y
 UCLIBC_HAS_TM_EXTENSIONS=y
 # UCLIBC_HAS_TZ_CACHING is not set
 UCLIBC_HAS_TZ_FILE=y
-UCLIBC_HAS_TZ_FILE_READ_MANY=y
+# UCLIBC_HAS_TZ_FILE_READ_MANY is not set
 UCLIBC_TZ_FILE_PATH="/etc/TZ"
 
 #

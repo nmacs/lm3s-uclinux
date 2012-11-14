@@ -438,7 +438,6 @@ config MALLOC_GLIBC_COMPAT
 config UCLIBC_CLEANUP_ON_EXIT
 	bool "Call cleanup routines on exit"
 	default ARCH_USE_MMU
-	depends on ARCH_USE_MMU
 	help
 	  Calling of cleanup routines on exit is distructive on no-MMU platforms
 
