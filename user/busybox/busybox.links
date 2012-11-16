@@ -17,6 +17,7 @@
 /bin/ls
 /bin/lzop
 /usr/bin/lzopcat
+/bin/mkdir
 /bin/mknod
 /bin/mount
 /bin/ps
