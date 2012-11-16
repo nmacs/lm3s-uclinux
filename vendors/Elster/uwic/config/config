@@ -1,0 +1,11 @@
+config kernel 'kernel'
+	option have_sysfs  1
+	option have_devpts 1
+
+config wan 'wan'
+	option type    'eth'
+	option iface  'eth0'
+	option mode    'static'
+	option ip      '192.168.100.10'
+	option netmask '255.255.255.0'
+	option gateway '192.168.100.2'
