@@ -19,7 +19,10 @@ LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
 EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 
-ROMFS_DIRS = bin dev etc home lib mnt proc sys usr var tmp boot root
+ROMFS_DIRS  = bin dev etc home lib mnt proc sys usr tmp boot root var
+ROMFS_DIRS += etc/config
+ROMFS_DIRS += etc/rc.d
+ROMFS_DIRS += var/tmp
 
 clean:
 	rm -rf $(ROMFSDIR)
@@ -42,6 +45,15 @@ ifdef CONFIG_USER_PPPD_PPPD_PPPD
 	$(ROMFSINST) -d pppd-peers-gprs /etc/ppp/peers/gprs
 	$(ROMFSINST) -d pppd-chat-gprs /etc/ppp/chat/gprs
 endif
+	$(ROMFSINST) -s /tmp/run /var/run
+	$(ROMFSINST) -d config/config /etc/config/config
+	$(ROMFSINST) -d init.d/upgrade /etc/init.d/upgrade
+	$(ROMFSINST) -d init.d/network /etc/init.d/network
+	$(ROMFSINST) -d init.d/watchdog /etc/init.d/watchdog
+	$(ROMFSINST) -d -s /etc/init.d/watchdog /etc/rc.d/S00watchdog
+	$(ROMFSINST) -d -s /etc/init.d/upgrade /etc/rc.d/S01upgrade
+	$(ROMFSINST) -d -s /etc/init.d/network /etc/rc.d/S10network
+	$(ROMFSINST) -s /tmp/resolv.conf /etc/resolv.conf
 
 modules.dep:
 ifdef CONFIG_MODULES
