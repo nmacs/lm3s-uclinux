@@ -1,0 +1,26 @@
+#!/bin/sh
+
+uci -D_ show config.wan > /tmp/network_conf
+. /tmp/network_conf
+rm /tmp/network_conf
+
+start() {
+	ifconfig lo 127.0.0.1 netmask 255.0.0.0
+
+	if [ "$config_wan_type" = "eth" ]; then
+		if [ "$config_wan_mode" = "static" ]; then
+			#ifconfig $config_wan_iface down
+			#ifconfig $config_wan_iface up
+			ifconfig $config_wan_iface $config_wan_ip netmask $config_wan_netmask
+			route add default gw $config_wan_gateway
+		fi
+	else
+		echo "Error: unknown wan_type: $config_wan_type"
+	fi
+}
+
+restart() {
+	start
+}
+
+$2 "$@"

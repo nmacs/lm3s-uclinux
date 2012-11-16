@@ -1,0 +1,7 @@
+#!/bin/sh
+
+start() {
+	echo "Upgrade system"
+}
+
+$2 "$@"
