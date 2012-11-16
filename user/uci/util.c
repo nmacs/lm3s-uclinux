@@ -76,7 +76,7 @@ __plugin bool uci_validate_str(const char *str, bool name)
 	while (*str) {
 		unsigned char c = *str;
 		if (!isalnum(c) && c != '_') {
-			if (name || (c < 33) || (c > 126))
+			if (name || (c < 33) || (c > 126) || (c == '\''))
 				return false;
 		}
 		str++;
@@ -88,7 +88,7 @@ bool uci_validate_text(const char *str)
 {
 	while (*str) {
 		unsigned char c = *str;
-		if ((c == '\r') || (c == '\n') ||
+		if ((c == '\r') || (c == '\n') || (c == '\'') ||
 			((c < 32) && (c != '\t')))
 			return false;
 		str++;

@@ -20,6 +20,7 @@
 #define MAX_ARGS	4 /* max command line arguments for batch mode */
 
 static const char *delimiter = " ";
+static const char *show_delimiter = ".";
 static const char *appname;
 static enum {
 	CLI_FLAG_MERGE =    (1 << 0),
@@ -144,6 +145,7 @@ static void uci_usage(void)
 		"Options:\n"
 		"\t-c <path>  set the search path for config files (default: /etc/config)\n"
 		"\t-d <str>   set the delimiter for list values in uci show\n"
+		"\t-D <str>   set the delimiter for values in uci show\n"
 		"\t-f <file>  use <file> as input instead of stdin\n"
 		"\t-L         do not load any plugins\n"
 		"\t-m         when importing, merge data into an existing package\n"
@@ -175,7 +177,7 @@ static void uci_show_value(struct uci_option *o)
 
 	switch(o->type) {
 	case UCI_TYPE_STRING:
-		printf("%s\n", o->v.string);
+		printf("'%s'\n", o->v.string);
 		break;
 	case UCI_TYPE_LIST:
 		uci_foreach_element(&o->v.list, e) {
@@ -192,9 +194,9 @@ static void uci_show_value(struct uci_option *o)
 
 static void uci_show_option(struct uci_option *o)
 {
-	printf("%s.%s.%s=",
-		o->section->package->e.name,
-		(cur_section_ref ? cur_section_ref : o->section->e.name),
+	printf("%s%s%s%s%s=",
+		o->section->package->e.name, show_delimiter,
+		(cur_section_ref ? cur_section_ref : o->section->e.name), show_delimiter,
 		o->e.name);
 	uci_show_value(o);
 }
@@ -207,7 +209,7 @@ static void uci_show_section(struct uci_section *s)
 
 	cname = s->package->e.name;
 	sname = (cur_section_ref ? cur_section_ref : s->e.name);
-	printf("%s.%s=%s\n", cname, sname, s->type);
+	printf("%s%s%s='%s'\n", cname, show_delimiter, sname, s->type);
 	uci_foreach_element(&s->options, e) {
 		uci_show_option(uci_to_option(e));
 	}
@@ -628,13 +630,16 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	while((c = getopt(argc, argv, "c:d:f:LmnNp:P:sSqX")) != -1) {
+	while((c = getopt(argc, argv, "c:d:D:f:LmnNp:P:sSqX")) != -1) {
 		switch(c) {
 			case 'c':
 				uci_set_confdir(ctx, optarg);
 				break;
 			case 'd':
 				delimiter = optarg;
+				break;
+			case 'D':
+				show_delimiter = optarg;
 				break;
 			case 'f':
 				if (input != stdin) {
