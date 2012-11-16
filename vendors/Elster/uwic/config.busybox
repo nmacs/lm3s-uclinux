@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.2
-# Fri Nov  9 22:29:48 2012
+# Fri Nov 16 14:38:25 2012
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -182,7 +182,7 @@ CONFIG_CAT=y
 # CONFIG_ID is not set
 # CONFIG_GROUPS is not set
 # CONFIG_TEST is not set
-# CONFIG_FEATURE_TEST_64 is not set
+CONFIG_FEATURE_TEST_64=y
 CONFIG_TOUCH=y
 # CONFIG_FEATURE_TOUCH_SUSV3 is not set
 # CONFIG_TR is not set
@@ -241,7 +241,7 @@ CONFIG_FEATURE_LS_USERNAME=y
 # CONFIG_FEATURE_LS_COLOR is not set
 # CONFIG_FEATURE_LS_COLOR_IS_DEFAULT is not set
 # CONFIG_MD5SUM is not set
-# CONFIG_MKDIR is not set
+CONFIG_MKDIR=y
 # CONFIG_FEATURE_MKDIR_LONG_OPTIONS is not set
 # CONFIG_MKFIFO is not set
 CONFIG_MKNOD=y
@@ -968,11 +968,11 @@ CONFIG_HUSH_INTERACTIVE=y
 # CONFIG_HUSH_SAVEHISTORY is not set
 # CONFIG_HUSH_JOB is not set
 # CONFIG_HUSH_TICK is not set
-# CONFIG_HUSH_IF is not set
-# CONFIG_HUSH_LOOPS is not set
+CONFIG_HUSH_IF=y
+CONFIG_HUSH_LOOPS=y
 # CONFIG_HUSH_CASE is not set
-# CONFIG_HUSH_FUNCTIONS is not set
-# CONFIG_HUSH_LOCAL is not set
+CONFIG_HUSH_FUNCTIONS=y
+CONFIG_HUSH_LOCAL=y
 # CONFIG_HUSH_RANDOM_SUPPORT is not set
 # CONFIG_HUSH_EXPORT_N is not set
 # CONFIG_HUSH_MODE_X is not set
