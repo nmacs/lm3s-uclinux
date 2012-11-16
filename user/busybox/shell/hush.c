@@ -5825,10 +5825,7 @@ static FILE *generate_stream_from_string(const char *s, pid_t *pid_p)
 			+ (1 << SIGTTOU)
 			, SIG_IGN);
 		CLEAR_RANDOM_T(&G.random_gen); /* or else $RANDOM repeats in child */
-		// Do not close channel[0] is xvfork() was used
-#if BB_MMU
 		close(channel[0]); /* NB: close _first_, then move fd! */
-#endif
 		xmove_fd(channel[1], 1);
 		/* Prevent it from trying to handle ctrl-z etc */
 		IF_HUSH_JOB(G.run_list_level = 1;)
@@ -5904,12 +5901,7 @@ static FILE *generate_stream_from_string(const char *s, pid_t *pid_p)
 # if !BB_MMU
 	free(to_free);
 # endif
-
-	// Do not close channel[1] on NO_MMU platforms (already closed in the child process)
-#if BB_MMU
 	close(channel[1]);
-#endif
-
 	close_on_exec_on(channel[0]);
 	return xfdopen_for_read(channel[0]);
 }
