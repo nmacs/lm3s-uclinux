@@ -1,7 +1,10 @@
 #!/bin/sh
 
-start() {
+do_upgrade() {
+	mount -o remount,rw /
 	echo "Upgrade system"
+	rm /var/upgrade
+	mount -o remount,ro /
 }
 
-$2 "$@"
+[ -f /var/upgrade ] && do_upgrade
