@@ -1,19 +1,20 @@
 #!/bin/sh
 
 /bin/mount -t ramfs ramfs /tmp
+/bin/mount -t proc proc /proc
 
-uci -D_ show config.kernel > /tmp/rc_conf
+/bin/uci -D_ show config.kernel > /tmp/rc_conf
 . /tmp/rc_conf
-rm /tmp/rc_conf
+/bin/rm /tmp/rc_conf
 
-/bin/mount -t proc proc proc
+/bin/rm -rf /var/tmp/*
+
 /bin/mount -o remount,ro /
 
-[ "$config_kernel_have_sysfs" = "1" ] && /bin/mount -t sysfs sys sys
+[ "$config_kernel_have_sysfs" = "1" ] && /bin/mount -t sysfs sys /sys
 [ "$config_kernel_have_devpts" = "1" ] && /bin/mount -t devpts devpts /dev/pts
 
 /bin/mkdir -p /tmp/run
-/bin/rm -rf /var/tmp/*
 
 for i in /etc/rc.d/S*; do
 	[ -x $i ] && $i start
