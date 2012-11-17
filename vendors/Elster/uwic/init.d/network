@@ -1,6 +1,6 @@
 #!/bin/sh
 
-uci -D_ show config.wan > /tmp/network_conf
+uci -D_ -e show config.wan > /tmp/network_conf
 . /tmp/network_conf
 rm /tmp/network_conf
 

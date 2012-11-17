@@ -3,7 +3,7 @@
 /bin/mount -t ramfs ramfs /tmp
 /bin/mount -t proc proc /proc
 
-/bin/uci -D_ show config.kernel > /tmp/rc_conf
+/bin/uci -D_ -e show config.kernel > /tmp/rc_conf
 . /tmp/rc_conf
 /bin/rm /tmp/rc_conf
 

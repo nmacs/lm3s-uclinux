@@ -1,6 +1,6 @@
 #!/bin/sh
 
-/bin/uci -D_ show config.leds > /tmp/leds_conf
+/bin/uci -D_ -e show config.leds > /tmp/leds_conf
 . /tmp/leds_conf
 /bin/rm /tmp/leds_conf
 
