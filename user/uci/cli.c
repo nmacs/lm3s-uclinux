@@ -21,6 +21,7 @@
 
 static const char *delimiter = " ";
 static const char *show_delimiter = ".";
+static int print_escaped_value = 0;
 static const char *appname;
 static enum {
 	CLI_FLAG_MERGE =    (1 << 0),
@@ -146,6 +147,7 @@ static void uci_usage(void)
 		"\t-c <path>  set the search path for config files (default: /etc/config)\n"
 		"\t-d <str>   set the delimiter for list values in uci show\n"
 		"\t-D <str>   set the delimiter for values in uci show\n"
+		"\t-e         print bash escaped value\n"
 		"\t-f <file>  use <file> as input instead of stdin\n"
 		"\t-L         do not load any plugins\n"
 		"\t-m         when importing, merge data into an existing package\n"
@@ -170,6 +172,29 @@ static void cli_perror(void)
 	uci_perror(ctx, appname);
 }
 
+static void print_bash_escaped(const char *s)
+{
+	if (*s == '\'')
+		goto squote;
+	do {
+		const char *p = strchr(s, '\'');
+		/* print 'xxxx', possibly just '' */
+		if( p == NULL )
+		{
+			printf("'%s'", s);
+			break;
+		}
+		else
+			printf("'%.*s'", (int)(p - s), s);
+		s = p;
+ squote:
+		/* s points to '; print "'''...'''" */
+		putchar('"');
+		do putchar('\''); while (*++s == '\'');
+		putchar('"');
+	} while (*s);
+}
+
 static void uci_show_value(struct uci_option *o)
 {
 	struct uci_element *e;
@@ -177,7 +202,13 @@ static void uci_show_value(struct uci_option *o)
 
 	switch(o->type) {
 	case UCI_TYPE_STRING:
-		printf("'%s'\n", o->v.string);
+		if (print_escaped_value)
+		{
+			print_bash_escaped(o->v.string);
+			printf("\n");
+		}
+		else
+			printf("%s\n", o->v.string);
 		break;
 	case UCI_TYPE_LIST:
 		uci_foreach_element(&o->v.list, e) {
@@ -630,7 +661,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	while((c = getopt(argc, argv, "c:d:D:f:LmnNp:P:sSqX")) != -1) {
+	while((c = getopt(argc, argv, "c:d:D:ef:LmnNp:P:sSqX")) != -1) {
 		switch(c) {
 			case 'c':
 				uci_set_confdir(ctx, optarg);
@@ -640,6 +671,9 @@ int main(int argc, char **argv)
 				break;
 			case 'D':
 				show_delimiter = optarg;
+				break;
+			case 'e':
+				print_escaped_value = 1;
 				break;
 			case 'f':
 				if (input != stdin) {

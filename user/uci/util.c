@@ -88,7 +88,7 @@ bool uci_validate_text(const char *str)
 {
 	while (*str) {
 		unsigned char c = *str;
-		if ((c == '\r') || (c == '\n') || (c == '\'') ||
+		if ((c == '\r') || (c == '\n') ||
 			((c < 32) && (c != '\t')))
 			return false;
 		str++;
