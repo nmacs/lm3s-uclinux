@@ -1,7 +1,2 @@
 #!/bin/sh
-
-start() {
-	watchdogd -s
-}
-
-$2 "$@"
+watchdogd -s
