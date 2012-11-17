@@ -50,9 +50,11 @@ endif
 	$(ROMFSINST) -d init.d/upgrade /etc/init.d/upgrade
 	$(ROMFSINST) -d init.d/network /etc/init.d/network
 	$(ROMFSINST) -d init.d/watchdog /etc/init.d/watchdog
+	$(ROMFSINST) -d init.d/leds /etc/init.d/leds
 	$(ROMFSINST) -d -s /etc/init.d/watchdog /etc/rc.d/S00watchdog
 	$(ROMFSINST) -d -s /etc/init.d/upgrade /etc/rc.d/S01upgrade
 	$(ROMFSINST) -d -s /etc/init.d/network /etc/rc.d/S10network
+	$(ROMFSINST) -d -s /etc/init.d/leds /etc/rc.d/S99leds
 	$(ROMFSINST) -s /tmp/resolv.conf /etc/resolv.conf
 
 modules.dep:

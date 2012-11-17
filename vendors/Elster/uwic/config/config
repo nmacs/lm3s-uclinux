@@ -9,3 +9,6 @@ config wan 'wan'
 	option ip      '192.168.100.10'
 	option netmask '255.255.255.0'
 	option gateway '192.168.100.2'
+
+config leds 'leds'
+	option trigger 'cpuidle'
