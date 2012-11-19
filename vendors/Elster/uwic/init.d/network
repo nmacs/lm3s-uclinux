@@ -10,6 +10,7 @@ start() {
 	if [ "$config_wan_type" = "eth" ]; then
 		if [ "$config_wan_mode" = "static" ]; then
 			#ifconfig $config_wan_iface down
+			ifconfig $config_wan_iface hw ether $config_wan_mac
 			#ifconfig $config_wan_iface up
 			ifconfig $config_wan_iface $config_wan_ip netmask $config_wan_netmask
 			route add default gw $config_wan_gateway
