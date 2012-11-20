@@ -33,6 +33,21 @@ config LIB_SUPCPP
 	depends on LIB_USTL
 	default y
 
+config LIB_SQLITE_SQLITE
+	bool "SQLite"
+	default n
+	help
+	  SQLite is a in-process library that implements a self-contained,
+	  serverless, zero-configuration, transactional SQL database engine.
+
+config LIB_SQLITE_SHELL
+	bool "SQLite Shell"
+	default n
+	depends on LIB_SQLITE_SQLITE
+	help
+	  Allows the user to manually enter and execute SQL commands against
+	  an SQLite database.
+
 config LIB_FLEX
 	bool "Build flex"
 	default n

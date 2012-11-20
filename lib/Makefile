@@ -54,6 +54,10 @@ dir_$(CONFIG_LIB_CYASSL) += cyassl
 dir_$(CONFIG_LIB_SUPCPP) += libsupcpp
 lib_libsupcpp = output/lib/thumb2/*.a
 
+dir_$(CONFIG_LIB_SQLITE_SQLITE) += libsqlite
+lib_libsqlite = output/lib/libsqlite3.a
+inc_libsqlite = output/include/*.h,.
+
 dir_$(CONFIG_LIB_ADNS) += adns
 lib_adns = src/libadns.a
 
