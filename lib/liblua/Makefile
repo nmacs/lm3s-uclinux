@@ -7,16 +7,21 @@ LUACOXPCALL_DIR   := coxpcall-1.13
 LUACOPAS_DIR      := copas-1.1.6
 LUAXAVANTE_DIR    := xavante-2.2.1
 JSON_DIR          := json4lua-0.9.50
+SQLITE_DIR        := lsqlite3_svn08
 
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
 
 ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
-  CFLAGS          += -Wl,-llfs -L$(CURDIR)/$(LUAFILESYSTEM_DIR)/src
+	CFLAGS          += -Wl,-llfs -L$(CURDIR)/$(LUAFILESYSTEM_DIR)/src
 endif
 
 ifdef CONFIG_LIB_LUA_LUASOCKET
-  CFLAGS          += -Wl,-lsocket -L$(CURDIR)/$(LUASOCKET_DIR)/src
+	CFLAGS          += -Wl,-lsocket -L$(CURDIR)/$(LUASOCKET_DIR)/src
+endif
+
+ifdef CONFIG_LIB_LUA_SQLITE
+	CFLAGS          += -Wl,-llsqlite3 -Wl,-lsqlite3 -L$(CURDIR)/$(SQLITE_DIR)
 endif
 
 .PHONY: all lua
@@ -31,6 +36,9 @@ endif
 ifdef CONFIG_LIB_LUA_LUASOCKET
 	$(MAKE) -C $(LUASOCKET_DIR)/src libsocket.a
 endif
+ifdef CONFIG_LIB_LUA_SQLITE
+	$(MAKE) -C $(SQLITE_DIR) liblsqlite3.a
+endif
 	$(MAKE) -C $(LUA_DIR) generic
 
 ############################################################################
@@ -39,6 +47,7 @@ clean:
 	$(MAKE) -C $(LUA_DIR) clean
 	$(MAKE) -C $(LUAFILESYSTEM_DIR) clean
 	$(MAKE) -C $(LUASOCKET_DIR) clean
+	$(MAKE) -C $(SQLITE_DIR) clean
 
 romfs:
 	$(ROMFSINST) $(LUA_DIR)/src/lua /bin/lua

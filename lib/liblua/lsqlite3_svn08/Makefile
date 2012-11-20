@@ -55,7 +55,7 @@ ifndef _SO
 endif
 
 # no need to change anything below here - HAH!
-CFLAGS= $(INCS) $(DEFS) $(WARN) -O2 -fomit-frame-pointer $(SHFLAGS)
+#CFLAGS= $(INCS) $(DEFS) $(WARN) -O2 -fomit-frame-pointer $(SHFLAGS)
 WARN= -Wall #-ansi -pedantic -Wall
 INCS= $(LUAINC) $(SQLITE3INC)
 LIBS= $(LUALIB) $(SQLITE3LIB)
@@ -71,6 +71,10 @@ T= $(MYLIB).$(_SO)
 
 all: $(T)
 
+libl$(MYNAME).a: $(OBJS)
+	$(AR) rcu $@ $(OBJS)
+
+
 test: $(T)
 	$(LUAEXE) test.lua
 	$(LUAEXE) tests-sqlite3.lua
@@ -82,7 +86,7 @@ install: $(T)
 	$(INSTALL) $< `$(INSTALLPATH) $(MYLIB)`
 
 clean:
-	rm -f $(OBJS) $T core core.* a.out test.db
+	rm -f $(OBJS) $T core core.* a.out test.db lib*.a
 
 html:
 	$(POD2HTML) --title="LuaSQLite 3" --infile=doc/lsqlite3.pod --outfile=doc/lsqlite3.html

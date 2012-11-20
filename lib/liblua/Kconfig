@@ -51,3 +51,9 @@ config LIB_LUA_JSON
   depends on LIB_LUA
   help
     JSON4Lua implements JSON (JavaScript Object Notation) encoding and decoding.
+
+config LIB_LUA_SQLITE
+	bool "Lua SQLite library"
+	depends on LIB_LUA
+	help
+	  lsqlite3 is a thin wrapper around the public domain SQLite3 database engine.
