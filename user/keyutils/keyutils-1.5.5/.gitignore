@@ -5,6 +5,7 @@
 *.a
 *.so.*
 keyctl
+keyctl-static
 request-key
 key.dns_resolver
 rpmbuild
