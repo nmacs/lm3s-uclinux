@@ -1,5 +1,5 @@
 CPPFLAGS	:= -I.
-CFLAGS		:= -g -Wall -Werror
+CFLAGS		+= -g -Wall -Werror
 INSTALL		:= install
 DESTDIR		:=
 SPECFILE	:= keyutils.spec
@@ -53,7 +53,7 @@ LIBNAME		:= libkeyutils.so.$(APIVERSION)
 ###############################################################################
 LIBDIR		:= $(shell ldd /usr/bin/make | grep '\(/libc\)' | sed -e 's!.*\(/.*\)/libc[.].*!\1!')
 USRLIBDIR	:= $(patsubst /lib/%,/usr/lib/%,$(LIBDIR))
-BUILDFOR	:= $(shell file /usr/bin/make | sed -e 's!.*ELF \(32\|64\)-bit.*!\1!')-bit
+BUILDFOR	?= $(shell file /usr/bin/make | sed -e 's!.*ELF \(32\|64\)-bit.*!\1!')-bit
 
 LNS		:= ln -sf
 
@@ -133,6 +133,9 @@ keyutils.os: keyutils.c keyutils.h Makefile
 
 keyctl: keyctl.o $(DEVELLIB)
 	$(CC) -L. $(CFLAGS) $(LDFLAGS) $(RPATH) -o $@ $< -lkeyutils
+
+keyctl-static: keyctl.o keyutils.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(RPATH) -o $@ $^
 
 request-key: request-key.o $(DEVELLIB)
 	$(CC) -L. $(CFLAGS) $(LDFLAGS) $(RPATH) -o $@ $< -lkeyutils
