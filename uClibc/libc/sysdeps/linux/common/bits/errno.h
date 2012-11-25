@@ -32,6 +32,13 @@
 #  define ECANCELED	125
 # endif
 
+# ifndef ENOKEY
+#  define ENOKEY          126     /* Required key not available */
+#  define EKEYEXPIRED     127     /* Key has expired */
+#  define EKEYREVOKED     128     /* Key has been revoked */
+#  define EKEYREJECTED    129     /* Key was rejected by service */
+# endif
+
 /* Support for error codes to support robust mutexes was added later, too.  */
 # ifndef EOWNERDEAD
 #  define EOWNERDEAD		130
