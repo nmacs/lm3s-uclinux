@@ -2995,10 +2995,20 @@ config USER_UCI_UCI
 	  UCI is a small utility written in C (a shell script-wrapper is available as well) and is
 	  intended to centralize the whole configuration of a device.
 
+config USER_KEYUTILS_KEYUTILS
+	bool "keyutils"
+
 config USER_KEYUTILS_KEYCTL
 	bool "keyctl"
+	depends on USER_KEYUTILS_KEYUTILS
 	help
 	  Controls the key management facility in various ways using a variety of subcommands.
+
+config USER_KEYUTILS_INSERT_PASSPHRASE
+	bool "insert-passphrase"
+	depends on USER_KEYUTILS_KEYUTILS
+	help
+	  Insert passphrase from file into keyring.
 
 config USER_SOCAT_SOCAT
 	bool "socat"

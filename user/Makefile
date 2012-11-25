@@ -25,7 +25,7 @@ dir_  =
 dir_$(CONFIG_JFFS_FS)                       += mtd-utils
 dir_$(CONFIG_JFFS2_FS)                      += mtd-utils
 
-dir_$(CONFIG_USER_KEYUTILS_KEYCTL)          += keyutils
+dir_$(CONFIG_USER_KEYUTILS_KEYUTILS)        += keyutils
 dir_$(CONFIG_USER_UCI_UCI)                  += uci
 dir_$(CONFIG_USER_SOCAT_SOCAT)              += socat
 dir_$(CONFIG_USER_OPKG_OPKG)                += opkg
