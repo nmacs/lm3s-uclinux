@@ -33,6 +33,8 @@ config LIB_SUPCPP
 	depends on LIB_USTL
 	default y
 
+source ../lib/libtomcrypt/Kconfig
+
 config LIB_SQLITE_SQLITE
 	bool "SQLite"
 	default n

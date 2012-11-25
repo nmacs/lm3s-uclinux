@@ -1,0 +1,61 @@
+config LIB_TOMCRYPT
+	bool "Build libtomcrypt"
+	default n
+	help
+	  LibTomCrypt is a fairly comprehensive, modular and portable cryptographic
+	  toolkit that provides developers with a vast array of well known
+	  published block ciphers, one-way hash functions, chaining modes,
+	  pseudo-random number generators, public key cryptography and a plethora
+	  of other routines.
+
+config LIB_TOMCRYPT_CIPHER_BLOWFISH
+	bool "BlowFish cipher"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_CIPHER_DES
+	bool "DES/3DES ciphers"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_CIPHER_AES128
+	bool "AES128 cipher"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_MODE_CBC
+	bool "Mode CBC"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_HASH_MD5
+	bool "MD5 hash"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_HASH_SHA1
+	bool "SHA1 hash"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_PRNG_SYSTEM
+	bool "PRNG system"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_PRNG_DEVRANDOM
+	bool "PRNG /dev/random"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_URANDOM_FIRST
+	bool "Try to use /dev/urandom first"
+	depends on LIB_TOMCRYPT_PRNG_DEVRANDOM
+
+config LIB_TOMCRYPT_PK_RSA
+	bool "RSA"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_PK_DSA
+	bool "DSA"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_PK_ECC
+	bool "Elliptic Curve Criptography"
+	depends on LIB_TOMCRYPT
+
+config LIB_TOMCRYPT_ECC_CURVE_SECP160R1
+	bool "Use curve SECP160R1"
+	depends on LIB_TOMCRYPT_PK_ECC

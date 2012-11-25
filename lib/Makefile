@@ -38,11 +38,17 @@ lib_libcrypt_old = libcrypt_old.a
 inc_libcrypt_old = *.h,.
 
 dir_$(CONFIG_LIB_LUA) += liblua
-lib_liblua = lua-5.1.5/src/liblua.a luafilesystem-1.5.0/src/liblfs.a luasocket-2.0.2/src/libsocket.a
+lib_liblua_y += lua-5.1.5/src/liblua.a
 inc_liblua = lua-5.1.5/src/lua.h,. \
              lua-5.1.5/src/luaconf.h,. \
              lua-5.1.5/src/lualib.h,. \
              lua-5.1.5/src/lauxlib.h,.
+
+lib_liblua_$(CONFIG_LIB_LUA_LUAFILESYSTEM) += luafilesystem-1.5.0/src/liblfs.a
+lib_liblua_$(CONFIG_LIB_LUA_LUASOCKET) += luasocket-2.0.2/src/libsocket.a
+lib_liblua_$(CONFIG_LIB_LUA_SQLITE) += lsqlite3_svn08/liblsqlite3.a
+
+lib_liblua = $(lib_liblua_y)
 
 dir_$(CONFIG_LIB_USTL) += libustl
 lib_libustl = output/lib/*.a
@@ -53,6 +59,10 @@ dir_$(CONFIG_LIB_CYASSL) += cyassl
 
 dir_$(CONFIG_LIB_SUPCPP) += libsupcpp
 lib_libsupcpp = output/lib/thumb2/*.a
+
+dir_$(CONFIG_LIB_TOMCRYPT) += libtomcrypt
+lib_libtomcrypt = output/lib/libtomcrypt.a
+inc_libtomcrypt = output/include/*.h,.
 
 dir_$(CONFIG_LIB_SQLITE_SQLITE) += libsqlite
 lib_libsqlite = output/lib/libsqlite3.a
