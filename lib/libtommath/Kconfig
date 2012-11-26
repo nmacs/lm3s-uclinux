@@ -1,0 +1,24 @@
+config LIB_TOMMATH
+	bool "TomMath"
+	default n
+
+config LIB_TOMMATH_FASTMATH
+	bool "TomsFastMath"
+	default n
+	depends on LIB_TOMMATH
+	help
+	  TomsFastMath is a fast public domain, open source, large integer
+	  arithmetic library written in portable ISO C. It is a port of
+	  LibTomMath with optional support for inline assembler multipliers.
+	  It has the following features.
+
+config LIB_TOMMATH_MATH
+	bool "LibTomMath"
+	default n
+	depends on LIB_TOMMATH
+	help
+	  LibTomMath is a free open source portable number theoretic
+	  multiple-precision integer library written entirely in C. (phew!).
+	  The library is designed to provide a simple to work with API that
+	  provides fairly efficient routines that build out of the box without
+	  configuration.
