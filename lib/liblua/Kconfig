@@ -4,6 +4,10 @@ config LIB_LUA
      The lua programming language compiler and interpreter.
      See http://www.lua.org/
 
+config LIB_LUA_SHELL
+	bool "Lua shell"
+	depends on LIB_LUA
+
 config LIB_LUA_LUAFILESYSTEM
   bool "Lua filesystem"
   depends on LIB_LUA

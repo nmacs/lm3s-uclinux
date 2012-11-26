@@ -24,6 +24,10 @@ ifdef CONFIG_LIB_LUA_SQLITE
 	CFLAGS          += -Wl,-llsqlite3 -Wl,-lsqlite3 -L$(CURDIR)/$(SQLITE_DIR)
 endif
 
+ifdef CONFIG_LIB_UCI_LUA
+	CFLAGS          += -Wl,-luci -Wl,-lucilua
+endif
+
 .PHONY: all lua
 
 all: lua
@@ -50,7 +54,9 @@ clean:
 	$(MAKE) -C $(SQLITE_DIR) clean
 
 romfs:
+ifdef CONFIG_LIB_LUA_SHELL
 	$(ROMFSINST) $(LUA_DIR)/src/lua /bin/lua
+endif
 ifdef CONFIG_LIB_LUA_LUASOCKET
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/socket.lua /usr/local/share/lua/5.1/socket.lua
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/url.lua /usr/local/share/lua/5.1/socket/url.lua
