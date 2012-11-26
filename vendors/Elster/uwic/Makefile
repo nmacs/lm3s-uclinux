@@ -22,6 +22,8 @@ EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 ROMFS_DIRS  = bin dev etc home lib mnt proc sys usr tmp boot root var
 ROMFS_DIRS += etc/config
 ROMFS_DIRS += etc/rc.d
+ROMFS_DIRS += etc/secret
+ROMFS_DIRS += etc/.secret
 ROMFS_DIRS += var/tmp
 
 clean:
@@ -56,6 +58,8 @@ endif
 	$(ROMFSINST) -d -s /etc/init.d/network /etc/rc.d/S10network
 	$(ROMFSINST) -d -s /etc/init.d/leds /etc/rc.d/S99leds
 	$(ROMFSINST) -s /tmp/resolv.conf /etc/resolv.conf
+	$(ROMFSINST) /etc/key
+	$(ROMFSINST) /etc/public.der
 
 modules.dep:
 ifdef CONFIG_MODULES
@@ -76,3 +80,4 @@ image:
 	cp $(LINUXUBOOTIMG) $(LINUXIMG)
 	genext2fs -b 5120 -D $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
 	mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0 --devtable=$(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt --root=$(ROMFSDIR) --output=$(UBIFSIMG)
+	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
