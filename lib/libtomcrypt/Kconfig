@@ -1,5 +1,5 @@
 config LIB_TOMCRYPT
-	bool "Build libtomcrypt"
+	bool "TomCrypt"
 	default n
 	help
 	  LibTomCrypt is a fairly comprehensive, modular and portable cryptographic
