@@ -60,6 +60,11 @@ dir_$(CONFIG_LIB_CYASSL) += cyassl
 dir_$(CONFIG_LIB_SUPCPP) += libsupcpp
 lib_libsupcpp = output/lib/thumb2/*.a
 
+dir_$(CONFIG_LIB_TOMMATH_MATH) += libtommath
+dir_$(CONFIG_LIB_TOMMATH_FASTMATH) += libtommath
+lib_libtommath = output/lib/libtfm.a output/lib/libtommath.a
+inc_libtommath = output/include/*.h,.
+
 dir_$(CONFIG_LIB_TOMCRYPT) += libtomcrypt
 lib_libtomcrypt = output/lib/libtomcrypt.a
 inc_libtomcrypt = output/include/*.h,.
@@ -67,6 +72,13 @@ inc_libtomcrypt = output/include/*.h,.
 dir_$(CONFIG_LIB_SQLITE_SQLITE) += libsqlite
 lib_libsqlite = output/lib/libsqlite3.a
 inc_libsqlite = output/include/*.h,.
+
+dir_$(CONFIG_LIB_UCI) += libuci
+lib_libuci = bin/libuci.a
+inc_libuci = uci.h,uci uci_config.h,uci
+ifdef CONFIG_LIB_UCI_LUA
+lib_libuci += bin/lua/libucilua.a
+endif
 
 dir_$(CONFIG_LIB_ADNS) += adns
 lib_adns = src/libadns.a
