@@ -1,0 +1,3 @@
+*.o
+*.gdb
+insert-passphrase
