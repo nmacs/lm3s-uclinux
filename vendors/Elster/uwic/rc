@@ -9,6 +9,7 @@
 
 /bin/rm -rf /var/tmp/*
 
+/bin/mount -t cramfs /dev/mtdblock0 /etc/romdisk
 #/bin/mount -o remount,ro /
 
 [ "$config_kernel_have_sysfs" = "1" ] && /bin/mount -t sysfs sys /sys
@@ -16,7 +17,7 @@
 
 /bin/mkdir -p /tmp/run
 
-insert-passphrase /etc/key
+insert-passphrase /etc/romdisk/key
 mount -t ecryptfs /etc/.secret /etc/secret -o rw,ecryptfs_sig=0000000000000001,ecryptfs_key_bytes=16,ecryptfs_cipher=aes
 
 for i in /etc/rc.d/S*; do

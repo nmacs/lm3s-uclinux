@@ -22,6 +22,7 @@ EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 ROMFS_DIRS  = bin dev etc home lib mnt proc sys usr tmp boot root var
 ROMFS_DIRS += etc/config
 ROMFS_DIRS += etc/rc.d
+ROMFS_DIRS += etc/romdisk
 ROMFS_DIRS += etc/secret
 ROMFS_DIRS += etc/.secret
 ROMFS_DIRS += var/tmp
@@ -58,7 +59,6 @@ endif
 	$(ROMFSINST) -d -s /etc/init.d/network /etc/rc.d/S10network
 	$(ROMFSINST) -d -s /etc/init.d/leds /etc/rc.d/S99leds
 	$(ROMFSINST) -s /tmp/resolv.conf /etc/resolv.conf
-	$(ROMFSINST) /etc/key
 	$(ROMFSINST) /etc/public.der
 
 modules.dep:
