@@ -89,7 +89,6 @@ int inittab_size = 0;
 int numcmd;
 int stopped = 0;	/* are we stopped */
 int reload = 0;	/* are we stopped */
-int run_sigint_processing = 0;
 
 extern void spawn(int);
 extern void hup_handler();
@@ -98,7 +97,7 @@ extern void read_inittab(void);
 static int  read_initfile(const char *);
 extern void tstp_handler();
 extern void int_handler();
-extern void sigint_processing();
+//extern void sigterm_processing();
 extern void cont_handler();
 extern void set_tz(void);
 extern void write_wtmp(void);
@@ -108,6 +107,11 @@ extern int boot_single(int singlearg, int argc, char *argv[]);
 #ifdef CONFIG_USER_INIT_CONF
 extern void load_init_conf(void);
 #endif
+
+static void halt_reboot_pwoff(int sig);
+static void run_shutdown_and_kill_processes(void);
+static void reset_sighandlers_and_unblock_sigs(void);
+static void pause_and_low_level_reboot(unsigned magic);
 
 /* Keep track of console device, if any... */
 #if LINUX_VERSION_CODE < 0x020100
@@ -349,8 +353,11 @@ int main(int argc, char *argv[])
 	sa.sa_handler = cont_handler;
 	sigaction(SIGCONT, &sa, NULL);
 
-	sa.sa_handler = int_handler;
-	sigaction(SIGINT, &sa, NULL);
+	sa.sa_handler = halt_reboot_pwoff;
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
+	sigaction(SIGPWR, &sa, NULL);
 
 	sa.sa_handler = respawn_children;
 	sigaction(SIGALRM, &sa, NULL);
@@ -447,12 +454,9 @@ int main(int argc, char *argv[])
 		pid_t	pid;
 		int	vec;
 
-		if (run_sigint_processing) {
-			run_sigint_processing = 0;
-			sigint_processing();
-		}
-
 		respawn_children(0);
+
+		sleep(1);
 
 		if (reload) {
 			reload = 0;
@@ -891,44 +895,106 @@ void cont_handler()
 	stopped = 0;
 }
 
-void int_handler()
+static void run_shutdown_and_kill_processes(void)
 {
-	run_sigint_processing = 1;
+	struct sigaction sa;
+	/* Run everything to be run at "shutdown".  This is done _prior_
+	 * to killing everything, in case people wish to use scripts to
+	 * shut things down gracefully... */
+	//run_actions(SHUTDOWN);
+
+	printf("The system is going down NOW!\n");
+
+	/* Send signals to every process _except_ pid 1 */
+	kill(-1, SIGTERM);
+	printf("Sent SIGTERM to all processes\n");
+	sync();
+
+	kill(-1, SIGKILL);
+	printf("Sent SIGKILL to all processes\n");
+	sync();
+
+	/*sleep(1); - callers take care about making a pause */
 }
 
-void sigint_processing()
+static void pause_and_low_level_reboot(unsigned magic)
 {
-	/*
-	 * After Linux 0.96b PL1, we get a SIGINT when
-	 * the user presses Ctrl-Alt-Del...
-	 */
+	pid_t pid;
 
-	int pid;
-
-	sync();
-	sync();
-	if((pid = vfork()) == 0) {
-	char *av[2];
-	extern char **environ;
-		/* reboot properly... */
-		av[0] = _PATH_REBOOT;
-		av[1] = NULL;
-
-		execve(_PATH_REBOOT, av, environ);
-#if __GNU_LIBRARY__ > 5
-		reboot(0x1234567);
-#else
-		reboot(0xfee1dead, 672274793, 0x1234567);
-#endif
-		_exit(2);
-	} else if(pid < 0) {
-		/* fork failed, try the hard way... */
-#if __GNU_LIBRARY__ > 5
-		reboot(0x1234567);
-#else
-		reboot(0xfee1dead, 672274793, 0x1234567);
-#endif
+	/* We have to fork here, since the kernel calls do_exit(EXIT_SUCCESS)
+	 * in linux/kernel/sys.c, which can cause the machine to panic when
+	 * the init process exits... */
+	pid = vfork();
+	if (pid == 0) { /* child */
+		reboot(magic);
+		_exit(EXIT_SUCCESS);
 	}
+	else if(pid < 0)
+	{
+		//reboot(magic);
+	}
+
+	while (1)
+		sleep(1);
+}
+
+static void reset_sighandlers_and_unblock_sigs(void)
+{
+	struct sigaction sa;
+	sa.sa_handler = SIG_DFL;
+
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGINT,  &sa, NULL);
+	sigaction(SIGHUP,  &sa, NULL);
+	sigaction(SIGTSTP, &sa, NULL);
+	sigaction(SIGSTOP, &sa, NULL);
+	sigaction(SIGCONT, &sa, NULL);
+	sigaction(SIGALRM, &sa, NULL);
+	sigaction(SIGPWR,  &sa, NULL);
+
+	//sigprocmask_allsigs(SIG_UNBLOCK);
+}
+
+/* The SIGUSR[12]/SIGTERM handler */
+static void halt_reboot_pwoff(int sig)
+{
+	const char *m;
+	unsigned rb;
+
+	/* We may call run() and it unmasks signals,
+	 * including the one masked inside this signal handler.
+	 * Testcase which would start multiple reboot scripts:
+	 *  while true; do reboot; done
+	 * Preventing it:
+	 */
+	reset_sighandlers_and_unblock_sigs();
+
+	if (sig == SIGPWR)
+	{
+		printf("SIGPWR recieved\n");
+		kill(-1, SIGPWR);
+		printf("Sent SIGPWR to all processes\n");
+		sleep(1);
+		sig = SIGUSR2; // Power lost couses poweroff
+	}
+
+	run_shutdown_and_kill_processes();
+
+	m = "halt";
+	rb = RB_HALT_SYSTEM;
+	if (sig == SIGTERM) {
+		m = "reboot";
+		rb = RB_AUTOBOOT;
+	} else if (sig == SIGUSR2) {
+		m = "poweroff";
+		rb = RB_POWER_OFF;
+	}
+	printf("Requesting system %s\n", m);
+	pause_and_low_level_reboot(rb);
+	/* not reached */
 }
 
 #ifdef INCLUDE_TIMEZONE
