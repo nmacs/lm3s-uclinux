@@ -56,9 +56,9 @@
 /dev/video	c	640	0	0	81	0	0	1	2
 /dev/ppp	c	640	0	0	108	0	0	0	-
 /dev/rom	b	640	0	0	31	0	0	1	10
-/dev/mtd	c	640	0	0	90	0	0	2	6
-/dev/mtdr	c	640	0	0	90	1	0	2	6
-/dev/mtdblock	b	640	0	0	31	0	0	1	6
+/dev/mtd	c	640	0	0	90	0	0	2	2
+/dev/mtdr	c	640	0	0	90	1	0	2	2
+/dev/mtdblock	b	640	0	0	31	0	0	1	2
 /dev/ubi_ctrl	c	640	0	0	10	61	0	0	-
 /dev/ubi0	c	640	0	0	254	0	0	0	-
 /dev/ubi0_0	c	640	0	0	254	1	0	0	-
