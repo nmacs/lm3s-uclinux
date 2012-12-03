@@ -61,3 +61,7 @@ config LIB_LUA_SQLITE
 	depends on LIB_LUA
 	help
 	  lsqlite3 is a thin wrapper around the public domain SQLite3 database engine.
+
+config LIB_LUA_UCI
+	bool "Lua UCI library"
+	depends on LIB_UCI && LIB_LUA

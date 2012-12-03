@@ -862,6 +862,7 @@ uci_lua_add_delta(lua_State *L)
 	return uci_push_status(L, ctx, false);
 }
 
+#if 0
 static int
 uci_lua_load_plugins(lua_State *L)
 {
@@ -875,6 +876,7 @@ uci_lua_load_plugins(lua_State *L)
 	uci_load_plugins(ctx, str);
 	return uci_push_status(L, ctx, false);
 }
+#endif
 
 static int
 uci_lua_set_savedir(lua_State *L)
@@ -945,7 +947,9 @@ static const luaL_Reg uci[] = {
 	{ "foreach", uci_lua_foreach },
 	{ "add_history", uci_lua_add_delta },
 	{ "add_delta", uci_lua_add_delta },
+#if 0
 	{ "load_plugins", uci_lua_load_plugins },
+#endif
 	{ "get_confdir", uci_lua_get_confdir },
 	{ "set_confdir", uci_lua_set_confdir },
 	{ "get_savedir", uci_lua_get_savedir },

@@ -18,6 +18,16 @@ config LIB_BITVECTOR
 	  Only enable this if you want to force the library to be built.
 	  The Config will make sure this library is built if it is needed.
 
+config LIB_UCI
+	bool "uci"
+	help
+	  UCI is a small utility written in C (a shell script-wrapper is available as well) and is
+	  intended to centralize the whole configuration of a device.
+
+config LIB_UCI_APP
+	bool "uci application"
+	depends on LIB_UCI
+
 source  ../lib/liblua/Kconfig
 
 config LIB_USTL
@@ -35,20 +45,6 @@ config LIB_SUPCPP
 
 source ../lib/libtommath/Kconfig
 source ../lib/libtomcrypt/Kconfig
-
-config LIB_UCI
-	bool "uci"
-	help
-	  UCI is a small utility written in C (a shell script-wrapper is available as well) and is
-	  intended to centralize the whole configuration of a device.
-
-config LIB_UCI_APP
-	bool "uci application"
-	depends on LIB_UCI
-
-config LIB_UCI_LUA
-	bool "uci Lua library"
-	depends on LIB_UCI && LIB_LUA
 
 config LIB_SQLITE_SQLITE
 	bool "SQLite"

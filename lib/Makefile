@@ -37,6 +37,10 @@ endif
 lib_libcrypt_old = libcrypt_old.a
 inc_libcrypt_old = *.h,.
 
+dir_$(CONFIG_LIB_UCI) += libuci
+lib_libuci = bin/libuci.a
+inc_libuci = uci.h,. uci_config.h,.
+
 dir_$(CONFIG_LIB_LUA) += liblua
 lib_liblua_y += lua-5.1.5/src/liblua.a
 inc_liblua = lua-5.1.5/src/lua.h,. \
@@ -47,6 +51,7 @@ inc_liblua = lua-5.1.5/src/lua.h,. \
 lib_liblua_$(CONFIG_LIB_LUA_LUAFILESYSTEM) += luafilesystem-1.5.0/src/liblfs.a
 lib_liblua_$(CONFIG_LIB_LUA_LUASOCKET) += luasocket-2.0.2/src/libsocket.a
 lib_liblua_$(CONFIG_LIB_LUA_SQLITE) += lsqlite3_svn08/liblsqlite3.a
+lib_liblua_$(CONFIG_LIB_LUA_UCI) += libuci/libucilua.a
 
 lib_liblua = $(lib_liblua_y)
 
@@ -72,13 +77,6 @@ inc_libtomcrypt = output/include/*.h,.
 dir_$(CONFIG_LIB_SQLITE_SQLITE) += libsqlite
 lib_libsqlite = output/lib/libsqlite3.a
 inc_libsqlite = output/include/*.h,.
-
-dir_$(CONFIG_LIB_UCI) += libuci
-lib_libuci = bin/libuci.a
-inc_libuci = uci.h,uci uci_config.h,uci
-ifdef CONFIG_LIB_UCI_LUA
-lib_libuci += bin/lua/libucilua.a
-endif
 
 dir_$(CONFIG_LIB_ADNS) += adns
 lib_adns = src/libadns.a

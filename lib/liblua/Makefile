@@ -8,6 +8,7 @@ LUACOPAS_DIR      := copas-1.1.6
 LUAXAVANTE_DIR    := xavante-2.2.1
 JSON_DIR          := json4lua-0.9.50
 SQLITE_DIR        := lsqlite3_svn08
+UCILUA_DIR        := libuci
 
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
@@ -24,8 +25,8 @@ ifdef CONFIG_LIB_LUA_SQLITE
 	CFLAGS          += -Wl,-llsqlite3 -Wl,-lsqlite3 -L$(CURDIR)/$(SQLITE_DIR)
 endif
 
-ifdef CONFIG_LIB_UCI_LUA
-	CFLAGS          += -Wl,-luci -Wl,-lucilua
+ifdef CONFIG_LIB_LUA_UCI
+	CFLAGS          += -Wl,-lucilua -Wl,-luci -L$(CURDIR)/$(UCILUA_DIR)
 endif
 
 .PHONY: all lua
@@ -43,6 +44,9 @@ endif
 ifdef CONFIG_LIB_LUA_SQLITE
 	$(MAKE) -C $(SQLITE_DIR) liblsqlite3.a
 endif
+ifdef CONFIG_LIB_LUA_UCI
+	$(MAKE) -C $(UCILUA_DIR) static
+endif
 	$(MAKE) -C $(LUA_DIR) generic
 
 ############################################################################
@@ -52,6 +56,7 @@ clean:
 	$(MAKE) -C $(LUAFILESYSTEM_DIR) clean
 	$(MAKE) -C $(LUASOCKET_DIR) clean
 	$(MAKE) -C $(SQLITE_DIR) clean
+	$(MAKE) -C $(UCILUA_DIR) clean
 
 romfs:
 ifdef CONFIG_LIB_LUA_SHELL

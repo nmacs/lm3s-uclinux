@@ -27,8 +27,12 @@ int luaopen_lfs (lua_State *L);
 int luaopen_socket_core(lua_State *L);
 #endif
 
-#ifdef CONFIG_LIB_SQLITE_SQLITE
+#ifdef CONFIG_LIB_LUA_SQLITE
 int luaopen_lsqlite3(lua_State *L);
+#endif
+
+#ifdef CONFIG_LIB_LUA_UCI
+int luaopen_uci(lua_State *L);
 #endif
 
 static const luaL_Reg modules[] = {
@@ -38,8 +42,11 @@ static const luaL_Reg modules[] = {
 #ifdef CONFIG_LIB_LUA_LUASOCKET
 	{"socket.core", luaopen_socket_core},
 #endif
-#ifdef CONFIG_LIB_SQLITE_SQLITE
+#ifdef CONFIG_LIB_LUA_SQLITE
 	{"lsqlite3", luaopen_lsqlite3},
+#endif
+#ifdef CONFIG_LIB_LUA_UCI
+	{"uci", luaopen_uci},
 #endif
 	{NULL, NULL}
 };
