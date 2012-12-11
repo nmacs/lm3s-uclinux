@@ -12,6 +12,8 @@ INSTALL_USER := $(shell whoami)
 export INSTALL_USER
 INSTALL_GROUP := $(shell whoami)
 export INSTALL_GROUP
+NODOCS := 1
+export NODOCS
 
 CFLAGS += -DLTC_NO_CIPHERS
 
