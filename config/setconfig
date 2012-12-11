@@ -112,7 +112,7 @@ for i in vendors/*/*/config.arch
 do
 	IFS=/
 	set -- $i
-	IFS=" 
+	IFS="
 	"
 	VDIR="`dirname $i`"
 	if [ -f "$VDIR/config.languages" ]
@@ -242,7 +242,7 @@ if [ "$PASS" != "final" ]; then
 		else
 			echo; echo; echo; echo
 			echo "*********************** NOTICE ****************************"
-			echo "There is no preset config for $LINUXDIR on platform $VENDOR/$PRODUCT." 
+			echo "There is no preset config for $LINUXDIR on platform $VENDOR/$PRODUCT."
 			echo "If you choose to continue you will have to setup a linux"
 			echo "config from scratch which is a very complex task."
 			echo "You will find it easier if you can copy a config.$LINUXDIR"
@@ -286,7 +286,7 @@ if [ "$PASS" != "final" ]; then
 		else
 			echo; echo; echo; echo
 			echo "*********************** NOTICE ****************************"
-			echo "There is no preset config for applications on platform $VENDOR/$PRODUCT." 
+			echo "There is no preset config for applications on platform $VENDOR/$PRODUCT."
 			echo "If you choose to continue you will have to setup your"
 			echo "application config from scratch.  You will find it easier"
 			echo "if you can copy a config.vendor file from another platform"
@@ -303,6 +303,32 @@ if [ "$PASS" != "final" ]; then
 					"CONFIG_DEFAULTS_VENDOR=y" .config
 		fi
 		make oldconfig_config
+	fi
+
+	if [ ! -f user/busybox/.config ] || var_isset CONFIG_DEFAULTS_OVERRIDE; then
+		TMP=`expr $LINUXDIR : "[^-][^-]*\(-.*\)"`
+		if [ -f "vendors/$VENDOR/$PRODUCT/config.busybox$TMP" ]
+		then
+			cp "vendors/$VENDOR/$PRODUCT/config.busybox$TMP" user/busybox/.config
+		elif [ -f "vendors/$VENDOR/$PRODUCT/config.busybox" ]
+		then
+			cp "vendors/$VENDOR/$PRODUCT/config.busybox" user/busybox/.config
+		else
+			echo; echo; echo; echo
+			echo "*********************** NOTICE ****************************"
+			echo "There is no preset config for busybox on platform $VENDOR/$PRODUCT."
+			echo
+			echo "If you press <ENTER> you will be forced into the application"
+			echo "config screen as part of the config process."
+			echo "You may type ^C to abort."
+			read dummy
+			#
+			# force config of busybox
+			#
+			replace_line CONFIG_DEFAULTS_VENDOR= \
+					"CONFIG_DEFAULTS_VENDOR=y" .config
+		fi
+		make oldconfig_busybox
 	fi
 
 	if [ -L lib/$LIBCBASEDIR ]; then
@@ -332,7 +358,7 @@ if [ "$PASS" != "final" ]; then
 			else
 				echo; echo; echo; echo
 				echo "********************** NOTICE ***************************"
-				echo "There is no preset config for $LIBCBASEDIR on platform" 
+				echo "There is no preset config for $LIBCBASEDIR on platform"
 				echo "$VENDOR/$PRODUCT.  $LIBCBASEDIR cannot build without this."
 				echo "You should copy a config.$LIBCBASEDIR from another"
 				echo "target that is similar to yours to your chosen"
@@ -387,6 +413,12 @@ if [ "$PASS" = "final" ]; then
 			cp config/.config "vendors/$VENDOR/$PRODUCT/config.vendor$TMP"
 		else
 			cp config/.config "vendors/$VENDOR/$PRODUCT/config.vendor"
+		fi
+		if [ -f "vendors/$VENDOR/$PRODUCT/config.busybox$TMP" ]
+		then
+			cp user/busybox/.config "vendors/$VENDOR/$PRODUCT/config.busybox$TMP"
+		else
+			cp user/busybox/.config "vendors/$VENDOR/$PRODUCT/config.busybox"
 		fi
 		if [ -f modules/.config ]; then
 			if [ -f "vendors/$VENDOR/$PRODUCT/config.modules$TMP" ]
