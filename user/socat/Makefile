@@ -22,7 +22,7 @@ CONFIGURE_OPTIONS += --disable-interface
 CONFIGURE_OPTIONS += --disable-rawip
 
 all: build
-	$(MAKE) -C build
+	$(MAKE) -C build progs
 
 .phony: build
 build: Makefile
