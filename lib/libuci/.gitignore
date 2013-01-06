@@ -12,3 +12,6 @@ uci-static
 ucimap-example
 uci_config.h
 test/save
+
+test/Makefile
+bin/
