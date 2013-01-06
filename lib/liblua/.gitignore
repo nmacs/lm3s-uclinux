@@ -1,0 +1,17 @@
+bitstring-1.0/Makefile
+bitstring-1.0/config.log
+bitstring-1.0/config.status
+bitstring-1.0/configure.lineno
+bitstring-1.0/doc/Makefile
+bitstring-1.0/libtool
+bitstring-1.0/src/Makefile
+bitstring-1.0/src/bitstring/Makefile
+bitstring-1.0/src/bitstring/bitstring.la
+bitstring-1.0/src/bitstring/config.h
+bitstring-1.0/src/bitstring/libbitstring.la
+bitstring-1.0/src/bitstring/stamp-h1
+bitstring-1.0/tests/Makefile
+bitstring-1.0/win32/Makefile
+bitstring-1.0/win32/bitstring/Makefile
+bitstring-1.0/win32/bitstring/bitstring/Makefile
+
