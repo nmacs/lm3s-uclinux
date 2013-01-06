@@ -9,6 +9,7 @@ LUAXAVANTE_DIR    := xavante-2.2.1
 JSON_DIR          := json4lua-0.9.50
 SQLITE_DIR        := lsqlite3_svn08
 UCILUA_DIR        := libuci
+BITSTRING_DIR     := bitstring-1.0
 
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
@@ -18,7 +19,7 @@ ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
 endif
 
 ifdef CONFIG_LIB_LUA_LUASOCKET
-	CFLAGS          += -Wl,-lsocket -L$(CURDIR)/$(LUASOCKET_DIR)/src
+	CFLAGS          += -Wl,-lsocket -Wl,-lmime -L$(CURDIR)/$(LUASOCKET_DIR)/src
 endif
 
 ifdef CONFIG_LIB_LUA_SQLITE
@@ -27,6 +28,10 @@ endif
 
 ifdef CONFIG_LIB_LUA_UCI
 	CFLAGS          += -Wl,-lucilua -Wl,-luci -L$(CURDIR)/$(UCILUA_DIR)
+endif
+
+ifdef CONFIG_LIB_LUA_BITSTRING
+	CFLAGS          += -Wl,-lbitstring -L$(CURDIR)/$(BITSTRING_DIR)/src/bitstring/.libs
 endif
 
 .PHONY: all lua
@@ -39,13 +44,17 @@ ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
 	$(MAKE) -C $(LUAFILESYSTEM_DIR) static
 endif
 ifdef CONFIG_LIB_LUA_LUASOCKET
-	$(MAKE) -C $(LUASOCKET_DIR)/src libsocket.a
+	$(MAKE) -C $(LUASOCKET_DIR)/src libsocket.a libmime.a
 endif
 ifdef CONFIG_LIB_LUA_SQLITE
 	$(MAKE) -C $(SQLITE_DIR) liblsqlite3.a
 endif
 ifdef CONFIG_LIB_LUA_UCI
 	$(MAKE) -C $(UCILUA_DIR) static
+endif
+ifdef CONFIG_LIB_LUA_BITSTRING
+	-cd $(BITSTRING_DIR) && ./configure --host=arm
+	$(MAKE) -C $(BITSTRING_DIR)
 endif
 	$(MAKE) -C $(LUA_DIR) generic
 
@@ -65,6 +74,8 @@ endif
 ifdef CONFIG_LIB_LUA_LUASOCKET
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/socket.lua /usr/local/share/lua/5.1/socket.lua
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/url.lua /usr/local/share/lua/5.1/socket/url.lua
+	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/ltn12.lua /usr/local/share/lua/5.1/ltn12.lua
+	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/mime.lua /usr/local/share/lua/5.1/mime.lua
 endif
 ifdef CONFIG_LIB_LUA_LUACOXPCALL
 	$(ROMFSINST) -d $(LUACOXPCALL_DIR)/src/coxpcall.lua /usr/local/share/lua/5.1/coxpcall.lua

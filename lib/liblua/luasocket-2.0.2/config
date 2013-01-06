@@ -11,6 +11,7 @@ MIME_V=1.0.2
 SOCKET_SO=socket.$(EXT).$(SOCKET_V)
 SOCKET_A=libsocket.a
 MIME_SO=mime.$(EXT).$(MIME_V)
+MIME_A=libmime.a
 UNIX_SO=unix.$(EXT)
 
 #------

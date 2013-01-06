@@ -50,8 +50,10 @@ inc_liblua = lua-5.1.5/src/lua.h,. \
 
 lib_liblua_$(CONFIG_LIB_LUA_LUAFILESYSTEM) += luafilesystem-1.5.0/src/liblfs.a
 lib_liblua_$(CONFIG_LIB_LUA_LUASOCKET) += luasocket-2.0.2/src/libsocket.a
+lib_liblua_$(CONFIG_LIB_LUA_LUASOCKET) += luasocket-2.0.2/src/libmime.a
 lib_liblua_$(CONFIG_LIB_LUA_SQLITE) += lsqlite3_svn08/liblsqlite3.a
 lib_liblua_$(CONFIG_LIB_LUA_UCI) += libuci/libucilua.a
+lib_liblua_$(CONFIG_LIB_LUA_BITSTRING) += bitstring-1.0/src/bitstring/.libs/libbitstring.a
 
 lib_liblua = $(lib_liblua_y)
 

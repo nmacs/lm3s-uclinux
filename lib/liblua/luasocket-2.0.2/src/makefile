@@ -56,6 +56,10 @@ $(SOCKET_A): $(SOCKET_OBJS)
 $(SOCKET_SO): $(SOCKET_OBJS)
 	$(LD) $(LDFLAGS) -o $@ $(SOCKET_OBJS)
 
+$(MIME_A): $(MIME_OBJS)
+	$(AR) rcu $@ $(MIME_OBJS)
+	$(RANLIB) $@
+
 $(MIME_SO): $(MIME_OBJS)
 	$(LD) $(LDFLAGS) -o $@ $(MIME_OBJS)
 

@@ -65,3 +65,7 @@ config LIB_LUA_SQLITE
 config LIB_LUA_UCI
 	bool "Lua UCI library"
 	depends on LIB_UCI && LIB_LUA
+
+config LIB_LUA_BITSTRING
+	bool "Lua bitstring library"
+	depends on LIB_LUA
