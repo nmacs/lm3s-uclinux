@@ -13,3 +13,24 @@ config wan 'wan'
 
 config leds 'leds'
 	option trigger 'cpuidle'
+
+config clock 'clock'
+	option default    '2013.01.10-14:00'
+	option ntpserver  '91.189.94.4'
+	option ntptimeout 10
+
+config device 'device'
+	option serial_number '123'
+
+config eiserver 'eiserver'
+	option push_period  30
+	option push_url     'http://10.65.100.89:8080/eiwebplus/EIWebPlus'
+	option push_timeout 5
+	option active_energy_import_id  21
+	option active_energy_export_id  22
+	option active_power_import_id   24
+	option active_power_export_id   23
+	option apparent_power_import_id 26
+	option apparent_power_export_id 25
+	option voltage_id               27
+	option current_id               28
