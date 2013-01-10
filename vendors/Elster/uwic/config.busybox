@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.2
-# Tue Dec  4 16:41:14 2012
+# Thu Jan 10 13:12:12 2013
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -174,8 +174,8 @@ CONFIG_GZIP_FAST=0
 #
 # CONFIG_BASENAME is not set
 CONFIG_CAT=y
-# CONFIG_DATE is not set
-# CONFIG_FEATURE_DATE_ISOFMT is not set
+CONFIG_DATE=y
+CONFIG_FEATURE_DATE_ISOFMT=y
 # CONFIG_FEATURE_DATE_NANO is not set
 # CONFIG_FEATURE_DATE_COMPAT is not set
 # CONFIG_HOSTID is not set
