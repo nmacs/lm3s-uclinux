@@ -49,7 +49,7 @@
 #include <sys/ioctl.h>
 #endif
 
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 
 extern char *optarg;
 
@@ -162,7 +162,7 @@ void send_packet(int usd)
 #define VN 3
 #define MODE 3
 #define STRATUM 0
-#define POLL 4 
+#define POLL 4
 #define PREC -6
 
 	if (debug) fprintf(stderr,"Sending ...\n");
@@ -170,7 +170,7 @@ void send_packet(int usd)
 		fprintf(stderr,"size error\n");
 		return;
 	}
-	bzero((char *) data,sizeof(data));
+	memset((char *) data, 0, sizeof(data));
 	data[0] = htonl (
 		( LI << 30 ) | ( VN << 27 ) | ( MODE << 24 ) |
 		( STRATUM << 16) | ( POLL << 8 ) | ( PREC & 0xff ) );
@@ -225,7 +225,7 @@ double ntpdiff( struct ntptime *start, struct ntptime *stop)
 		b = ~b;
 		a -= 1;
 	}
-	
+
 	return a*1.e6 + b * (1.e6/4294967296.0);
 }
 
@@ -342,7 +342,7 @@ void stuff_net_addr(struct in_addr *p, char *hostname)
 void setup_receive(int usd, unsigned int interface, short port)
 {
 	struct sockaddr_in sa_rcvr;
-	bzero((char *) &sa_rcvr, sizeof(sa_rcvr));
+	memset((char *) &sa_rcvr, 0, sizeof(sa_rcvr));
 	sa_rcvr.sin_family=AF_INET;
 	sa_rcvr.sin_addr.s_addr=htonl(interface);
 	sa_rcvr.sin_port=htons(port);
@@ -357,7 +357,7 @@ void setup_receive(int usd, unsigned int interface, short port)
 void setup_transmit(int usd, char *host, short port)
 {
 	struct sockaddr_in sa_dest;
-	bzero((char *) &sa_dest, sizeof(sa_dest));
+	memset((char *) &sa_dest, 0, sizeof(sa_dest));
 	sa_dest.sin_family=AF_INET;
 	stuff_net_addr(&(sa_dest.sin_addr),host);
 	sa_dest.sin_port=htons(port);
@@ -393,7 +393,7 @@ void primary_loop(int usd, int num_probes, int interval, int goodness)
 				++probes_sent;
 				to.tv_sec=interval;
 				to.tv_usec=0;
-			}	
+			}
 			continue;
 		}
 		pack_len=recvfrom(usd,incoming,sizeof_incoming,0,

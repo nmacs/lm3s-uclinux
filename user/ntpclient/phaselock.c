@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 
 #define RING_SIZE 16
 #define MAX_CORRECT 250   /* ppm change to system clock */
