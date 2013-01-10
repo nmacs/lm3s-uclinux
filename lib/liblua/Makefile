@@ -73,6 +73,7 @@ ifdef CONFIG_LIB_LUA_SHELL
 endif
 ifdef CONFIG_LIB_LUA_LUASOCKET
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/socket.lua /usr/local/share/lua/5.1/socket.lua
+	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/http.lua /usr/local/share/lua/5.1/socket/http.lua
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/url.lua /usr/local/share/lua/5.1/socket/url.lua
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/ltn12.lua /usr/local/share/lua/5.1/ltn12.lua
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/mime.lua /usr/local/share/lua/5.1/mime.lua
