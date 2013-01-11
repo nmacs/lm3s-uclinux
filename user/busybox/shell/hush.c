@@ -883,6 +883,22 @@ static int builtin_continue(char **argv) FAST_FUNC;
 static int builtin_return(char **argv) FAST_FUNC;
 #endif
 
+static int builtin_rm(char **argv) FAST_FUNC;
+static int builtin_mount(char **argv) FAST_FUNC;
+static int builtin_date(char **argv) FAST_FUNC;
+static int builtin_kill(char **argv) FAST_FUNC;
+static int builtin_reboot(char **argv) FAST_FUNC;
+
+int rm_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+int mount_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+int date_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+int halt_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+
+#ifdef CONFIG_UCI
+static int builtin_uci(char **argv) FAST_FUNC;
+int uci_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+#endif
+
 /* Table of built-in functions.  They can be forked or not, depending on
  * context: within pipes, they fork.  As simple commands, they do not.
  * When used in non-forking context, they can change global variables
@@ -958,6 +974,12 @@ static const struct built_in_command bltins2[] = {
 #endif
 	BLTIN("pwd"      , builtin_pwd     , NULL),
 	BLTIN("test"     , builtin_test    , NULL),
+	BLTIN("rm"       , builtin_rm      , NULL),
+	BLTIN("mount"    , builtin_mount   , NULL),
+	BLTIN("date"     , builtin_date    , NULL),
+	BLTIN("kill"     , builtin_kill    , NULL),
+	BLTIN("reboot"   , builtin_reboot  , NULL),
+	IF_UCI(BLTIN("uci"      , builtin_uci     , NULL),)
 };
 
 
@@ -8199,6 +8221,38 @@ static int FAST_FUNC builtin_echo(char **argv)
 static int FAST_FUNC builtin_printf(char **argv)
 {
 	return run_applet_main(argv, printf_main);
+}
+#endif
+
+static int builtin_rm(char **argv)
+{
+	return run_applet_main(argv, rm_main);
+}
+
+static int builtin_mount(char **argv)
+{
+	return run_applet_main(argv, mount_main);
+}
+
+static int builtin_date(char **argv)
+{
+	return run_applet_main(argv, date_main);
+}
+
+static int builtin_kill(char **argv)
+{
+	return run_applet_main(argv, kill_main);
+}
+
+static int builtin_reboot(char **argv) FAST_FUNC
+{
+	return run_applet_main(argv, halt_main);
+}
+
+#ifdef CONFIG_UCI
+static int builtin_uci(char **argv) FAST_FUNC
+{
+	return run_applet_main(argv, uci_main);
 }
 #endif
 
