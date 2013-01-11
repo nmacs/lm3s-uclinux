@@ -30,7 +30,12 @@ config eiserver 'eiserver'
 	option active_energy_export_id  22
 	option active_power_import_id   24
 	option active_power_export_id   23
+	option reactive_power_import_id 29
+	option reactive_power_export_id 30
 	option apparent_power_import_id 26
 	option apparent_power_export_id 25
 	option voltage_id               27
 	option current_id               28
+
+config nfs 'nfs'
+	option remote '10.65.100.176:/nfsroot'

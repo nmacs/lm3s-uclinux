@@ -55,6 +55,7 @@ endif
 	$(ROMFSINST) -d init.d/watchdog /etc/init.d/watchdog
 	$(ROMFSINST) -d init.d/leds /etc/init.d/leds
 	$(ROMFSINST) -d init.d/clock /etc/init.d/clock
+	$(ROMFSINST) -d init.d/nfs /etc/init.d/nfs
 	$(ROMFSINST) -d -s /etc/init.d/watchdog /etc/rc.d/S00watchdog
 	$(ROMFSINST) -d -s /etc/init.d/upgrade /etc/rc.d/S01upgrade
 	$(ROMFSINST) -d -s /etc/init.d/network /etc/rc.d/S10network
