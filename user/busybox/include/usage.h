@@ -3236,6 +3236,10 @@
      "\n	-t	Truncate UBI volume" \
      "\n	-s SIZE	Bytes in input (if reading stdin)" \
 
+#define uci_trivial_usage "" \
+
+#define uci_full_usage "" \
+
 #define volname_trivial_usage \
        "[DEVICE]" \
 

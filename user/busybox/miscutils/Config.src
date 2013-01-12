@@ -585,6 +585,13 @@ config TTYSIZE
 	  error, but returns default 80x24.
 	  Usage in shell scripts: width=`ttysize w`.
 
+config UCI
+	bool "uci"
+	default n
+	help
+	  UCI is a small utility written in C and is intended to centralize
+	  the whole configuration of a device.
+
 config VOLNAME
 	bool "volname"
 	default y

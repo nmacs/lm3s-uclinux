@@ -115,6 +115,10 @@ else
 LDLIBS += m
 endif
 
+ifeq ($(CONFIG_UCI),y)
+LDLIBS += uci
+endif
+
 ifeq ($(CONFIG_PAM),y)
 # libpam uses libpthread, so for static builds busybox must be linked to
 # libpthread. On some platforms that requires an explicit -lpthread, so

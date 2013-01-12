@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.2
-# Thu Jan 10 13:12:12 2013
+# Sat Jan 12 10:36:21 2013
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -707,6 +707,7 @@ CONFIG_FEATURE_CROND_DIR=""
 # CONFIG_TIME is not set
 # CONFIG_TIMEOUT is not set
 # CONFIG_TTYSIZE is not set
+CONFIG_UCI=y
 # CONFIG_VOLNAME is not set
 # CONFIG_WALL is not set
 # CONFIG_WATCHDOG is not set
