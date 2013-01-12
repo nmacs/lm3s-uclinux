@@ -1,7 +1,9 @@
 #!/bin/sh
 
-/bin/uci -D_ -e show config.leds > /tmp/leds_conf
-. /tmp/leds_conf
-/bin/rm /tmp/leds_conf
+if [ -z "$config_leds" ]; then
+	/bin/uci -D_ -e show config.leds > /tmp/leds_conf
+	. /tmp/leds_conf
+	/bin/rm /tmp/leds_conf
+fi
 
 echo $config_leds_trigger > /sys/class/leds/cpu-led/trigger

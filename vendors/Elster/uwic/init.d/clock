@@ -1,8 +1,10 @@
 #!/bin/sh
 
-/bin/uci -D_ -e show config.clock > /tmp/clock_conf
-. /tmp/clock_conf
-/bin/rm /tmp/clock_conf
+if [ -z "$config_clock" ]; then
+	/bin/uci -D_ -e show config.clock > /tmp/clock_conf
+	. /tmp/clock_conf
+	/bin/rm /tmp/clock_conf
+fi
 
 date -s "$config_clock_default"
 ntpclient -s -i "$config_clock_ntptimeout" -g 10000 -h "$config_clock_ntpserver" -c 3

@@ -1,27 +1,21 @@
 #!/bin/sh
 
-uci -D_ -e show config.wan > /tmp/network_conf
-. /tmp/network_conf
-rm /tmp/network_conf
+if [ -z "$config_wan" ]; then
+	uci -D_ -e show config.wan > /tmp/network_conf
+	. /tmp/network_conf
+	rm /tmp/network_conf
+fi
 
-start() {
-	ifconfig lo 127.0.0.1 netmask 255.0.0.0
+ifconfig lo 127.0.0.1 netmask 255.0.0.0
 
-	if [ "$config_wan_type" = "eth" ]; then
-		if [ "$config_wan_mode" = "static" ]; then
-			#ifconfig $config_wan_iface down
-			ifconfig $config_wan_iface hw ether $config_wan_mac
-			#ifconfig $config_wan_iface up
-			ifconfig $config_wan_iface $config_wan_ip netmask $config_wan_netmask
-			route add default gw $config_wan_gateway
-		fi
-	else
-		echo "Error: unknown wan_type: $config_wan_type"
+if [ "$config_wan_type" = "eth" ]; then
+	if [ "$config_wan_mode" = "static" ]; then
+		#ifconfig $config_wan_iface down
+		ifconfig $config_wan_iface hw ether $config_wan_mac
+		#ifconfig $config_wan_iface up
+		ifconfig $config_wan_iface $config_wan_ip netmask $config_wan_netmask
+		route add default gw $config_wan_gateway
 	fi
-}
-
-restart() {
-	start
-}
-
-$2 "$@"
+else
+	echo "Error: unknown wan_type: $config_wan_type"
+fi

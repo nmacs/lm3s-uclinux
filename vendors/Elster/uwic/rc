@@ -3,23 +3,23 @@
 /bin/mount -t ramfs ramfs /tmp
 /bin/mount -t proc proc /proc
 
-/bin/uci -D_ -e show config.kernel > /tmp/rc_conf
-. /tmp/rc_conf
-/bin/rm /tmp/rc_conf
+uci -D_ -e show config > /tmp/conf
+. /tmp/conf
+rm /tmp/conf
 
-/bin/rm -rf /var/tmp/*
+rm -rf /var/tmp/*
 
-/bin/mount -t cramfs /dev/mtdblock0 /etc/romdisk
-#/bin/mount -o remount,ro /
+mount -t cramfs /dev/mtdblock0 /etc/romdisk
+#mount -o remount,ro /
 
 [ "$config_kernel_have_sysfs" = "1" ] && /bin/mount -t sysfs sys /sys
 [ "$config_kernel_have_devpts" = "1" ] && /bin/mount -t devpts devpts /dev/pts
 
-/bin/mkdir -p /tmp/run
+mkdir -p /tmp/run
 
 insert-passphrase /etc/romdisk/key
 mount -t ecryptfs /etc/.secret /etc/secret -o rw,ecryptfs_sig=0000000000000001,ecryptfs_key_bytes=16,ecryptfs_cipher=aes
 
 for i in /etc/rc.d/S*; do
-	[ -x $i ] && $i start
+	. $i
 done
