@@ -1,5 +1,5 @@
 /*
- * Copyright 1996 by Craig Metz 
+ * Copyright 1996 by Craig Metz
  * Copyright (C) 2000-2006 Erik Andersen <andersen@uclibc.org>
  *
  * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
@@ -94,7 +94,7 @@ libc_hidden_proto(in6addr_loopback)
  *    the public header since we don't want people to use them.  */
 #define AI_V4MAPPED     0x0008  /* IPv4-mapped addresses are acceptable.  */
 #define AI_ALL          0x0010  /* Return both IPv4 and IPv6 addresses.  */
-#define AI_ADDRCONFIG   0x0020  /* Use configuration of this host to choose 
+#define AI_ADDRCONFIG   0x0020  /* Use configuration of this host to choose
 				    returned address type.  */
 #define AI_DEFAULT    (AI_V4MAPPED | AI_ADDRCONFIG)
 
@@ -105,6 +105,11 @@ libc_hidden_proto(in6addr_loopback)
 #ifndef UNIX_PATH_MAX
 #define UNIX_PATH_MAX  108
 #endif
+
+#define MAX_ALIASES	5
+
+/* 1:ip + 1:full + MAX_ALIASES:aliases + 1:NULL */
+#define ALIAS_DIM		(2 + MAX_ALIASES + 1)
 
 struct gaih_service
 {
@@ -474,7 +479,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
     }
     else
     {
-	/* 
+	/*
 	 * Neither socket type nor protocol is set.  Return all socket types
 	 * we know about.
 	 */
@@ -649,26 +654,27 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
 		int herrno;
 		struct hostent th;
-		size_t tmpbuflen = 512;
+		size_t tmpbuflen =
+		#ifndef __UCLIBC_HAS_IPV6__
+					sizeof(struct in_addr) + sizeof(struct in_addr *)*2 +
+#else
+					sizeof(struct in6_addr) + sizeof(struct in6_addr *)*2 +
+#endif /* __UCLIBC_HAS_IPV6__ */
+					sizeof(char *)*(ALIAS_DIM) + 384/*namebuffer*/ + 32/* margin */;
+
 		char *tmpbuf;
 
-		do
-		{
-		    tmpbuflen *= 2;
-		    tmpbuf = alloca (tmpbuflen);
+			tmpbuf = alloca (tmpbuflen);
 
-		    if (tmpbuf == NULL)
-			return -EAI_MEMORY;
+			if (tmpbuf == NULL)
+		return -EAI_MEMORY;
 
-		    rc = gethostbyaddr_r (at2->addr,
-					  ((at2->family == AF_INET6)
-					   ? sizeof(struct in6_addr)
-					   : sizeof(struct in_addr)),
-					  at2->family, &th, tmpbuf, tmpbuflen,
-					  &h, &herrno);
-
-		}
-		while (rc == errno && herrno == NETDB_INTERNAL);
+			rc = gethostbyaddr_r (at2->addr,
+					((at2->family == AF_INET6)
+						? sizeof(struct in6_addr)
+						: sizeof(struct in_addr)),
+					at2->family, &th, tmpbuf, tmpbuflen,
+					&h, &herrno);
 
 		if (rc != 0 && herrno == NETDB_INTERNAL)
 		{
@@ -714,6 +720,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
 		(*pai)->ai_protocol = st2->protocol;
 		(*pai)->ai_addrlen = socklen;
 		(*pai)->ai_addr = (void *) (*pai) + sizeof(struct addrinfo);
+
 #if SALEN
 		(*pai)->ai_addr->sa_len = socklen;
 #endif /* SALEN */
@@ -736,7 +743,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
 			sin6p->sin6_addr.s6_addr32[0] = 0;
 			sin6p->sin6_addr.s6_addr32[1] = 0;
 			sin6p->sin6_addr.s6_addr32[2] = htonl(0x0000ffff);
-			memcpy(&sin6p->sin6_addr.s6_addr32[3], 
+			memcpy(&sin6p->sin6_addr.s6_addr32[3],
 			       at2->addr, sizeof (sin6p->sin6_addr.s6_addr32[3]));
 		    }
 		    sin6p->sin6_port = st2->port;
@@ -762,6 +769,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
 		}
 		else
 		    (*pai)->ai_canonname = NULL;
+
 
 		(*pai)->ai_next = NULL;
 		pai = &((*pai)->ai_next);

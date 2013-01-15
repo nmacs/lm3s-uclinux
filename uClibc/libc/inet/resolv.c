@@ -227,7 +227,7 @@ libc_hidden_proto(__ctype_b)
 #define ALIAS_DIM		(2 + MAX_ALIASES + 1)
 
 #undef DEBUG
-/* #define DEBUG */
+//#define DEBUG
 
 #ifdef DEBUG
 #define DPRINTF(X,args...) fprintf(stderr, X, ##args)
@@ -706,7 +706,7 @@ int __form_query(int id, const char *name, int type, unsigned char *packet,
 __UCLIBC_MUTEX_STATIC(mylock, PTHREAD_MUTEX_INITIALIZER);
 
 /* SURF random number generator -
-   The SURF random number generator was taken from djbdns-1.05, by 
+   The SURF random number generator was taken from djbdns-1.05, by
    Daniel J Berstein, which is public domain. */
 
 static u_int32_t seed[32];
@@ -807,6 +807,7 @@ int attribute_hidden __dns_lookup(const char *name, int type, int nscount, char 
 			}
 			close(fd);
 		}
+
 		if ((fd == -1) || (fail != 0)) {
 			/* Failure reading urandom - just try our best to get some randomness */
 			u_int32_t r;
@@ -1745,6 +1746,7 @@ int attribute_hidden __read_etc_hosts_r(FILE * fp, const char * name, int type,
 		}
 		return ret;
 	}
+
 	if (action!=GETHOSTENT) {
 		fclose(fp);
 	}
@@ -2480,7 +2482,6 @@ int gethostbyaddr_r (const void *addr, socklen_t len, int type,
 #ifdef __UCLIBC_HAS_IPV6__
 	} else {
 		memcpy(in6->s6_addr, addr, len);
-
 		addr_list6[0] = in6;
 		qp = buf;
 
@@ -2498,7 +2499,6 @@ int gethostbyaddr_r (const void *addr, socklen_t len, int type,
 	alias[1] = 0;
 
 	for (;;) {
-
 		__UCLIBC_MUTEX_LOCK(__resolv_lock);
 		__nameserversXX=__nameservers;
 		__nameserverXX=__nameserver;
