@@ -6,15 +6,19 @@ include $(LINUX_CONFIG)
 include $(CONFIG_CONFIG)
 include $(ARCH_CONFIG)
 
+SIGNATURE_KEY       = $(ROOTDIR)/../u-boot-uwic/board/elster/uwic/testkey.pem
+
 LINUXFILE           = linux.bin
 LINUXCOMPRESSEDFILE = Image.lzo
 LINUXUBOOTFILE      = Image.uboot
+LINUXSIGFILE        = Image.uboot.sig
 UBIFSFILE           = Image.ubifs
 EXT2FILE            = Image.ext2
 
 LINUXBOOTDIR       = $(ROOTDIR)/$(LINUXDIR)/arch/arm/boot
 LINUXCOMPRESSEDIMG = $(LINUXBOOTDIR)/$(LINUXCOMPRESSEDFILE)
 LINUXUBOOTIMG      = $(LINUXBOOTDIR)/$(LINUXUBOOTFILE)
+LINUXSIG           = $(LINUXBOOTDIR)/$(LINUXSIGFILE)
 LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
 EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
@@ -43,7 +47,7 @@ romfs: linux_image
 	$(ROMFSINST) /etc/resolv.conf
 	$(ROMFSINST) /etc/stunnel.conf
 	$(ROMFSINST) -p 600 /etc/stunnel.pem
-	$(ROMFSINST) $(LINUXUBOOTIMG) /boot/$(LINUXFILE)
+	$(ROMFSINST) $(LINUXIMG) /boot/$(LINUXFILE)
 ifdef CONFIG_USER_PPPD_PPPD_PPPD
 	$(ROMFSINST) -d pppd-peers-gprs /etc/ppp/peers/gprs
 	$(ROMFSINST) -d pppd-chat-gprs /etc/ppp/chat/gprs
@@ -74,13 +78,15 @@ ifdef CONFIG_MODULES
 endif
 
 linux_image:
+	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
 	lzop -9 -f -o $(LINUXCOMPRESSEDIMG) $(LINUXBOOTDIR)/Image
 #	gzip --best --force --stdout $(LINUXBOOTDIR)/Image > $(LINUXCOMPRESSEDIMG)
 	mkimage -A arm -O linux -T kernel -C lzo -a 0x60008000 -e 0x60008000 -n "Linux kernel image" -d $(LINUXCOMPRESSEDIMG) $(LINUXUBOOTIMG)
+	openssl dgst -sha1 -sign $(SIGNATURE_KEY) -out $(LINUXSIG) $(LINUXUBOOTIMG)
+	cat $(LINUXSIG) $(LINUXUBOOTIMG) > $(LINUXIMG)
 
 image:
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	cp $(LINUXUBOOTIMG) $(LINUXIMG)
 	genext2fs -b 5120 -D $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
 	mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0 --devtable=$(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt --root=$(ROMFSDIR) --output=$(UBIFSIMG)
-	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
+#	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
