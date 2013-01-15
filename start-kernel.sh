@@ -14,6 +14,6 @@ echo == Starting kernel... ==
 echo -n 1 > "$tty"
 sleep 1
 echo setenv bootargs > "$tty"
-echo bootm 0x60400000 > "$tty"
+echo bootm 0x60400080 > "$tty"
 
 echo == Started ==
