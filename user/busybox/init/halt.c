@@ -109,8 +109,11 @@ int halt_main(int argc UNUSED_PARAM, char **argv)
 	int which, flags, rc;
 
 	/* Figure out which applet we're running */
-	for (which = 0; "hpr"[which] != applet_name[0]; which++)
+	for (which = 0; "hpr"[which] != argv[0][0] && which < 3; which++)
 		continue;
+
+	if( which > 2 )
+		return -1;
 
 	/* Parse and handle arguments */
 	opt_complementary = "d+"; /* -d N */
