@@ -19,3 +19,6 @@ if [ "$config_wan_type" = "eth" ]; then
 else
 	echo "Error: unknown wan_type: $config_wan_type"
 fi
+
+echo "nameserver $config_wan_nameserver" > /etc/resolv.conf
+echo "127.0.0.1 localhost" > /etc/hosts
