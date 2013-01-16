@@ -44,8 +44,6 @@ romfs: linux_image
 	$(ROMFSINST) /etc/inittab
 	$(ROMFSINST) /etc/rc
 	$(ROMFSINST) /etc/opkg.conf
-	$(ROMFSINST) /etc/resolv.conf
-	$(ROMFSINST) /etc/stunnel.conf
 	$(ROMFSINST) -p 600 /etc/stunnel.pem
 	$(ROMFSINST) $(LINUXIMG) /boot/$(LINUXFILE)
 ifdef CONFIG_USER_PPPD_PPPD_PPPD
@@ -66,6 +64,7 @@ endif
 	$(ROMFSINST) -d -s /etc/init.d/clock /etc/rc.d/S11clock
 	$(ROMFSINST) -d -s /etc/init.d/leds /etc/rc.d/S99leds
 	$(ROMFSINST) -s /tmp/resolv.conf /etc/resolv.conf
+	$(ROMFSINST) -s /tmp/hosts /etc/hosts
 	$(ROMFSINST) /etc/public.der
 
 modules.dep:
