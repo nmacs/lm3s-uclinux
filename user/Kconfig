@@ -1229,6 +1229,12 @@ config USER_DISCARD_NO_INSTALL
 	help
 	  Stop discard from installing an entry into inetd.conf
 
+config USER_HTPDATE
+	bool "htpdate"
+	help
+	  The HTTP Time Protocol (HTP) is used to synchronize a computer's
+	  time with web servers as reference time source.
+
 config USER_DISCARD_INETD_ECHO
 	bool "inetd-echo"
 	help

@@ -160,6 +160,7 @@ dir_$(CONFIG_USER_GREP_GREP)                += grep
 dir_$(CONFIG_USER_HASERL_HASERL)            += haserl
 dir_$(CONFIG_USER_HD_HD)                    += hd
 dir_$(CONFIG_USER_HDPARM_HDPARM)            += hdparm
+dir_$(CONFIG_USER_HTPDATE)                  += htpdate
 dir_$(CONFIG_USER_LOAD_LOAD)                += load
 dir_$(CONFIG_USER_HOSTAP_HOSTAP)            += hostap
 dir_$(CONFIG_USER_HOSTAP_HOSTAP)            += hostap/utils
