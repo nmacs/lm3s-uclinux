@@ -3661,6 +3661,11 @@ config USER_UNZIP_FUNZIP
 	help
 	  Filter for extracting from a ZIP archive in a pipe.
 
+config USER_GZIP_GUNZIP
+	bool "gunzip"
+	help
+	  The gunzip archive decompression and extraction program.
+
 config USER_UNZOO_UNZOO
 	bool "unzoo"
 	help

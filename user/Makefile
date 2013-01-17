@@ -414,6 +414,7 @@ dir_$(CONFIG_USER_ULOGD_ULOGD)              += ulogd
 dir_$(CONFIG_USER_ULOGD2_ULOGD)             += ulogd2
 dir_$(CONFIG_USER_UNRAR_UNRAR)              += unrar
 dir_$(CONFIG_USER_UNZIP_UNZIP)              += unzip
+dir_$(CONFIG_USER_GZIP_GUNZIP)              += gzip
 dir_$(CONFIG_USER_UNZOO_UNZOO)              += unzoo
 dir_$(CONFIG_USER_USBCBI_USBCBI)            += cbi_client
 dir_$(CONFIG_USER_USBHUBCTRL_USBHUBCTRL)	+= usbhubctrl
