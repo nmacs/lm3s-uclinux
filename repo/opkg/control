@@ -1,0 +1,8 @@
+Package: opkg
+Version: 0.0.1
+Section: base
+Architecture: all
+Description: Package manager.
+HomePage: unknown
+Maintainer: Max Nekludov
+Priority: required

@@ -13,7 +13,7 @@
 #
 
 ifeq (.config,$(wildcard .config))
-all: tools automake subdirs romfs image
+all: tools automake subdirs romfs image repo
 else
 all: config_error
 endif
@@ -156,6 +156,11 @@ oldconfig_uClibc:
 .PHONY: romfs
 romfs: romfs.newlog romfs.subdirs modules_install romfs.post
 
+.PHONY: repo
+repo:
+	$(MAKE) -C $(REPODIR) clean
+	$(MAKE) -C $(REPODIR)
+
 .PHONY: romfs.newlog
 romfs.newlog:
 	rm -f $(IMAGEDIR)/romfs-inst.log
@@ -244,6 +249,7 @@ relink:
 
 clean: modules_clean
 	for dir in $(LINUXDIR) $(DIRS); do [ ! -d $$dir ] || $(MAKEARCH) -C $$dir clean ; done
+	$(MAKE) -C $(REPODIR) clean
 	rm -rf $(ROMFSDIR)/*
 	rm -rf $(STAGEDIR)/*
 	rm -rf $(IMAGEDIR)/*
@@ -391,6 +397,6 @@ help:
 	@echo "make dep                   optional but safe even on newer kernels."
 	@echo "make                       build it as the creators intended."
 	@exit 0
-	
+
 
 ############################################################################

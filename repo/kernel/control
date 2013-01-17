@@ -1,0 +1,8 @@
+Package: kernel
+Version: 0.0.1
+Section: base
+Architecture: all
+Description: Linux kernel.
+HomePage: unknown
+Maintainer: Max Nekludov
+Priority: required

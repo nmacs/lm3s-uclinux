@@ -1,0 +1,8 @@
+Package: mgate
+Version: 0.0.1
+Section: base
+Architecture: all
+Description: MeterGate.
+HomePage: unknown
+Maintainer: Max Nekludov
+Priority: standard

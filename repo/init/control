@@ -1,0 +1,8 @@
+Package: init
+Version: 0.0.1
+Section: base
+Architecture: all
+Description: init application, rc script and init.rd scripts.
+HomePage: unknown
+Maintainer: Max Nekludov
+Priority: important

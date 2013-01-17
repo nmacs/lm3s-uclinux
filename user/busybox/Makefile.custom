@@ -63,6 +63,19 @@ romfs: $(INSTALLER) busybox.links
 	$(ROMFSINST) /bin/busybox
 	$(SHELL) $< $(TARGETDIR)
 
+REPO_TARGETDIR=$(REPODIR)/busybox/content
+
+# Before copying, remove all existing busybox links
+repo: $(INSTALLER)
+	if [ -f "$$REPO_TARGETDIR/bin/busybox" ]; then \
+		inode=`ls -i $$REPO_TARGETDIR/bin/busybox | awk '{print $$1}'`; \
+		ls -iL "$$REPO_TARGETDIR/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
+		sed "s:^:$$REPO_TARGETDIR/bin:" | env -i xargs rm -f; \
+	fi
+	mkdir -p $(REPO_TARGETDIR)/bin
+	cp busybox $(REPO_TARGETDIR)/bin/busybox
+	$(SHELL) $< $(REPO_TARGETDIR)/bin/ --nosubdir
+
 # Not very elegant: copies testsuite to objdir...
 # (cp -pPR is POSIX-compliant (cp -dpR or cp -a would not be))
 .PHONY: check

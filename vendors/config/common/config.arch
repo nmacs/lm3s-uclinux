@@ -29,10 +29,11 @@ export PATH ROMFSINST LIBTOOL
 IMAGEDIR   = $(ROOTDIR)/images
 RELDIR     = $(ROOTDIR)/release
 ROMFSDIR   = $(ROOTDIR)/romfs
+REPODIR    = $(ROOTDIR)/repo
 SCRIPTSDIR = $(ROOTDIR)/config/kconfig
 STAGEDIR   = $(ROOTDIR)/staging
 TFTPDIR    = /tftpboot
-export IMAGEDIR RELDIR ROMFSDIR SCRIPTSDIR STAGEDIR TFTPDIR
+export IMAGEDIR RELDIR ROMFSDIR REPODIR SCRIPTSDIR STAGEDIR TFTPDIR
 
 ifndef NON_SMP_BUILD
 HOST_NCPU ?= $(shell if [ -f /proc/cpuinfo ]; then n=`grep -c processor /proc/cpuinfo`; if [ $$n -gt 1 ];then expr $$n \* 2; else echo $$n; fi; else echo 1; fi)
