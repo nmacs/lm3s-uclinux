@@ -834,7 +834,7 @@ opkg_repository_accessibility_check(void)
 
 	list_for_each_entry(iter, &conf->pkg_src_list.head, node) {
 		host = strstr(((pkg_src_t *)iter->data)->value, "://") + 3;
-		end = index(host, '/');
+		end = strchr(host, '/');
 		if (strstr(((pkg_src_t *) iter->data)->value, "://") && end)
 			stmp = xstrndup(((pkg_src_t *) iter->data)->value,
 				     end - ((pkg_src_t *) iter->data)->value);

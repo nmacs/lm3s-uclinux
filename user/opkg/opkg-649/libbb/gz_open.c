@@ -38,7 +38,11 @@ gz_open(FILE *compressed_file, int *pid)
 	off_t floc;
 	int cfile = -1;
 
+#ifndef __uClinux__
 	gz_use_vfork = (getenv("OPKG_USE_VFORK") != NULL);
+#else
+	gz_use_vfork = 1;
+#endif
 
 	if (gz_use_vfork) {
 		/* Create a new file descriptor for the input stream
@@ -64,7 +68,11 @@ gz_open(FILE *compressed_file, int *pid)
 	if (gz_use_vfork) {
 		*pid = vfork();
 	} else {
+#ifdef __uClinux__
+	*pid = -1;
+#else
 		*pid = fork();
+#endif
 	}
 
 	if (*pid<0) {
