@@ -891,7 +891,9 @@ static int builtin_reboot(char **argv) FAST_FUNC;
 
 int rm_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 int mount_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+#if ENABLE_DATE
 int date_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+#endif
 int halt_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 
 #ifdef CONFIG_UCI
@@ -976,7 +978,9 @@ static const struct built_in_command bltins2[] = {
 	BLTIN("test"     , builtin_test    , NULL),
 	BLTIN("rm"       , builtin_rm      , NULL),
 	BLTIN("mount"    , builtin_mount   , NULL),
+#if ENABLE_DATE
 	BLTIN("date"     , builtin_date    , NULL),
+#endif
 	BLTIN("kill"     , builtin_kill    , NULL),
 	BLTIN("reboot"   , builtin_reboot  , NULL),
 	IF_UCI(BLTIN("uci"      , builtin_uci     , NULL),)
@@ -8234,10 +8238,12 @@ static int builtin_mount(char **argv)
 	return run_applet_main(argv, mount_main);
 }
 
+#if ENABLE_DATE
 static int builtin_date(char **argv)
 {
 	return run_applet_main(argv, date_main);
 }
+#endif
 
 static int builtin_kill(char **argv)
 {
