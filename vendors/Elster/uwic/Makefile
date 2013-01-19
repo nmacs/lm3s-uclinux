@@ -30,6 +30,8 @@ ROMFS_DIRS += etc/romdisk
 ROMFS_DIRS += etc/secret
 ROMFS_DIRS += etc/.secret
 ROMFS_DIRS += var/tmp
+ROMFS_DIRS += usr/lib
+ROMFS_DIRS += usr/lib/opkg
 
 clean:
 	rm -rf $(ROMFSDIR)
