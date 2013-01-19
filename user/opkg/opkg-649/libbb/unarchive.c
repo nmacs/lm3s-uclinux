@@ -697,10 +697,18 @@ deb_extract(const char *package_filename, FILE *out_stream,
 	}
 
 	if (extract_function & extract_control_tar_gz) {
+#ifndef __uClinux__
 		ared_file = "control.tar.gz";
+#else
+		ared_file = "control.tar";
+#endif
 	}
 	else if (extract_function & extract_data_tar_gz) {
+#ifndef __uClinux__
 		ared_file = "data.tar.gz";
+#else
+		ared_file = "data.tar";
+#endif
 	} else {
                 opkg_msg(ERROR, "Internal error: extract_function=%x\n",
 				extract_function);
@@ -727,8 +735,12 @@ deb_extract(const char *package_filename, FILE *out_stream,
 			if (strcmp(ared_file, ar_header->name) == 0) {
 				int gunzip_pid = 0;
 				FILE *uncompressed_stream;
+#ifndef __uClinux__
 				/* open a stream of decompressed data */
 				uncompressed_stream = gz_open(deb_stream, &gunzip_pid);
+#else
+				uncompressed_stream = deb_stream;
+#endif
 				if (uncompressed_stream == NULL) {
 					*err = -1;
 					goto cleanup;
@@ -740,10 +752,12 @@ deb_extract(const char *package_filename, FILE *out_stream,
 						free_header_tar,
 						extract_function, prefix,
 						file_list, err);
+#ifndef __uClinux__
 				fclose(uncompressed_stream);
 				gz_err = gz_close(gunzip_pid);
 				if (gz_err)
 					*err = -1;
+#endif
 				free_header_ar(ar_header);
 				break;
 			}
@@ -767,11 +781,15 @@ deb_extract(const char *package_filename, FILE *out_stream,
 			*err = -1;
 			goto cleanup;
 		}
+#ifndef __uClinux__
 		unzipped_opkg_stream = gz_open(deb_stream, &unzipped_opkg_pid);
 		if (unzipped_opkg_stream == NULL) {
 			*err = -1;
 			goto cleanup;
 		}
+#else
+		unzipped_opkg_stream = deb_stream;
+#endif
 
 		/* walk through outer tar file to find ared_file */
 		while ((tar_header = get_header_tar(unzipped_opkg_stream)) != NULL) {
@@ -781,12 +799,16 @@ deb_extract(const char *package_filename, FILE *out_stream,
 			if (strcmp(ared_file, tar_header->name+name_offset) == 0) {
 				int gunzip_pid = 0;
 				FILE *uncompressed_stream;
+#ifndef __uClinux__
 				/* open a stream of decompressed data */
 				uncompressed_stream = gz_open(unzipped_opkg_stream, &gunzip_pid);
 				if (uncompressed_stream == NULL) {
 					*err = -1;
 					goto cleanup;
 				}
+#else
+				uncompressed_stream = unzipped_opkg_stream;
+#endif
 				archive_offset = 0;
 
 				output_buffer = unarchive(uncompressed_stream,
@@ -799,19 +821,23 @@ deb_extract(const char *package_filename, FILE *out_stream,
 							  err);
 
 				free_header_tar(tar_header);
+#ifndef __uClinux__
 				fclose(uncompressed_stream);
 				gz_err = gz_close(gunzip_pid);
 				if (gz_err)
 					*err = -1;
+#endif
 				break;
 			}
 			seek_sub_file(unzipped_opkg_stream, tar_header->size);
 			free_header_tar(tar_header);
 		}
+#ifndef __uClinux__
 		fclose(unzipped_opkg_stream);
 		gz_err = gz_close(unzipped_opkg_pid);
 		if (gz_err)
 			*err = -1;
+#endif
 
 		goto cleanup;
 	} else {
