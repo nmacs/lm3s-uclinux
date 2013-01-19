@@ -1,10 +1,10 @@
 #!/bin/sh
 
 if [ -z "$config_clock" ]; then
-	/bin/uci -D_ -e show config.clock > /tmp/clock_conf
+	uci -D_ -e show config.clock > /tmp/clock_conf
 	. /tmp/clock_conf
-	/bin/rm /tmp/clock_conf
+	rm /tmp/clock_conf
 fi
 
 date -s "$config_clock_default"
-ntpclient -s -i "$config_clock_ntptimeout" -g 10000 -h "$config_clock_ntpserver" -c 3
+start-stop-daemon -x /bin/htpdate -p /var/run/htpdate.pid -m -b -S -- -D -4 "$config_clock_timeserver"
