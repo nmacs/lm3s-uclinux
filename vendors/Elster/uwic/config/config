@@ -17,8 +17,7 @@ config leds 'leds'
 
 config clock 'clock'
 	option default    '2013.01.10-14:00'
-	option ntpserver  '91.189.94.4'
-	option ntptimeout 10
+	option timeserver  '91.189.94.4'
 
 config device 'device'
 	option serial_number '123'
