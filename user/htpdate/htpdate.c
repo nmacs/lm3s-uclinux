@@ -412,7 +412,7 @@ Usage: htpdate [-046abdhlqstxD] [-i pid file] [-m minpoll] [-M maxpoll]\n\
 	return;
 }
 
-#if 0
+#ifndef __uClinux__
 /* Run htpdate in daemon mode */
 static void runasdaemon( char *pidfile ) {
 	FILE				*pid_file;
@@ -475,10 +475,8 @@ static void runasdaemon( char *pidfile ) {
 		printlog( 0, "htpdate version "VERSION" started" );
 		exit(0);
 	}
-
 }
 #endif
-
 
 int main( int argc, char *argv[] ) {
 	char				*host = NULL, *proxy = NULL, *proxyport = NULL;
@@ -630,7 +628,9 @@ int main( int argc, char *argv[] ) {
 
 	/* Run as a daemonize when -D is set */
 	if ( daemonize ) {
-		//runasdaemon( pidfile );
+#ifndef __uClinux__
+		runasdaemon( pidfile );
+#endif
 		/* Query only mode doesn't exist in daemon mode */
 		if ( !setmode )
 			setmode = 1;
