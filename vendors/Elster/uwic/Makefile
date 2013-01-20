@@ -58,13 +58,13 @@ endif
 	$(ROMFSINST) -d init.d/network /etc/init.d/network
 	$(ROMFSINST) -d init.d/watchdog /etc/init.d/watchdog
 	$(ROMFSINST) -d init.d/leds /etc/init.d/leds
-	$(ROMFSINST) -d init.d/clock /etc/init.d/clock
 	$(ROMFSINST) -d init.d/nfs /etc/init.d/nfs
-	$(ROMFSINST) -d -s /etc/init.d/watchdog /etc/rc.d/S00watchdog
-	$(ROMFSINST) -d -s /etc/init.d/upgrade /etc/rc.d/S01upgrade
-	$(ROMFSINST) -d -s /etc/init.d/network /etc/rc.d/S10network
-	$(ROMFSINST) -d -s /etc/init.d/clock /etc/rc.d/S11clock
-	$(ROMFSINST) -d -s /etc/init.d/leds /etc/rc.d/S99leds
+	-mkdir       -p $(ROMFSDIR)/etc/rc.d
+	-cp          -d rc.d/S00watchdog $(ROMFSDIR)/etc/rc.d/S00watchdog
+	-cp          -d rc.d/S01upgrade $(ROMFSDIR)/etc/rc.d/S01upgrade
+	-cp          -d rc.d/S10network $(ROMFSDIR)/etc/rc.d/S10network
+	-cp          -d rc.d/S11clock $(ROMFSDIR)/etc/rc.d/S11clock
+	-cp          -d rc.d/S99leds $(ROMFSDIR)/etc/rc.d/S99leds
 	$(ROMFSINST) -s /tmp/resolv.conf /etc/resolv.conf
 	$(ROMFSINST) -s /tmp/hosts /etc/hosts
 	$(ROMFSINST) /etc/public.der
