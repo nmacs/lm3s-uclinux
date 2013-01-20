@@ -83,6 +83,7 @@ ifdef CONFIG_LIB_LUA_LUACOXPCALL
 endif
 ifdef CONFIG_LIB_LUA_LUACOPAS
 	$(ROMFSINST) -d $(LUACOPAS_DIR)/src/copas/copas.lua /usr/local/share/lua/5.1/copas.lua
+	$(ROMFSINST) -d $(LUACOPAS_DIR)/tests/cosocket.lua /usr/local/share/lua/5.1/copas/cosocket.lua
 endif
 ifdef CONFIG_LIB_LUA_LUAXAVANTE
 	$(ROMFSINST) -d $(LUAXAVANTE_DIR)/src/xavante/xavante.lua /usr/local/share/lua/5.1/xavante.lua
