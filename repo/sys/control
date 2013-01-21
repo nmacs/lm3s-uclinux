@@ -1,0 +1,8 @@
+Package: sys
+Version: 0.0.1
+Section: base
+Architecture: all
+Description: Lua.
+HomePage: unknown
+Maintainer: Max Nekludov
+Priority: standard
