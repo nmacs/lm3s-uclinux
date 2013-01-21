@@ -249,7 +249,7 @@ int
 opkg_download_pkg(pkg_t *pkg, const char *dir)
 {
     int err;
-    char *url;
+    char *url, *cache_location;
     char *stripped_filename;
 
     if (pkg->src == NULL) {
@@ -263,21 +263,33 @@ opkg_download_pkg(pkg_t *pkg, const char *dir)
 	return -1;
     }
 
-    sprintf_alloc(&url, "%s/%s", pkg->src->value, pkg->filename);
-
-    /* The pkg->filename might be something like
-       "../../foo.opk". While this is correct, and exactly what we
-       want to use to construct url above, here we actually need to
-       use just the filename part, without any directory. */
-
     stripped_filename = strrchr(pkg->filename, '/');
-    if ( ! stripped_filename )
-        stripped_filename = pkg->filename;
+		if ( ! stripped_filename )
+			stripped_filename = pkg->filename;
 
-    sprintf_alloc(&pkg->local_filename, "%s/%s", dir, stripped_filename);
+		sprintf_alloc(&cache_location, "%s/%s", conf->cache, stripped_filename);
+    if (file_exists(cache_location))
+		{
+			opkg_msg(NOTICE, "Use package from cache %s.\n", cache_location);
+			pkg->local_filename = cache_location;
+			err = 0;
+		}
+		else
+		{
+			free(cache_location);
 
-    err = opkg_download_cache(url, pkg->local_filename, NULL, NULL);
-    free(url);
+			sprintf_alloc(&url, "%s/%s", pkg->src->value, pkg->filename);
+
+			/* The pkg->filename might be something like
+				"../../foo.opk". While this is correct, and exactly what we
+				want to use to construct url above, here we actually need to
+				use just the filename part, without any directory. */
+
+			sprintf_alloc(&pkg->local_filename, "%s/%s", dir, stripped_filename);
+			err = opkg_download_cache(url, pkg->local_filename, NULL, NULL);
+
+			free(url);
+		}
 
     return err;
 }
