@@ -39,6 +39,7 @@
 /dev/kmem	c	640	0	0	1	2	0	0	-
 /dev/null	c	640	0	0	1	3	0	0	-
 /dev/zero	c	640	0	0	1	5	0	0	-
+/dev/watchdog	c	640	0	0	10	130	0	0	-
 /dev/random	c	640	0	0	1	8	0	0	-
 /dev/urandom	c	640	0	0	1	9	0	0	-
 /dev/ptyp	c	640	0	0	2	0	0	1	16
@@ -63,4 +64,3 @@
 /dev/ubi0	c	640	0	0	254	0	0	0	-
 /dev/ubi0_0	c	640	0	0	254	1	0	0	-
 /dev/net/tun	c	666	0	0	10	200	0	0	-
-/dev/watchdog	c	640	0	0	10	130	0	0 -
