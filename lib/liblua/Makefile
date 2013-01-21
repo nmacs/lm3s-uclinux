@@ -34,7 +34,7 @@ ifdef CONFIG_LIB_LUA_BITSTRING
 	CFLAGS          += -Wl,-lbitstring -L$(CURDIR)/$(BITSTRING_DIR)/src/bitstring/.libs
 endif
 
-.PHONY: all lua
+.PHONY: all lua repo romfs
 
 all: lua
 
@@ -91,6 +91,40 @@ ifdef CONFIG_LIB_LUA_LUAXAVANTE
 endif
 ifdef CONFIG_LIB_LUA_JSON
 	$(ROMFSINST) -d $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
+endif
+
+REPO_TARGET="$(REPODIR)/lua/content"
+
+repo:
+ifdef CONFIG_LIB_LUA_SHELL
+	mkdir -p $(REPO_TARGET)/bin
+	cp $(LUA_DIR)/src/lua $(REPO_TARGET)/bin/lua
+endif
+ifdef CONFIG_LIB_LUA_LUASOCKET
+	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1/socket
+	cp $(LUASOCKET_DIR)/src/socket.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket.lua
+	cp $(LUASOCKET_DIR)/src/http.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket/http.lua
+	cp $(LUASOCKET_DIR)/src/url.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket/url.lua
+	cp $(LUASOCKET_DIR)/src/ltn12.lua $(REPO_TARGET)/usr/local/share/lua/5.1/ltn12.lua
+	cp $(LUASOCKET_DIR)/src/mime.lua $(REPO_TARGET)/usr/local/share/lua/5.1/mime.lua
+endif
+ifdef CONFIG_LIB_LUA_LUACOXPCALL
+	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1
+	cp $(LUACOXPCALL_DIR)/src/coxpcall.lua $(REPO_TARGET)/usr/local/share/lua/5.1/coxpcall.lua
+endif
+ifdef CONFIG_LIB_LUA_LUACOPAS
+	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1/copas
+	cp $(LUACOPAS_DIR)/src/copas/copas.lua $(REPO_TARGET)/usr/local/share/lua/5.1/copas.lua
+	cp $(LUACOPAS_DIR)/tests/cosocket.lua $(REPO_TARGET)/usr/local/share/lua/5.1/copas/cosocket.lua
+endif
+ifdef CONFIG_LIB_LUA_LUAXAVANTE
+	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1
+	cp $(LUAXAVANTE_DIR)/src/xavante/xavante.lua $(REPO_TARGET)/usr/local/share/lua/5.1/xavante.lua
+	cp -r $(LUAXAVANTE_DIR)/src/xavante $(REPO_TARGET)/usr/local/share/lua/5.1/
+endif
+ifdef CONFIG_LIB_LUA_JSON
+	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1
+	cp $(JSON_DIR)/json/json.lua $(REPO_TARGET)/usr/local/share/lua/5.1/json.lua
 endif
 
 romfs_user:
