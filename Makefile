@@ -13,7 +13,7 @@
 #
 
 ifeq (.config,$(wildcard .config))
-all: tools automake subdirs romfs image repo
+all: tools automake subdirs repo romfs image
 else
 all: config_error
 endif
@@ -166,8 +166,8 @@ romfs: romfs.newlog romfs.subdirs modules_install romfs.post
 
 .PHONY: repo
 repo:
-	$(MAKE) -C $(REPODIR) clean
-	$(MAKE) -C $(REPODIR)
+	$(MAKEARCH) -C $(REPODIR) clean
+	$(MAKEARCH) -C $(REPODIR)
 
 .PHONY: romfs.newlog
 romfs.newlog:
