@@ -1,3 +1,4 @@
+include $(ROOTDIR)/vendors/config/common/config.arch
 
 .PHONY: repo content clean
 
@@ -6,23 +7,25 @@ repo: content
 	cp control content/DEBIAN/control
 	version=`cat control | grep Version: | cut -d' ' -f 2`; \
 	name=`cat control | grep Package: | cut -d' ' -f 2`; \
-	filename="$$name-$$version.ucdeb"; \
-	dpkg --build content "$$filename"; \
+	deb="$$name-$$version.deb"; \
+	ucdeb="$$name-$$version.ucdeb"; \
+	dpkg --build content "$$deb"; \
 	rm -rf .tmp; \
 	mkdir -p .tmp; \
-	mv "$$filename" ./.tmp; \
+	cp "$$deb" "./.tmp/$$deb"; \
 	cd ./.tmp; \
-	ar -x "$$filename"; \
-	rm -f "$$filename"; \
+	ar -x "$$deb"; \
+	rm -f "$$deb"; \
 	gunzip data.tar.gz; \
 	gunzip control.tar.gz; \
-	ar rcs "$$filename" control.tar data.tar; \
-	mv "$$filename" $$REPODIR/output/; \
+	ar rcs "$$ucdeb" control.tar data.tar; \
+	mv "$$ucdeb" "$$REPODIR/output/"; \
 	cd ..; \
-	echo "Filename: $$filename" >> content/DEBIAN/control; \
+	mv "$$deb" "$$REPODIR/output/"; \
+	echo "Filename: $$ucdeb" >> content/DEBIAN/control; \
 	cat control >> $$REPODIR/output/Packages; \
 	echo "" >> $$REPODIR/output/Packages
 
 clean:
 	rm -rf content
-	rm -f *.deb
+	rm -f *.deb *.ucdeb
