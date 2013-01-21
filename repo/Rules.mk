@@ -9,6 +9,7 @@ repo: content
 	name=`cat control | grep Package: | cut -d' ' -f 2`; \
 	deb="$$name-$$version.deb"; \
 	ucdeb="$$name-$$version.ucdeb"; \
+	echo "Filename: $$ucdeb" >> content/DEBIAN/control; \
 	dpkg --build content "$$deb"; \
 	rm -rf .tmp; \
 	mkdir -p .tmp; \
@@ -22,8 +23,7 @@ repo: content
 	mv "$$ucdeb" "$$REPODIR/output/"; \
 	cd ..; \
 	mv "$$deb" "$$REPODIR/output/"; \
-	echo "Filename: $$ucdeb" >> content/DEBIAN/control; \
-	cat control >> $$REPODIR/output/Packages; \
+	cat content/DEBIAN/control >> $$REPODIR/output/Packages; \
 	echo "" >> $$REPODIR/output/Packages
 
 clean:
