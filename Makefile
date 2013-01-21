@@ -28,7 +28,7 @@ DIRS    = $(VENDOR_TOPDIRS) include lib include user
 
 
 .PHONY: tools
-tools: ucfront cksum
+tools: ucfront cksum opkg
 	chmod +x tools/romfs-inst.sh tools/modules-alias.sh tools/build-udev-perms.sh
 
 .PHONY: ucfront
@@ -44,6 +44,14 @@ cksum: tools/cksum
 tools/cksum: tools/sg-cksum/*.c
 	$(MAKE) -C tools/sg-cksum
 	ln -sf $(ROOTDIR)/tools/sg-cksum/cksum tools/cksum
+
+.PHONY: opkg
+opkg: tools/opkg-cl
+
+tools/opkg-cl:
+	cd tools/opkg && CC=gcc RANLIB=ranlib CFLAGS="" ./configure --disable-gpg --disable-curl
+	$(MAKE) -C tools/opkg
+	ln -s tools/opkg/src/opkg-cl tools/opkg-cl
 
 .PHONY: automake
 automake:
