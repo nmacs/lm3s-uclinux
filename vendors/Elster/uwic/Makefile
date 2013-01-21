@@ -32,6 +32,7 @@ ROMFS_DIRS += etc/.secret
 ROMFS_DIRS += var/tmp
 ROMFS_DIRS += usr/lib
 ROMFS_DIRS += usr/lib/opkg
+ROMFS_DIRS += tmp/run
 
 clean:
 	rm -rf $(ROMFSDIR)
@@ -42,32 +43,14 @@ romfs: linux_image
 	for i in $(ROMFS_DIRS); do \
 		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
 	done
-	$(ROMFSINST) /etc/passwd
-	$(ROMFSINST) /etc/inittab
-	$(ROMFSINST) /etc/rc
-	$(ROMFSINST) /etc/opkg.conf
-	$(ROMFSINST) -p 600 /etc/stunnel.pem
-	$(ROMFSINST) $(LINUXIMG) /boot/$(LINUXFILE)
+	$(ROOTDIR)/tools/opkg-cl -o $(ROMFSDIR) install $(REPODIR)/output/*.deb
+
 ifdef CONFIG_USER_PPPD_PPPD_PPPD
 	$(ROMFSINST) -d pppd-peers-gprs /etc/ppp/peers/gprs
 	$(ROMFSINST) -d pppd-chat-gprs /etc/ppp/chat/gprs
 endif
-	$(ROMFSINST) -s /tmp/run /var/run
 	$(ROMFSINST) -d config/config /etc/config/config
-	$(ROMFSINST) -d init.d/upgrade /etc/init.d/upgrade
-	$(ROMFSINST) -d init.d/network /etc/init.d/network
-	$(ROMFSINST) -d init.d/watchdog /etc/init.d/watchdog
-	$(ROMFSINST) -d init.d/leds /etc/init.d/leds
 	$(ROMFSINST) -d init.d/nfs /etc/init.d/nfs
-	-mkdir       -p $(ROMFSDIR)/etc/rc.d
-	-cp          -d rc.d/S00watchdog $(ROMFSDIR)/etc/rc.d/S00watchdog
-	-cp          -d rc.d/S01upgrade $(ROMFSDIR)/etc/rc.d/S01upgrade
-	-cp          -d rc.d/S10network $(ROMFSDIR)/etc/rc.d/S10network
-	-cp          -d rc.d/S11clock $(ROMFSDIR)/etc/rc.d/S11clock
-	-cp          -d rc.d/S99leds $(ROMFSDIR)/etc/rc.d/S99leds
-	$(ROMFSINST) -s /tmp/resolv.conf /etc/resolv.conf
-	$(ROMFSINST) -s /tmp/hosts /etc/hosts
-	$(ROMFSINST) /etc/public.der
 
 modules.dep:
 ifdef CONFIG_MODULES
@@ -89,5 +72,5 @@ linux_image:
 image:
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
 	genext2fs -b 5120 -D $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
-	mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0 --devtable=$(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt --root=$(ROMFSDIR) --output=$(UBIFSIMG)
+	mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0 --root=$(ROMFSDIR) --output=$(UBIFSIMG)
 #	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
