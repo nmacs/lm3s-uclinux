@@ -14,6 +14,7 @@ if [[ "$1" = "rebuild" ]]; then
   make clean CROSS_COMPILE=arm-uclinuxeabi-
 fi
 
-make TOOLCHAIN=$TOOLCHAIN CROSS_COMPILE=arm-uclinuxeabi- || exit 1
+make TOOLCHAIN=$TOOLCHAIN CROSS_COMPILE=arm-uclinuxeabi- tools automake subdirs || exit 1
+fakeroot -- make TOOLCHAIN=$TOOLCHAIN CROSS_COMPILE=arm-uclinuxeabi- repo romfs image || exit 1
 
 echo == Compiled ==
