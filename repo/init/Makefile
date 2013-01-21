@@ -5,6 +5,8 @@ content:
 	mkdir -p content/etc/init.d
 	mkdir -p content/etc/rc.d
 	cp $(ROOTDIR)/user/init/init content/bin/init
+	cp $(ROOTDIR)/user/keyutils/insert-passphrase/insert-passphrase content/bin/insert-passphrase
+	cp $(ROOTDIR)/user/keyutils/keyutils-1.5.5/keyctl-static content/bin/keyctl
 	cp $(ROOTDIR)/vendors/Elster/uwic/rc content/etc/rc
 	cp $(ROOTDIR)/vendors/Elster/uwic/init.d/* content/etc/init.d/
 	cp -d $(ROOTDIR)/vendors/Elster/uwic/rc.d/* content/etc/rc.d/
