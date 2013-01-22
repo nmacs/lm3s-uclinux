@@ -24,6 +24,8 @@ repo: content
 	cd ..; \
 	mv "$$deb" "$$REPODIR/output/"; \
 	cat content/DEBIAN/control >> $$REPODIR/output/Packages; \
+	md5=`md5sum "$$REPODIR/output/$$ucdeb" | cut -d' ' -f 1`; \
+	echo "MD5Sum: $$md5" >> $$REPODIR/output/Packages; \
 	echo "" >> $$REPODIR/output/Packages
 
 clean:
