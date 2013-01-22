@@ -1347,6 +1347,12 @@ opkg_install_pkg(pkg_t *pkg, int from_upgrade)
      if (pkg->md5sum)
      {
          file_md5 = file_md5sum_alloc(pkg->local_filename);
+				 if (file_md5 == NULL)
+				 {
+					 opkg_msg(ERROR, "Can not get md5sum of package %s.\n", pkg->name);
+					 return -1;
+				 }
+
          if (file_md5 && strcmp(file_md5, pkg->md5sum))
          {
               opkg_msg(ERROR, "Package %s md5sum mismatch. "
@@ -1365,6 +1371,11 @@ opkg_install_pkg(pkg_t *pkg, int from_upgrade)
      if(pkg->sha256sum)
      {
          file_sha256 = file_sha256sum_alloc(pkg->local_filename);
+				 if (file_sha256 == NULL)
+				 {
+					 opkg_msg(ERROR, "Can not get sha256sum of package %s.\n", pkg->name);
+					 return -1;
+				 }
          if (file_sha256 && strcmp(file_sha256, pkg->sha256sum))
          {
               opkg_msg(ERROR, "Package %s sha256sum mismatch. "
