@@ -58,16 +58,21 @@ pkg_extract_control_files_to_dir(pkg_t *pkg, const char *dir)
 	return pkg_extract_control_files_to_dir_with_prefix(pkg, dir, "");
 }
 
-
 int
 pkg_extract_data_files_to_dir(pkg_t *pkg, const char *dir)
 {
 	int err;
 
-	deb_extract(pkg->local_filename, stderr,
-		extract_data_tar_gz
+	int flags = extract_data_tar_gz
 		| extract_all_to_fs| extract_preserve_date
-		| extract_unconditional,
+		| extract_unconditional;
+
+#ifdef HAVE_ATOMIC_EXTRACT
+	if (strcmp(pkg->priority, "required") == 0)
+		flags |= extract_atomically;
+#endif
+
+	deb_extract(pkg->local_filename, stderr, flags,
 		dir, NULL, &err);
 
 	return err;

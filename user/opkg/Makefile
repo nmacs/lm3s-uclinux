@@ -9,10 +9,13 @@ CONFIGURE_OPTIONS += --disable-largefile
 CONFIGURE_OPTIONS += --disable-fast-install
 CONFIGURE_OPTIONS += --with-opkglockfile=/tmp/opkg-lock
 
+OPKG_CFLAGS  = -Wl,-elf2flt="-s32768"
+OPKG_CFLAGS += -DHAVE_ATOMIC_EXTRACT
+
 all: $(EXEC)
 
 $(EXEC): configure
-	$(MAKE) CFLAGS=-Wl,-elf2flt="-s32768" -C $(OPKG)
+	$(MAKE) CFLAGS='$(OPKG_CFLAGS)' -C $(OPKG)
 
 .phony: configure
 configure: $(OPKG)/Makefile

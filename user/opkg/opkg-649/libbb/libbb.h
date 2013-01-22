@@ -100,7 +100,10 @@ enum extract_functions_e {
 	extract_unconditional = 512,
 	extract_create_leading_dirs = 1024,
 	extract_quiet = 2048,
-	extract_exclude_list = 4096
+	extract_exclude_list = 4096,
+#ifdef HAVE_ATOMIC_EXTRACT
+	extract_atomically = 8192,
+#endif
 };
 
 char *deb_extract(const char *package_filename, FILE *out_stream,

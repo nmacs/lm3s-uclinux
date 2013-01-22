@@ -40,6 +40,10 @@ static char *longname = NULL;
 static char *linkname = NULL;
 #endif
 
+#ifdef HAVE_ATOMIC_EXTRACT
+# define ROOT_LOCAL_TMP_PATH "/var/tmp/"
+#endif
+
 off_t archive_offset;
 
 #define SEEK_BUF 4096
@@ -98,6 +102,11 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 	FILE *dst_stream = NULL;
 	char *full_name = NULL;
 	char *full_link_name = NULL;
+#ifdef HAVE_ATOMIC_EXTRACT
+	int free_full_tmp_name = 0;
+	char *full_tmp_name = NULL;
+	char *file_name;
+#endif
 	char *buffer = NULL;
 	struct utimbuf t;
 
@@ -118,6 +127,24 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 		full_name = xmalloc(strlen(prefix) + strlen(path) + 1);
 		strcpy(full_name, prefix);
 		strcat(full_name, path);
+
+#ifdef HAVE_ATOMIC_EXTRACT
+		if ((function & extract_atomically) && !(file_entry->mode & S_IFDIR))
+		{
+			file_name = strrchr(full_name, '/');
+			if (file_name == NULL)
+				file_name = full_name;
+			else
+				file_name++;
+
+			full_tmp_name = xmalloc(strlen(ROOT_LOCAL_TMP_PATH) + strlen(file_name) + 1);
+			free_full_tmp_name = 1;
+			strcpy(full_tmp_name, ROOT_LOCAL_TMP_PATH);
+			strcat(full_tmp_name, file_name);
+		}
+		else
+			full_tmp_name = full_name;
+#endif
                 if ( file_entry->link_name ){
 		   full_link_name = xmalloc(strlen(prefix) + strlen(file_entry->link_name) + 1);
 		   strcpy(full_link_name, prefix);
@@ -151,9 +178,11 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 		stat_res = lstat (full_name, &oldfile);
 		if (stat_res == 0) { /* The file already exists */
 			if ((function & extract_unconditional) || (oldfile.st_mtime < file_entry->mtime)) {
+#ifndef HAVE_ATOMIC_EXTRACT
 				if (!S_ISDIR(oldfile.st_mode)) {
 					unlink(full_name); /* Directories might not be empty etc */
 				}
+#endif
 			} else {
 				if ((function & extract_quiet) != extract_quiet) {
 					*err = -1;
@@ -178,22 +207,55 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 		switch(file_entry->mode & S_IFMT) {
 			case S_IFREG:
 				if (file_entry->link_name) { /* Found a cpio hard link */
+#ifndef HAVE_ATOMIC_EXTRACT
 					if (link(full_link_name, full_name) != 0) {
+#else
+					if (link(full_link_name, full_tmp_name) != 0) {
+#endif
 						if ((function & extract_quiet) != extract_quiet) {
 							*err = -1;
 							perror_msg("Cannot link from %s to '%s'",
 								file_entry->name, file_entry->link_name);
 						}
 					}
+#ifdef HAVE_ATOMIC_EXTRACT
+					sync();
+					if (rename(full_tmp_name, full_name))
+					{
+						*err = -1;
+						perror_msg("Cannot rename from %s to '%s'",
+								full_tmp_name, full_name);
+					}
+					sync();
+#endif
 				} else {
+#ifndef HAVE_ATOMIC_EXTRACT
 					if ((dst_stream = wfopen(full_name, "w")) == NULL) {
+#else
+					if ((dst_stream = wfopen(full_tmp_name, "w")) == NULL) {
+#endif
 						*err = -1;
 						seek_sub_file(src_stream, file_entry->size);
 						goto cleanup;
 					}
 					archive_offset += file_entry->size;
 					*err = copy_file_chunk(src_stream, dst_stream, file_entry->size);
+#ifdef HAVE_ATOMIC_EXTRACT
+					fflush(dst_stream);
+					fsync(fileno(dst_stream));
+#endif
 					fclose(dst_stream);
+
+#ifdef HAVE_ATOMIC_EXTRACT
+					sync();
+					if (rename(full_tmp_name, full_name))
+					{
+						*err = -1;
+						perror_msg("Cannot rename from %s to '%s'",
+								full_tmp_name, full_name);
+					}
+					sync();
+#endif
 				}
 				break;
 			case S_IFDIR:
@@ -207,25 +269,55 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 				}
 				break;
 			case S_IFLNK:
+#ifndef HAVE_ATOMIC_EXTRACT
 				if (symlink(file_entry->link_name, full_name) < 0) {
+#else
+				if (symlink(file_entry->link_name, full_tmp_name) < 0) {
+#endif
 					if ((function & extract_quiet) != extract_quiet) {
 						*err = -1;
 						perror_msg("Cannot create symlink from %s to '%s'", file_entry->name, file_entry->link_name);
 					}
 					goto cleanup;
 				}
+
+#ifdef HAVE_ATOMIC_EXTRACT
+					sync();
+					if (rename(full_tmp_name, full_name))
+					{
+						*err = -1;
+						perror_msg("Cannot rename from %s to '%s'",
+								full_tmp_name, full_name);
+					}
+					sync();
+#endif
 				break;
 			case S_IFSOCK:
 			case S_IFBLK:
 			case S_IFCHR:
 			case S_IFIFO:
+#ifndef HAVE_ATOMIC_EXTRACT
 				if (mknod(full_name, file_entry->mode, file_entry->device) == -1) {
+#else
+				if (mknod(full_tmp_name, file_entry->mode, file_entry->device) == -1) {
+#endif
 					if ((function & extract_quiet) != extract_quiet) {
 						*err = -1;
 						perror_msg("Cannot create node %s", file_entry->name);
 					}
 					goto cleanup;
 				}
+
+#ifdef HAVE_ATOMIC_EXTRACT
+				sync();
+				if (rename(full_tmp_name, full_name))
+				{
+					*err = -1;
+					perror_msg("Cannot rename from %s to '%s'",
+							full_tmp_name, full_name);
+				}
+				sync();
+#endif
 				break;
                          default:
 				*err = -1;
@@ -272,6 +364,10 @@ cleanup:
 	free(full_name);
         if ( full_link_name )
 	    free(full_link_name);
+#ifdef HAVE_ATOMIC_EXTRACT
+	if (free_full_tmp_name)
+		free(full_tmp_name);
+#endif
 
 	return buffer;
 }
@@ -325,7 +421,9 @@ unarchive(FILE *src_stream, FILE *out_stream,
 			buffer = extract_archive(src_stream, out_stream,
 					file_entry, extract_function,
 					prefix, err);
+#ifndef HAVE_ATOMIC_EXTRACT
 			*err = 0; /* XXX: ignore extraction errors */
+#endif
 			if (*err) {
 				free_headers(file_entry);
 				break;
