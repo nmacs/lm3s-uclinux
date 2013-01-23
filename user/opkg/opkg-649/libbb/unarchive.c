@@ -180,9 +180,11 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 			if ((function & extract_unconditional) || (oldfile.st_mtime < file_entry->mtime)) {
 #ifndef HAVE_ATOMIC_EXTRACT
 				if (!S_ISDIR(oldfile.st_mode)) {
+#else
+				if (!S_ISDIR(oldfile.st_mode) && !(function & extract_atomically)) {
+#endif
 					unlink(full_name); /* Directories might not be empty etc */
 				}
-#endif
 			} else {
 				if ((function & extract_quiet) != extract_quiet) {
 					*err = -1;
@@ -220,13 +222,15 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 					}
 #ifdef HAVE_ATOMIC_EXTRACT
 					sync();
-					if (rename(full_tmp_name, full_name))
-					{
-						*err = -1;
-						perror_msg("Cannot rename from %s to '%s'",
-								full_tmp_name, full_name);
+					if (function & extract_atomically) {
+						if (rename(full_tmp_name, full_name))
+						{
+							*err = -1;
+							perror_msg("Cannot rename from %s to '%s'",
+									full_tmp_name, full_name);
+						}
+						sync();
 					}
-					sync();
 #endif
 				} else {
 #ifndef HAVE_ATOMIC_EXTRACT
@@ -248,13 +252,15 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 
 #ifdef HAVE_ATOMIC_EXTRACT
 					sync();
-					if (rename(full_tmp_name, full_name))
-					{
-						*err = -1;
-						perror_msg("Cannot rename from %s to '%s'",
-								full_tmp_name, full_name);
+					if (function & extract_atomically) {
+						if (rename(full_tmp_name, full_name))
+						{
+							*err = -1;
+							perror_msg("Cannot rename from %s to '%s'",
+									full_tmp_name, full_name);
+						}
+						sync();
 					}
-					sync();
 #endif
 				}
 				break;
@@ -276,20 +282,26 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 #endif
 					if ((function & extract_quiet) != extract_quiet) {
 						*err = -1;
-						perror_msg("Cannot create symlink from %s to '%s'", file_entry->name, file_entry->link_name);
+#ifndef HAVE_ATOMIC_EXTRACT
+						perror_msg("Cannot create symlink from %s to '%s'", full_name, file_entry->link_name);
+#else
+						perror_msg("Cannot create symlink from %s to '%s'", full_tmp_name, file_entry->link_name);
+#endif
 					}
 					goto cleanup;
 				}
 
 #ifdef HAVE_ATOMIC_EXTRACT
 					sync();
-					if (rename(full_tmp_name, full_name))
-					{
-						*err = -1;
-						perror_msg("Cannot rename from %s to '%s'",
-								full_tmp_name, full_name);
+					if (function & extract_atomically) {
+						if (rename(full_tmp_name, full_name))
+						{
+							*err = -1;
+							perror_msg("Cannot rename from %s to '%s'",
+									full_tmp_name, full_name);
+						}
+						sync();
 					}
-					sync();
 #endif
 				break;
 			case S_IFSOCK:
@@ -310,13 +322,15 @@ extract_archive(FILE *src_stream, FILE *out_stream,
 
 #ifdef HAVE_ATOMIC_EXTRACT
 				sync();
-				if (rename(full_tmp_name, full_name))
-				{
-					*err = -1;
-					perror_msg("Cannot rename from %s to '%s'",
-							full_tmp_name, full_name);
+				if (function & extract_atomically) {
+					if (rename(full_tmp_name, full_name))
+					{
+						*err = -1;
+						perror_msg("Cannot rename from %s to '%s'",
+								full_tmp_name, full_name);
+					}
+					sync();
 				}
-				sync();
 #endif
 				break;
                          default:
