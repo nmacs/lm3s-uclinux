@@ -38,7 +38,7 @@ clean:
 	rm -rf $(ROMFSDIR)
 	rm -rf $(IMAGEDIR)
 
-romfs: linux_image
+romfs:
 	[ -d $(ROMFSDIR) ] || mkdir -p $(ROMFSDIR)
 	for i in $(ROMFS_DIRS); do \
 		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
