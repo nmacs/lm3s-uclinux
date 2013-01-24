@@ -171,7 +171,8 @@ romfs: romfs.newlog romfs.subdirs modules_install romfs.post
 .PHONY: repo
 repo:
 	$(MAKEARCH) -C $(REPODIR) clean
-	$(MAKEARCH) -C $(REPODIR)
+	$(MAKEARCH) -C $(REPODIR) repo
+	$(MAKEARCH) -C $(REPODIR) firmware
 
 .PHONY: romfs.newlog
 romfs.newlog:
