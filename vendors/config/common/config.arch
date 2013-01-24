@@ -23,8 +23,9 @@ export VERSIONPKG VERSIONSTR BUILD_START_STRING
 
 PATH	 := $(PATH):$(ROOTDIR)/tools
 ROMFSINST = romfs-inst.sh
+OPKG = opkg-cl
 LIBTOOL   = jlibtool
-export PATH ROMFSINST LIBTOOL
+export PATH ROMFSINST OPKG LIBTOOL
 
 IMAGEDIR   = $(ROOTDIR)/images
 RELDIR     = $(ROOTDIR)/release
