@@ -13,7 +13,7 @@
 #
 
 ifeq (.config,$(wildcard .config))
-all: tools automake subdirs repo romfs image
+all: tools automake subdirs linux_image repo romfs image
 else
 all: config_error
 endif
@@ -160,6 +160,10 @@ oldconfig_uClibc:
 #
 # normal make targets
 #
+
+.PHONY:
+linux_image:
+	$(MAKEARCH) -C $(PRODUCTDIR) linux_image
 
 .PHONY: romfs
 romfs: romfs.newlog romfs.subdirs modules_install romfs.post
