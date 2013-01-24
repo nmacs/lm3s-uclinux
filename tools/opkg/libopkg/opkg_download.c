@@ -195,7 +195,7 @@ opkg_download_cache(const char *src, const char *dest_file_name,
     char *cache_location, *p;
     int err = 0;
 
-    if (!conf->cache || str_starts_with(src, "file:")) {
+    if (!conf->cache) {
 	err = opkg_download(src, dest_file_name, cb, data, 0);
 	goto out1;
     }
