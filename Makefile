@@ -51,7 +51,7 @@ opkg: tools/opkg-cl
 tools/opkg-cl:
 	cd tools/opkg && CC=gcc RANLIB=ranlib CFLAGS="" ./configure --disable-gpg --disable-curl
 	$(MAKE) -C tools/opkg
-	ln -s tools/opkg/src/opkg-cl tools/opkg-cl
+	ln -s opkg/src/opkg-cl tools/opkg-cl
 
 .PHONY: automake
 automake:
