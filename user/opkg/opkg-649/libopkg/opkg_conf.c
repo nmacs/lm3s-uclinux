@@ -187,6 +187,17 @@ opkg_conf_set_option(const char *name, const char *value)
      return -1;
 }
 
+#ifdef HAVE_BUILTIN_CONFIG
+static char *builtint_config[] = {
+	"src Packages file:///mnt",
+	"dest root /",
+	"dest ram /tmp",
+	"lists_dir ext /mnt",
+	"option cache /mnt",
+	0
+};
+#endif
+
 static int
 opkg_conf_parse_file(const char *filename,
 				pkg_src_list_t *pkg_src_list,
@@ -194,17 +205,21 @@ opkg_conf_parse_file(const char *filename,
 {
      int line_num = 0;
      int err = 0;
+#ifndef HAVE_BUILTIN_CONFIG
      FILE *file;
+#endif
      regex_t valid_line_re, comment_re;
 #define regmatch_size 14
      regmatch_t regmatch[regmatch_size];
 
+#ifndef HAVE_BUILTIN_CONFIG
      file = fopen(filename, "r");
      if (file == NULL) {
 	  opkg_perror(ERROR, "Failed to open %s", filename);
 	  err = -1;
 	  goto err0;
      }
+#endif
 
      opkg_msg(INFO, "Loading conf file %s.\n", filename);
 
@@ -227,19 +242,32 @@ opkg_conf_parse_file(const char *filename,
 	  char *line;
 	  char *type, *name, *value, *extra;
 
+#ifndef HAVE_BUILTIN_CONFIG
+	  line = file_read_line_alloc(file);
+#else
+		line = builtint_config[line_num];
+#endif
+
 	  line_num++;
 
-	  line = file_read_line_alloc(file);
 	  if (line == NULL)
 	       break;
 
 	  if (regexec(&comment_re, line, 0, 0, 0) == 0)
+#ifndef HAVE_BUILTIN_CONFIG
 	       goto NEXT_LINE;
+#else
+				 continue;
+#endif
 
 	  if (regexec(&valid_line_re, line, regmatch_size, regmatch, 0) == REG_NOMATCH) {
 	       opkg_msg(ERROR, "%s:%d: Ignoring invalid line: `%s'\n",
 		       filename, line_num, line);
+#ifndef HAVE_BUILTIN_CONFIG
 	       goto NEXT_LINE;
+#else
+				 continue;
+#endif
 	  }
 
 	  /* This has to be so ugly to deal with optional quotation marks */
@@ -343,18 +371,22 @@ opkg_conf_parse_file(const char *filename,
 	  if (extra)
 	       free(extra);
 
+#ifndef HAVE_BUILTIN_CONFIG
 NEXT_LINE:
 	  free(line);
+#endif
      }
 
      regfree(&valid_line_re);
 err2:
      regfree(&comment_re);
 err1:
+#ifndef HAVE_BUILTIN_CONFIG
      if (fclose(file) == EOF) {
           opkg_perror(ERROR, "Couldn't close %s", filename);
 	  err = -1;
      }
+#endif
 err0:
      return err;
 }
