@@ -20,7 +20,8 @@ libbb_la_SOURCES = gz_open.c \
 	parse_mode.c \
 	time_string.c \
 	all_read.c \
-	mode_string.c
+	mode_string.c \
+	loop.c
 
 libbb_la_CFLAGS = $(ALL_CFLAGS)
 #libbb_la_LDFLAGS = -static

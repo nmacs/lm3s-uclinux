@@ -23,6 +23,7 @@
 #include <fnmatch.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sys/mount.h>
 
 #include "opkg_conf.h"
 #include "opkg_cmd.h"
@@ -128,7 +129,7 @@ opkg_update_cmd(int argc, char **argv)
 	  if (!err) {
 	       opkg_msg(NOTICE, "Downloaded release files for dist %s.\n",
 			    src->name);
-	       release_t *release = release_new(); 
+	       release_t *release = release_new();
 	       err = release_init_from_file(release, list_file_name);
 	       if (!err) {
 		    if (!release_comps_supported(release, src->extra_data))
@@ -137,7 +138,7 @@ opkg_update_cmd(int argc, char **argv)
 	       if (!err) {
 		    err = release_download(release, src, lists_dir, tmp);
 	       }
-	       release_deinit(release); 
+	       release_deinit(release);
 	       if (err)
 		    unlink(list_file_name);
 	  }
@@ -1260,12 +1261,75 @@ opkg_print_architecture_cmd(int argc, char **argv)
      return 0;
 }
 
+#ifdef HAVE_FIRMWARE_UPGRADE
+static int
+mount_firmware_image(char* firmware, char* mountpoint)
+{
+	struct stat st;
+	int ret;
+	char *loop_name = 0;
+
+	ret = stat(firmware, &st);
+	if( ret )
+	{
+		opkg_msg(ERROR, "Fail to stat firmware file %s\n", firmware);
+		return ret;
+	}
+
+	if (!S_ISREG(st.st_mode))
+	{
+		opkg_msg(ERROR, "Firmware is not a file %s\n", firmware);
+		return -1;
+	}
+
+	if (set_loop(&loop_name, firmware, 0, /*ro:*/ 0) < 0)
+	{
+		opkg_msg(ERROR, "Fail to set loop device errno=%i\n", errno);
+		return errno;
+	}
+
+	errno = 0;
+	ret = mount(loop_name, mountpoint, "cramfs", MS_RDONLY, 0);
+
+	if( ret )
+	{
+		opkg_msg(ERROR, "Fail mount loop device %s errno=%i\n", loop_name, errno);
+		del_loop(loop_name);
+	}
+
+	free(loop_name);
+
+	return ret;
+}
+
+static int
+opkg_firmware_upgrade_cmd(int argc, char **argv)
+{
+	int ret;
+	char *upgrade_cmd_argv[] = {0};
+
+	ret = mount_firmware_image(argv[0], "/mnt");
+	if (ret)
+	{
+		opkg_msg(NOTICE, "Fail to mount firmware image %i\n", ret);
+		return ret;
+	}
+
+	opkg_upgrade_cmd(0, upgrade_cmd_argv);
+
+	return 0;
+}
+#endif
 
 /* XXX: CLEANUP: The usage strings should be incorporated into this
    array for easier maintenance */
 static opkg_cmd_t cmds[] = {
      {"update", 0, (opkg_cmd_fun_t)opkg_update_cmd, PFM_DESCRIPTION|PFM_SOURCE},
      {"upgrade", 0, (opkg_cmd_fun_t)opkg_upgrade_cmd, PFM_DESCRIPTION|PFM_SOURCE},
+#ifdef HAVE_FIRMWARE_UPGRADE
+     {"firmware-upgrade", 1, (opkg_cmd_fun_t)opkg_firmware_upgrade_cmd, PFM_DESCRIPTION|PFM_SOURCE},
+     {"firmware_upgrade", 1, (opkg_cmd_fun_t)opkg_firmware_upgrade_cmd, PFM_DESCRIPTION|PFM_SOURCE},
+#endif
      {"list", 0, (opkg_cmd_fun_t)opkg_list_cmd, PFM_SOURCE},
      {"list_installed", 0, (opkg_cmd_fun_t)opkg_list_installed_cmd, PFM_SOURCE},
      {"list-installed", 0, (opkg_cmd_fun_t)opkg_list_installed_cmd, PFM_SOURCE},

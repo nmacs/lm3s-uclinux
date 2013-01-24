@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <netdb.h>
+#include <fcntl.h>
 
 #include "../libopkg/opkg_message.h"
 
@@ -49,6 +50,10 @@
 		perror_msg(fmt, ##args); \
 		exit(EXIT_FAILURE); \
 	} while (0)
+
+#define LOOP_FORMAT "/dev/loop%d"
+#define LOOP_NAMESIZE (sizeof("/dev/loop") + sizeof(int)*3 + 1)
+#define LOOP_NAME "/dev/loop"
 
 extern void archive_xread_all(int fd, char *buf, size_t count);
 

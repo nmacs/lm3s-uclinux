@@ -11,6 +11,7 @@ CONFIGURE_OPTIONS += --with-opkglockfile=/tmp/opkg-lock
 
 OPKG_CFLAGS  = -Wl,-elf2flt="-s32768"
 OPKG_CFLAGS += -DHAVE_ATOMIC_EXTRACT
+OPKG_CFLAGS += -DHAVE_FIRMWARE_UPGRADE
 
 all: $(EXEC)
 
