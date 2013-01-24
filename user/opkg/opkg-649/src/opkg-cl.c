@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <getopt.h>
+#include <linux/reboot.h>
 
 #include "opkg_conf.h"
 #include "opkg_cmd.h"
@@ -50,6 +51,10 @@ enum {
 	ARGS_OPT_NODEPS,
 	ARGS_OPT_AUTOREMOVE,
 	ARGS_OPT_CACHE,
+#ifdef HAVE_FIRMWARE_UPGRADE
+	ARGS_OPT_REBOOT,
+	ARGS_OPT_REMOVE_FIRMWARE,
+#endif
 };
 
 static struct option long_options[] = {
@@ -94,6 +99,11 @@ static struct option long_options[] = {
 	{"add-arch", 1, 0, ARGS_OPT_ADD_ARCH},
 	{"add-dest", 1, 0, ARGS_OPT_ADD_DEST},
 	{"test", 0, 0, ARGS_OPT_NOACTION},
+#ifdef HAVE_FIRMWARE_UPGRADE
+	{"reboot", 0, 0, ARGS_OPT_REBOOT},
+	{"remove-firmware", 0, 0, ARGS_OPT_REMOVE_FIRMWARE},
+	{"remove_firmware", 0, 0, ARGS_OPT_REMOVE_FIRMWARE},
+#endif
 	{"tmp-dir", 1, 0, 't'},
 	{"tmp_dir", 1, 0, 't'},
 	{"verbosity", 2, 0, 'V'},
@@ -152,6 +162,14 @@ args_parse(int argc, char *argv[])
 		case ARGS_OPT_FORCE_DEPENDS:
 			conf->force_depends = 1;
 			break;
+#ifdef HAVE_FIRMWARE_UPGRADE
+		case ARGS_OPT_REBOOT:
+			conf->reboot = 1;
+			break;
+		case ARGS_OPT_REMOVE_FIRMWARE:
+			conf->remove_firmware = 1;
+			break;
+#endif
 		case ARGS_OPT_FORCE_OVERWRITE:
 			conf->force_overwrite = 1;
 			break;
@@ -394,6 +412,12 @@ err1:
 err0:
 	print_error_list();
 	free_error_list();
+
+	if (conf->reboot)
+	{
+		fprintf(stderr, "Rebooting system...\n");
+		reboot(LINUX_REBOOT_CMD_RESTART);
+	}
 
 	return err;
 }

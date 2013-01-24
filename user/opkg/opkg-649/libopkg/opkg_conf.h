@@ -120,6 +120,11 @@ struct opkg_conf
      hash_table_t pkg_hash;
      hash_table_t file_hash;
      hash_table_t obs_file_hash;
+
+#ifdef HAVE_FIRMWARE_UPGRADE
+     int reboot;
+		 int remove_firmware;
+#endif
 };
 
 enum opkg_option_type {

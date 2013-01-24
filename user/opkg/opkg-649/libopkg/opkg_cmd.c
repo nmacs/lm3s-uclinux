@@ -24,6 +24,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/mount.h>
+#include <unistd.h>
 
 #include "opkg_conf.h"
 #include "opkg_cmd.h"
@@ -1311,13 +1312,22 @@ opkg_firmware_upgrade_cmd(int argc, char **argv)
 	ret = mount_firmware_image(argv[0], "/mnt");
 	if (ret)
 	{
-		opkg_msg(NOTICE, "Fail to mount firmware image %i\n", ret);
-		return ret;
+		opkg_msg(ERROR, "Fail to mount firmware image %i\n", ret);
+		goto exit;
 	}
 
-	opkg_upgrade_cmd(0, upgrade_cmd_argv);
+	ret = opkg_upgrade_cmd(0, upgrade_cmd_argv);
+	if (ret)
+	{
+		opkg_msg(ERROR, "Fail to upgrade %i\n", ret);
+		goto exit;
+	}
 
-	return 0;
+exit:
+	if (conf->remove_firmware)
+		unlink(argv[0]);
+
+	return ret;
 }
 #endif
 
