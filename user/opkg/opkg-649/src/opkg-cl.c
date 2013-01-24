@@ -416,6 +416,8 @@ err0:
 	if (conf->reboot)
 	{
 		fprintf(stderr, "Rebooting system...\n");
+		sync();
+		sync();
 		reboot(LINUX_REBOOT_CMD_RESTART);
 	}
 
