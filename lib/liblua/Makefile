@@ -91,6 +91,7 @@ ifdef CONFIG_LIB_LUA_LUAXAVANTE
 endif
 ifdef CONFIG_LIB_LUA_JSON
 	$(ROMFSINST) -d $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
+	$(ROMFSINST) -d $(JSON_DIR)/json/jsonrpc.lua /usr/local/share/lua/5.1/jsonrpc.lua
 endif
 
 REPO_TARGET="$(REPODIR)/lua/content"
@@ -125,6 +126,7 @@ endif
 ifdef CONFIG_LIB_LUA_JSON
 	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1
 	cp $(JSON_DIR)/json/json.lua $(REPO_TARGET)/usr/local/share/lua/5.1/json.lua
+	cp $(JSON_DIR)/json/jsonrpc.lua $(REPO_TARGET)/usr/local/share/lua/5.1/jsonrpc.lua
 endif
 
 romfs_user:
