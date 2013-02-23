@@ -30,6 +30,8 @@ typedef enum {
 
 void free_error_list(void);
 void print_error_list(void);
+int error_list_empty(void);
+void save_error_list(int fd);
 void opkg_message(message_level_t level, const char *fmt, ...)
 				__attribute__ ((format (printf, 2, 3)));
 

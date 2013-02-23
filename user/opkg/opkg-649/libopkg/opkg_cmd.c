@@ -1304,10 +1304,98 @@ mount_firmware_image(char* firmware, char* mountpoint)
 }
 
 static int
+remove_file(char *path, int keep_root)
+{
+	struct stat path_stat;
+
+	if (lstat(path, &path_stat) < 0) {
+		if (errno != ENOENT) {
+			return -1;
+		}
+		return 0;
+	}
+
+	if (S_ISDIR(path_stat.st_mode)) {
+		DIR *dp;
+		struct dirent *d;
+		int status = 0;
+
+		dp = opendir(path);
+		if (dp == NULL) {
+			return -1;
+		}
+
+		while ((d = readdir(dp)) != NULL) {
+			char *new_path;
+			int new_path_len;
+
+			if (d->d_name[0] == '.')
+				continue;
+
+			new_path_len = strlen(path) + strlen(d->d_name) + 2;
+
+			new_path = (char*)malloc(new_path_len);
+			if (new_path == NULL)
+				return -1;
+			snprintf(new_path, new_path_len, "%s/%s", path, d->d_name);
+
+			if (remove_file(new_path, 0) < 0)
+				status = -1;
+
+			free(new_path);
+		}
+
+		if (closedir(dp) < 0) {
+			return -1;
+		}
+
+		if (!keep_root && rmdir(path) < 0) {
+			return -1;
+		}
+
+		return status;
+	}
+
+	/* !ISDIR */
+	if (unlink(path) < 0) {
+		return -1;
+	}
+
+	return 0;
+}
+
+static void
+write_status_file(void)
+{
+	int fd = open("/var/opkg/upgrade/status", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR);
+	if (fd >= 0)
+	{
+		fsync(fd);
+
+		if (error_list_empty())
+		{
+			write(fd, "OK\n", 3);
+		}
+		else
+		{
+			write(fd, "ERROR\n", 6);
+			save_error_list(fd);
+		}
+
+		fsync(fd);
+		close(fd);
+	}
+}
+
+static int
 opkg_firmware_upgrade_cmd(int argc, char **argv)
 {
 	int ret;
 	char *upgrade_cmd_argv[] = {0};
+	int fd;
+
+	remove_file("/var/tmp", /*keep_root*/ 1);
+	sync();
 
 	ret = mount_firmware_image(argv[0], "/mnt");
 	if (ret)
@@ -1324,6 +1412,7 @@ opkg_firmware_upgrade_cmd(int argc, char **argv)
 	}
 
 exit:
+	write_status_file();
 	if (conf->remove_firmware)
 		unlink(argv[0]);
 

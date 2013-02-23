@@ -73,6 +73,26 @@ print_error_list(void)
 	}
 }
 
+int
+error_list_empty(void)
+{
+	return error_list_head == NULL;
+}
+
+void save_error_list(int fd)
+{
+	struct errlist *err = error_list_head;
+
+	if (err) {
+		printf("Collected errors:\n");
+		/* Here we print the errors collected and free the list */
+		while (err != NULL) {
+			write(fd, err->errmsg, strlen(err->errmsg));
+			err = err->next;
+		}
+	}
+}
+
 void
 opkg_message (message_level_t level, const char *fmt, ...)
 {
