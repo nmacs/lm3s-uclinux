@@ -17,7 +17,7 @@ config leds 'leds'
 
 config clock 'clock'
 	option default    '2013.01.10-14:00'
-	option timeserver  '91.189.94.4'
+	option timeserver  'www.google.com'
 
 config device 'device'
 	option serial_number '123'
@@ -39,3 +39,6 @@ config eiserver 'eiserver'
 
 config nfs 'nfs'
 	option remote '10.65.100.176:/nfsroot'
+
+config firmware 'firmware'
+	option upgrade_host '10.65.100.176:8080'
