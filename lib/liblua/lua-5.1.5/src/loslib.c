@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
+#include <linux/reboot.h>
 
 #define loslib_c
 #define LUA_LIB
@@ -217,6 +219,22 @@ static int os_exit (lua_State *L) {
   exit(luaL_optint(L, 1, EXIT_SUCCESS));
 }
 
+static int os_reboot(lua_State *L) {
+  reboot(LINUX_REBOOT_CMD_RESTART);
+  return 0;
+}
+
+static int os_sync(lua_State *L) {
+  sync();
+  return 0;
+}
+
+static int os_symlink(lua_State *L) {
+	const char *fromname = luaL_checkstring(L, 1);
+  const char *toname = luaL_checkstring(L, 2);
+  return os_pushresult(L, symlink(fromname, toname) == 0, toname);
+}
+
 static const luaL_Reg syslib[] = {
   {"clock",     os_clock},
   {"date",      os_date},
@@ -224,9 +242,12 @@ static const luaL_Reg syslib[] = {
   {"execute",   os_execute},
   {"exit",      os_exit},
   {"getenv",    os_getenv},
+  {"reboot",    os_reboot},
   {"remove",    os_remove},
   {"rename",    os_rename},
   {"setlocale", os_setlocale},
+	{"symlink",   os_symlink},
+  {"sync",      os_sync},
   {"time",      os_time},
   {"tmpname",   os_tmpname},
   {NULL, NULL}
