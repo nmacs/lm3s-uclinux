@@ -74,7 +74,10 @@ static int os_getenv (lua_State *L) {
 
 
 static int os_clock (lua_State *L) {
-  lua_pushnumber(L, ((lua_Number)clock())/(lua_Number)CLOCKS_PER_SEC);
+	struct timeval t;
+	if( gettimeofday(&t, 0) )
+		return luaL_error(L, "unable to get time");
+	lua_pushnumber(L, (lua_Number)t.tv_sec + (((lua_Number)t.tv_usec) / 1000000));
   return 1;
 }
 
