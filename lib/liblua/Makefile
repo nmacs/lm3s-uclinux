@@ -74,6 +74,7 @@ endif
 ifdef CONFIG_LIB_LUA_LUASOCKET
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/socket.lua /usr/local/share/lua/5.1/socket.lua
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/http.lua /usr/local/share/lua/5.1/socket/http.lua
+	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/wget.lua /usr/local/share/lua/5.1/socket/wget.lua
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/url.lua /usr/local/share/lua/5.1/socket/url.lua
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/ltn12.lua /usr/local/share/lua/5.1/ltn12.lua
 	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/mime.lua /usr/local/share/lua/5.1/mime.lua
@@ -105,6 +106,7 @@ ifdef CONFIG_LIB_LUA_LUASOCKET
 	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1/socket
 	cp $(LUASOCKET_DIR)/src/socket.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket.lua
 	cp $(LUASOCKET_DIR)/src/http.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket/http.lua
+	cp $(LUASOCKET_DIR)/src/wget.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket/wget.lua
 	cp $(LUASOCKET_DIR)/src/url.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket/url.lua
 	cp $(LUASOCKET_DIR)/src/ltn12.lua $(REPO_TARGET)/usr/local/share/lua/5.1/ltn12.lua
 	cp $(LUASOCKET_DIR)/src/mime.lua $(REPO_TARGET)/usr/local/share/lua/5.1/mime.lua
