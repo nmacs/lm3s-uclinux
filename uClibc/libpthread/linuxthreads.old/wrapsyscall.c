@@ -72,7 +72,8 @@ name param_list								      \
   return result;							      \
 }
 
-
+/* WORKAROUND for COCO LUA */
+#if 0
 /* close(2).  */
 CANCELABLE_SYSCALL (int, close, (int fd), (fd))
 
@@ -224,3 +225,4 @@ CANCELABLE_SYSCALL (ssize_t, sendto, (int fd, const __ptr_t buf, size_t n,
 				      int flags, __CONST_SOCKADDR_ARG addr,
 				      socklen_t addr_len),
 		    (fd, buf, n, flags, addr, addr_len))
+#endif
