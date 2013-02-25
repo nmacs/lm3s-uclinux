@@ -287,6 +287,9 @@ dep_pwlib = STLport
 dir_$(CONFIG_LIB_LIBOPENH323) += libopenh323
 dep_libopenh323 = pwlib
 
+dir_y += uClibc
+lib_uClibc = lib/*.a
+
 #
 # dir 6, 7 and 8 reserved for Makefile.local
 #
