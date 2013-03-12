@@ -94,7 +94,14 @@ static t_socket getfd(lua_State *L) {
         lua_call(L, 1, 1);
         if (lua_isnumber(L, -1)) 
             fd = (t_socket) lua_tonumber(L, -1); 
-    } 
+    }
+    else
+    {
+        lua_pop(L, 1);
+        lua_getfield(L, -1, "fd");
+        if (lua_isnumber(L, -1))
+            fd = (t_socket) lua_tonumber(L, -1);
+    }
     lua_pop(L, 1);
     return fd;
 }

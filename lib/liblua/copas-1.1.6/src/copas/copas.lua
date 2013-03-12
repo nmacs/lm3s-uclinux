@@ -242,19 +242,39 @@ end
 -- Thread handling
 -------------------------------------------------------------------------------
 
+local function is_socket(skt)
+	return skt.getfd ~= nil
+end
+
+local function is_fd(skt)
+    return skt.fd ~= nil
+end
+
 local function _doTick (co, skt, ...)
-       if not co then return end
+   if not co then return end
 
-       local ok, res, new_q = coroutine.resume(co, skt, ...)
-
-       if ok and res and new_q then
-               new_q:insert (res)
-               new_q:push (res, co)
-       else
-               if not ok then copcall (_errhandlers [co] or _deferror, res, co, skt) end
-               if skt then skt:close() end
-               _errhandlers [co] = nil
+   local ok, res, new_q = coroutine.resume(co, skt, ...)
+   if ok and res and type(new_q) == "string" then
+       if new_q == "reading" then
+           new_q = _reading
+       elseif new_q == "writing" then
+           new_q = _writing
        end
+   end
+
+   if ok and res and new_q then
+	   if is_socket(res) then
+       elseif is_fd(res) then
+           if res.timeout then
+               res.timeout = os.clock() + res.timeout / 1000
+       	   end
+       end
+       new_q:insert (res)
+       new_q:push (res, co)
+   else
+       if not ok then copcall (_errhandlers [co] or _deferror, res, co, skt) end
+       _errhandlers [co] = nil
+   end
 end
 
 -- accepts a connection on socket input
@@ -264,17 +284,22 @@ local function _accept(input, handler)
 		client:settimeout(0)
 		local co = coroutine.create(handler)
 		_doTick (co, client)
-		--_reading:insert(client)
 	end
 	return client
 end
 
 -- handle threads on a queue
 local function _tickRead (skt)
+       if is_fd(skt) and skt.status == nil then
+           skt.status = 1
+       end
        _doTick (_reading:pop (skt), skt)
 end
 
 local function _tickWrite (skt)
+       if is_fd(skt) and skt.status == nil then
+           skt.status = 1
+       end
        _doTick (_writing:pop (skt), skt)
 end
 
@@ -293,6 +318,38 @@ end
 function addthread(thread, ...)
        local co = coroutine.create(thread)
        _doTick (co, nil, ...)
+end
+
+function newthread(thread)
+	return coroutine.create(thread)
+end
+
+function runthread(thread, ...)
+	_doTick (thread, nil, ...)
+end
+
+-------------------------------------------------------------------------------
+-- Controls Copas thread
+-------------------------------------------------------------------------------
+
+function suspend(thread)
+end
+
+function resume(thread, operation)
+end
+
+-------------------------------------------------------------------------------
+-- Copas select
+-------------------------------------------------------------------------------
+
+function select(fd, write, timeout)
+	local set
+	if write then
+		set = _writing
+	else
+		set = _reading
+	end
+	return coroutine.yield({fd = fd, timeout = timeout}, set)
 end
 
 -------------------------------------------------------------------------------
@@ -369,6 +426,36 @@ local last_cleansing = 0
 -------------------------------------------------------------------------------
 -- Checks for reads and writes on sockets
 -------------------------------------------------------------------------------
+local function _get_timeout(set, timeout)
+	if timeout == 0 then
+	    return timeout
+	end
+	for i, v in pairs(set) do
+		if v.timeout then
+		    local diff = v.timeout - os.clock()
+		    if diff < 0 then
+		    	return 0
+		    end
+		    if timeout == nil or diff < timeout then
+		        timeout = diff
+		    end
+		end
+	end
+	return timeout
+end
+
+local function _handle_timeout(set, events)
+	for i, v in pairs(set) do
+		if v.timeout ~= nil then
+			if os.clock() > v.timeout and events[v] == nil then
+				v.status = 0
+				events[#events + 1] = v
+				events[v] = #events
+			end
+		end
+	end
+end
+
 local function _select (timeout)
 	local err
 	local readable={}
@@ -378,8 +465,14 @@ local function _select (timeout)
 	local now = os.time()
 	local duration = os.difftime
 
+	timeout = _get_timeout(_reading, timeout)
+	timeout = _get_timeout(_writing, timeout)
+
 	_readable_t._evs, _writable_t._evs, err = socket.select(_reading, _writing, timeout)
 	local r_evs, w_evs = _readable_t._evs, _writable_t._evs
+
+	_handle_timeout(_reading, r_evs)
+	_handle_timeout(_writing, w_evs)
 
 	if duration(now, last_cleansing) > WATCH_DOG_TIMEOUT then
 		last_cleansing = now
