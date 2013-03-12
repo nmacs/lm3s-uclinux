@@ -63,6 +63,8 @@ function connection (skt)
 			break
 		end
 	end
+	
+	skt:close()
 end
 
 
