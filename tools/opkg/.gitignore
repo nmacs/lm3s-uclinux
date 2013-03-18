@@ -32,7 +32,7 @@ config.status
 config.sub
 
 # The configure script itself
-configure
+#configure
 
 # The libopkg directory artifacts
 libopkg/config.h
