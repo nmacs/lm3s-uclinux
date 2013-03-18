@@ -48,10 +48,11 @@ tools/cksum: tools/sg-cksum/*.c
 .PHONY: opkg
 opkg: tools/opkg-cl
 
-tools/opkg-cl:
-	cd tools/opkg && CC=gcc RANLIB=ranlib CFLAGS="" ./configure --disable-gpg --disable-curl
+tools/opkg-cl: Makefile
+	$(MAKE) -C tools/opkg clean
+	cd tools/opkg && ./autogen.sh --disable-gpg --disable-curl --enable-static --disable-shared --disable-shave
 	$(MAKE) -C tools/opkg
-	ln -s opkg/src/opkg-cl tools/opkg-cl
+	ln -sf opkg/src/opkg-cl tools/opkg-cl
 
 .PHONY: automake
 automake:
