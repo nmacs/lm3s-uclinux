@@ -527,7 +527,9 @@ static int auxresume (lua_State *L, lua_State *co, int narg) {
     return -1;  /* error flag */
   }
   lua_xmove(L, co, narg);
+	lua_setthis(co);
   status = lua_resume(co, narg);
+	lua_setthis(L);
   if (status == 0 || status == LUA_YIELD) {
     int nres = lua_gettop(co);
     if (!lua_checkstack(L, nres + 1))
@@ -671,7 +673,7 @@ LUALIB_API int luaopen_base (lua_State *L) {
   base_open(L);
   luaL_register(L, LUA_COLIBNAME, co_funcs);
 #ifndef COCO_DISABLE
-  lua_pushboolean(L, 1); 
+  lua_pushboolean(L, 1);
   lua_setfield(L, -2, "coco");
 #endif
   return 2;

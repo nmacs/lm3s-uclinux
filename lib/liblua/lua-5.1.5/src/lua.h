@@ -214,6 +214,9 @@ LUA_API int  (lua_yield) (lua_State *L, int nresults);
 LUA_API int  (lua_resume) (lua_State *L, int narg);
 LUA_API int  (lua_status) (lua_State *L);
 
+LUA_API lua_State* (lua_this) (void);
+LUA_API void lua_setthis(lua_State* L);
+
 /*
 ** garbage-collection function and options
 */

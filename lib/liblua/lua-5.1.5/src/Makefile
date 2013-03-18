@@ -37,10 +37,14 @@ PLATS= aix ansi bsd freebsd generic linux macosx mingw posix solaris
 COCO_O= lcoco.o
 # -- Coco =========
 
+# ++ This =========
+THIS_O= lthis.o
+# -- This =========
+
 LUA_A=	liblua.a
 CORE_O=	lapi.o lcode.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o \
 	lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o  \
-	lundump.o lvm.o lzio.o $(COCO_O)
+	lundump.o lvm.o lzio.o $(COCO_O) $(THIS_O)
 LIB_O=	lauxlib.o lbaselib.o ldblib.o liolib.o lmathlib.o loslib.o ltablib.o \
 	lstrlib.o loadlib.o linit.o linit_static_modules.o
 
@@ -141,6 +145,8 @@ lapi.o: lapi.c lua.h luaconf.h lapi.h lobject.h llimits.h ldebug.h \
 lauxlib.o: lauxlib.c lua.h luaconf.h lauxlib.h
 lbaselib.o: lbaselib.c lua.h luaconf.h lauxlib.h lualib.h lcoco.h
 lcoco.o: lcoco.c lua.h luaconf.h lobject.h llimits.h lstate.h ltm.h \
+  lzio.h lmem.h lcoco.h ldo.h lvm.h lgc.h
+lthis.o: lthis.c lua.h luaconf.h lobject.h llimits.h lstate.h ltm.h \
   lzio.h lmem.h lcoco.h ldo.h lvm.h lgc.h
 lcode.o: lcode.c lua.h luaconf.h lcode.h llex.h lobject.h llimits.h \
   lzio.h lmem.h lopcodes.h lparser.h ldebug.h lstate.h ltm.h lcoco.h \
