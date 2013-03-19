@@ -7,6 +7,7 @@ CONFIGURE_OPTIONS += --disable-gpg
 CONFIGURE_OPTIONS += --disable-sha256
 CONFIGURE_OPTIONS += --disable-largefile
 CONFIGURE_OPTIONS += --disable-fast-install
+CONFIGURE_OPTIONS += --disable-shave
 CONFIGURE_OPTIONS += --with-opkglockfile=/tmp/opkg-lock
 
 OPKG_CFLAGS  = -Wl,-elf2flt="-s32768"
@@ -23,7 +24,7 @@ $(EXEC): configure
 configure: $(OPKG)/Makefile
 
 $(OPKG)/Makefile : Makefile
-	cd $(OPKG) && ./configure $(CONFIGURE_OPTIONS)
+	cd $(OPKG) && ./autogen.sh $(CONFIGURE_OPTIONS)
 
 romfs:
 	$(ROMFSINST) $(OPKG)/src/$(EXEC) /bin/$(EXEC)
