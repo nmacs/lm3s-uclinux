@@ -31,4 +31,5 @@ romfs:
 
 clean:
 	$(MAKE) -C $(OPKG) clean
+	rm -f $(OPKG)/Makefile
 
