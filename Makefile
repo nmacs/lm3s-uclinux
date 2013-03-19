@@ -49,7 +49,6 @@ tools/cksum: tools/sg-cksum/*.c
 opkg: tools/opkg-cl
 
 tools/opkg-cl: Makefile
-	$(MAKE) -C tools/opkg clean
 	cd tools/opkg && ./autogen.sh --disable-gpg --disable-curl --enable-static --disable-shared --disable-shave
 	$(MAKE) -C tools/opkg
 	ln -sf opkg/src/opkg-cl tools/opkg-cl
@@ -264,6 +263,7 @@ relink:
 clean: modules_clean
 	for dir in $(LINUXDIR) $(DIRS); do [ ! -d $$dir ] || $(MAKEARCH) -C $$dir clean ; done
 	$(MAKE) -C $(REPODIR) clean
+	$(MAKE) -C tools/opkg clean
 	rm -rf $(ROMFSDIR)/*
 	rm -rf $(STAGEDIR)/*
 	rm -rf $(IMAGEDIR)/*
