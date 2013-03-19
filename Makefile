@@ -263,7 +263,8 @@ relink:
 clean: modules_clean
 	for dir in $(LINUXDIR) $(DIRS); do [ ! -d $$dir ] || $(MAKEARCH) -C $$dir clean ; done
 	$(MAKE) -C $(REPODIR) clean
-	$(MAKE) -C tools/opkg clean
+	-$(MAKE) -C tools/opkg clean
+	rm -f tools/opkg/Makefile
 	rm -rf $(ROMFSDIR)/*
 	rm -rf $(STAGEDIR)/*
 	rm -rf $(IMAGEDIR)/*

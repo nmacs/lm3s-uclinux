@@ -30,6 +30,6 @@ romfs:
 	$(ROMFSINST) $(OPKG)/src/$(EXEC) /bin/$(EXEC)
 
 clean:
-	$(MAKE) -C $(OPKG) clean
+	-$(MAKE) -C $(OPKG) clean
 	rm -f $(OPKG)/Makefile
 

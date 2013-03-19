@@ -14,49 +14,65 @@ BITSTRING_DIR     := bitstring-1.0
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
 
+lua_libs =
+
 ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
 	CFLAGS          += -Wl,-llfs -L$(CURDIR)/$(LUAFILESYSTEM_DIR)/src
+	lua_libs        += luafilesystem
 endif
 
 ifdef CONFIG_LIB_LUA_LUASOCKET
 	CFLAGS          += -Wl,-lsocket -Wl,-lmime -L$(CURDIR)/$(LUASOCKET_DIR)/src
+	lua_libs        += luasocket
 endif
 
 ifdef CONFIG_LIB_LUA_SQLITE
 	CFLAGS          += -Wl,-llsqlite3 -Wl,-lsqlite3 -L$(CURDIR)/$(SQLITE_DIR)
+	lua_libs        += luasqlite
 endif
 
 ifdef CONFIG_LIB_LUA_UCI
 	CFLAGS          += -Wl,-lucilua -Wl,-luci -L$(CURDIR)/$(UCILUA_DIR)
+	lua_libs        += luauci
 endif
 
 ifdef CONFIG_LIB_LUA_BITSTRING
 	CFLAGS          += -Wl,-lbitstring -L$(CURDIR)/$(BITSTRING_DIR)/src/bitstring/.libs
+	lua_libs        += luabitstring
 endif
 
 .PHONY: all lua repo romfs
 
 all: lua
 
-lua:
-	ln -sf $(ROOTDIR)/config/autoconf.h $(LUA_DIR)/src/autoconf.h
-ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
-	$(MAKE) -C $(LUAFILESYSTEM_DIR) static
-endif
-ifdef CONFIG_LIB_LUA_LUASOCKET
-	$(MAKE) -C $(LUASOCKET_DIR)/src libsocket.a libmime.a
-endif
-ifdef CONFIG_LIB_LUA_SQLITE
-	$(MAKE) -C $(SQLITE_DIR) liblsqlite3.a
-endif
-ifdef CONFIG_LIB_LUA_UCI
-	$(MAKE) -C $(UCILUA_DIR) static
-endif
-ifdef CONFIG_LIB_LUA_BITSTRING
-	-cd $(BITSTRING_DIR) && ./configure --host=arm
-	$(MAKE) -C $(BITSTRING_DIR)
-endif
+lua: $(LUA_DIR)/src/autoconf.h $(lua_libs)
 	$(MAKE) -C $(LUA_DIR) generic
+
+$(LUA_DIR)/src/autoconf.h:
+	ln -sf $(ROOTDIR)/config/autoconf.h $(LUA_DIR)/src/autoconf.h
+
+.PHONY: luafilesystem
+luafilesystem:
+	$(MAKE) -C $(LUAFILESYSTEM_DIR) static
+
+.PHONY: luasocket
+luasocket:
+	$(MAKE) -C $(LUASOCKET_DIR)/src libsocket.a libmime.a
+
+.PHONY: luasqlite
+luasqlite:
+	$(MAKE) -C $(SQLITE_DIR) liblsqlite3.a
+
+.PHONY: luauci
+luauci:
+	$(MAKE) -C $(UCILUA_DIR) static
+
+.PHONY: luabitstring
+luabitstring: $(BITSTRING_DIR)/Makefile
+	$(MAKE) -C $(BITSTRING_DIR)
+
+$(BITSTRING_DIR)/Makefile: Makefile
+	cd $(BITSTRING_DIR) && ./configure --host=arm
 
 ############################################################################
 
@@ -66,6 +82,8 @@ clean:
 	$(MAKE) -C $(LUASOCKET_DIR) clean
 	$(MAKE) -C $(SQLITE_DIR) clean
 	$(MAKE) -C $(UCILUA_DIR) clean
+	$(MAKE) -C $(BITSTRING_DIR) clean
+	rm -f $(BITSTRING_DIR)/Makefile
 
 romfs:
 ifdef CONFIG_LIB_LUA_SHELL
