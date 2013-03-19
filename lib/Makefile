@@ -37,6 +37,11 @@ endif
 lib_libcrypt_old = libcrypt_old.a
 inc_libcrypt_old = *.h,.
 
+dir_$(CONFIG_LIB_USTL) += libustl
+lib_libustl = output/lib/*.a
+inc_libustl = output/include/ustl.h,. \
+              output/include/ustl/*.h,ustl
+
 dir_$(CONFIG_LIB_UCI) += libuci
 lib_libuci = bin/libuci.a
 inc_libuci = uci.h,. uci_config.h,.
@@ -56,11 +61,6 @@ lib_liblua_$(CONFIG_LIB_LUA_UCI) += libuci/libucilua.a
 lib_liblua_$(CONFIG_LIB_LUA_BITSTRING) += bitstring-1.0/src/bitstring/.libs/libbitstring.a
 
 lib_liblua = $(lib_liblua_y)
-
-dir_$(CONFIG_LIB_USTL) += libustl
-lib_libustl = output/lib/*.a
-inc_libustl = output/include/ustl.h,. \
-              output/include/ustl/*.h,ustl
 
 dir_$(CONFIG_LIB_CYASSL) += cyassl
 
