@@ -19,7 +19,7 @@ if [[ "$1" = "packages" ]]; then
 fi
 
 if [[ "$1" = "rebuild" ]]; then
-  make clean CROSS_COMPILE=arm-uclinuxeabi-
+  make clean CROSS=arm-uclinuxeabi- CROSS_COMPILE=arm-uclinuxeabi-
 fi
 
 make TOOLCHAIN=$TOOLCHAIN CROSS_COMPILE=arm-uclinuxeabi- tools automake subdirs linux_image || exit 1
