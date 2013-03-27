@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ -z "$config_syslog" ]; then
+	uci -D_ -e show config.syslog > /tmp/syslog_conf
+	. /tmp/syslog_conf
+	rm /tmp/syslog_conf
+fi
+
+ARGS="-n"
+
+if [ -n "$config_syslog_remote" ]; then
+	ARGS="$ARGS -R $config_syslog_remote -L"
+fi
+
+if [ -n "$config_syslog_level" ]; then
+	ARGS="$ARGS -l $config_syslog_level"
+fi
+
+start-stop-daemon -p /var/run/syslog.pid -x /bin/syslogd -b -m -S -- $ARGS
