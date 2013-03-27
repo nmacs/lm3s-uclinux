@@ -40,6 +40,10 @@ int luaopen_uci(lua_State *L);
 int luaopen_bitstring(lua_State *L);
 #endif
 
+#ifdef CONFIG_LIB_LUA_LSYSLOG
+int luaopen_syslog(lua_State *L);
+#endif
+
 static const luaL_Reg modules[] = {
 #ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
   {"lfs", luaopen_lfs},
@@ -56,6 +60,9 @@ static const luaL_Reg modules[] = {
 #endif
 #ifdef CONFIG_LIB_LUA_BITSTRING
 	{"bitstring", luaopen_bitstring},
+#endif
+#ifdef CONFIG_LIB_LUA_LSYSLOG
+	{"syslog", luaopen_syslog},
 #endif
 	{NULL, NULL}
 };

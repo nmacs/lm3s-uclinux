@@ -69,3 +69,7 @@ config LIB_LUA_UCI
 config LIB_LUA_BITSTRING
 	bool "Lua bitstring library"
 	depends on LIB_LUA
+
+config LIB_LUA_LSYSLOG
+	bool "Lua wrapper for the syslog C API"
+	depends on LIB_LUA

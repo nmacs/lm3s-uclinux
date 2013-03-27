@@ -10,6 +10,7 @@ JSON_DIR          := json4lua-0.9.50
 SQLITE_DIR        := lsqlite3_svn08
 UCILUA_DIR        := libuci
 BITSTRING_DIR     := bitstring-1.0
+LSYSLOG_DIR       := lsyslog
 
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
@@ -39,6 +40,11 @@ endif
 ifdef CONFIG_LIB_LUA_BITSTRING
 	CFLAGS          += -Wl,-lbitstring -L$(CURDIR)/$(BITSTRING_DIR)/src/bitstring/.libs
 	lua_libs        += luabitstring
+endif
+
+ifdef CONFIG_LIB_LUA_LSYSLOG
+	CFLAGS          += -Wl,-llsyslog -L$(CURDIR)/$(LSYSLOG_DIR)
+	lua_libs        += lsyslog
 endif
 
 .PHONY: all lua repo romfs
@@ -74,6 +80,10 @@ luabitstring: $(BITSTRING_DIR)/Makefile
 $(BITSTRING_DIR)/Makefile: Makefile
 	cd $(BITSTRING_DIR) && ./configure --host=arm
 
+.PHONY: lsyslog
+lsyslog: $(LSYSLOG_DIR)/Makefile
+	$(MAKE) -C $(LSYSLOG_DIR)
+
 ############################################################################
 
 clean:
@@ -83,7 +93,8 @@ clean:
 	$(MAKE) -C $(SQLITE_DIR) clean
 	$(MAKE) -C $(UCILUA_DIR) clean
 	$(MAKE) -C $(BITSTRING_DIR) clean
-	rm -f $(BITSTRING_DIR)/Makefile
+	-rm -f $(BITSTRING_DIR)/Makefile
+	$(MAKE) -C $(LSYSLOG_DIR) clean
 
 romfs:
 ifdef CONFIG_LIB_LUA_SHELL
