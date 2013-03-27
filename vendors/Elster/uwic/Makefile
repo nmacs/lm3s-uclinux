@@ -32,6 +32,7 @@ ROMFS_DIRS += etc/.secret
 ROMFS_DIRS += var/tmp
 ROMFS_DIRS += var/opkg
 ROMFS_DIRS += var/opkg/upgrade
+ROMFS_DIRS += var/log
 ROMFS_DIRS += usr/lib
 ROMFS_DIRS += usr/lib/opkg
 ROMFS_DIRS += tmp/run
