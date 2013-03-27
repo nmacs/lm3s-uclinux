@@ -652,11 +652,34 @@ static int uci_cmd(int argc, char **argv)
 	}
 }
 
+#define OPTION_STR "c:d:D:ef:LmnNp:P:sSqX"
+enum {
+	OPT_c = (1 << 0),
+	OPT_d = (1 << 1),
+	OPT_D = (1 << 2),
+	OPT_e = (1 << 3),
+	OPT_f = (1 << 4),
+	OPT_L = (1 << 5),
+	OPT_m = (1 << 6),
+	OPT_n = (1 << 7),
+	OPT_N = (1 << 8),
+	OPT_p = (1 << 9),
+	OPT_P = (1 << 10),
+	OPT_s = (1 << 11),
+	OPT_S = (1 << 12),
+	OPT_q = (1 << 13),
+	OPT_X = (1 << 14),
+};
+
 int uci_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 int uci_main(int argc, char **argv)
 {
 	int ret;
-	int c;
+	int opt;
+	char *confdir = NULL;
+	char *file = NULL;
+	char *delta_path = NULL;
+	char *savedir = NULL;
 
 	flags = CLI_FLAG_SHOW_EXT;
 	appname = argv[0];
@@ -667,70 +690,54 @@ int uci_main(int argc, char **argv)
 		return 1;
 	}
 
-	while((c = getopt(argc, argv, "c:d:D:ef:LmnNp:P:sSqX")) != -1) {
-		switch(c) {
-			case 'c':
-				uci_set_confdir(ctx, optarg);
-				break;
-			case 'd':
-				delimiter = optarg;
-				break;
-			case 'D':
-				show_delimiter = optarg;
-				break;
-			case 'e':
-				print_escaped_value = 1;
-				break;
-			case 'f':
-				if (input != stdin) {
-					perror("uci");
-					return 1;
-				}
+	opt = getopt32(argv, OPTION_STR,
+                 &confdir, &delimiter, &show_delimiter, &file, &delta_path, &savedir);
 
-				input = fopen(optarg, "r");
-				if (!input) {
-					perror("uci");
-					return 1;
-				}
-				break;
-			case 'L':
-				flags |= CLI_FLAG_NOPLUGINS;
-				break;
-			case 'm':
-				flags |= CLI_FLAG_MERGE;
-				break;
-			case 's':
-				ctx->flags |= UCI_FLAG_STRICT;
-				break;
-			case 'S':
-				ctx->flags &= ~UCI_FLAG_STRICT;
-				ctx->flags |= UCI_FLAG_PERROR;
-				break;
-			case 'n':
-				ctx->flags |= UCI_FLAG_EXPORT_NAME;
-				break;
-			case 'N':
-				ctx->flags &= ~UCI_FLAG_EXPORT_NAME;
-				break;
-			case 'p':
-				uci_add_delta_path(ctx, optarg);
-				break;
-			case 'P':
-				uci_add_delta_path(ctx, ctx->savedir);
-				uci_set_savedir(ctx, optarg);
-				flags |= CLI_FLAG_NOCOMMIT;
-				break;
-			case 'q':
-				flags |= CLI_FLAG_QUIET;
-				break;
-			case 'X':
-				flags &= ~CLI_FLAG_SHOW_EXT;
-				break;
-			default:
-				uci_usage();
-				return 0;
+	if( opt & OPT_c )
+		uci_set_confdir(ctx, confdir);
+	if( opt & OPT_e )
+		print_escaped_value = 1;
+	if( opt & OPT_f )
+	{
+		if (input != stdin) {
+			perror("uci");
+			return 1;
+		}
+
+		input = fopen(optarg, "r");
+		if (!input) {
+			perror("uci");
+			return 1;
 		}
 	}
+	if( opt & OPT_L )
+		flags |= CLI_FLAG_NOPLUGINS;
+	if( opt & OPT_m )
+		flags |= CLI_FLAG_MERGE;
+	if( opt & OPT_s )
+		ctx->flags |= UCI_FLAG_STRICT;
+	if( opt & OPT_S )
+	{
+		ctx->flags &= ~UCI_FLAG_STRICT;
+		ctx->flags |= UCI_FLAG_PERROR;
+	}
+	if( opt & OPT_n )
+		ctx->flags |= UCI_FLAG_EXPORT_NAME;
+	if( opt & OPT_N )
+		ctx->flags &= ~UCI_FLAG_EXPORT_NAME;
+	if( opt & OPT_p )
+		uci_add_delta_path(ctx, delta_path);
+	if( opt & OPT_P )
+	{
+		uci_add_delta_path(ctx, ctx->savedir);
+		uci_set_savedir(ctx, savedir);
+		flags |= CLI_FLAG_NOCOMMIT;
+	}
+	if( opt & OPT_q )
+		flags |= CLI_FLAG_QUIET;
+	if( opt & OPT_X )
+		flags &= ~CLI_FLAG_SHOW_EXT;
+
 	if (optind > 1)
 		argv[optind - 1] = argv[0];
 	argv += optind - 1;
