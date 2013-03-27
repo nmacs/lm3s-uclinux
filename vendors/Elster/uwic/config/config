@@ -42,3 +42,7 @@ config nfs 'nfs'
 
 config firmware 'firmware'
 	option upgrade_host '10.65.100.176:8080'
+
+config syslog 'syslog'
+	option remote '10.65.100.176'
+	option level  8
