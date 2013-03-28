@@ -52,8 +52,6 @@ ifdef CONFIG_USER_PPPD_PPPD_PPPD
 	$(ROMFSINST) -d pppd-peers-gprs /etc/ppp/peers/gprs
 	$(ROMFSINST) -d pppd-chat-gprs /etc/ppp/chat/gprs
 endif
-	$(ROMFSINST) -d config/config /etc/config/config
-	$(ROMFSINST) -d init.d/nfs /etc/init.d/nfs
 
 modules.dep:
 ifdef CONFIG_MODULES

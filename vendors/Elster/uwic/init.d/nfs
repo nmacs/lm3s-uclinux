@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if [ -z "$config_nfs" ]; then
-	uci -D_ -e show config.nfs > /tmp/nfs_conf
-	. /tmp/nfs_conf
-	rm /tmp/nfs_conf
-fi
-
-mount -t nfs -o port=2049,nolock,proto=tcp,vers=2 $config_nfs_remote /mnt

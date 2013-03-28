@@ -1,10 +1,10 @@
 #!/bin/sh
 
-if [ -z "$config_clock" ]; then
-	uci -D_ -e show config.clock > /tmp/clock_conf
+if [ -z "$system_clock" ]; then
+	uci -D_ -e show system.clock > /tmp/clock_conf
 	. /tmp/clock_conf
 	rm /tmp/clock_conf
 fi
 
-date -s "$config_clock_default"
+date -s "$system_clock_default"
 /bin/start-stop-daemon -x /bin/htpdate -p /var/run/htpdate.pid -m -b -S -- -D -s -4 "$config_clock_timeserver"
