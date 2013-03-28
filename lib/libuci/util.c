@@ -215,6 +215,21 @@ done:
 	return file;
 }
 
+__private void uci_flush_stream(struct uci_context *ctx, FILE *stream)
+{
+	int fd;
+
+	if (!stream)
+		return;
+
+	if( fflush(stream) )
+		UCI_THROW(ctx, UCI_ERR_IO);
+
+	fd = fileno(stream);
+	if( fsync(fd) )
+		UCI_THROW(ctx, UCI_ERR_IO);
+}
+
 __private void uci_close_stream(FILE *stream)
 {
 	int fd;
@@ -224,6 +239,7 @@ __private void uci_close_stream(FILE *stream)
 
 	fflush(stream);
 	fd = fileno(stream);
+	fsync(fd);
 	flock(fd, LOCK_UN);
 	fclose(stream);
 }

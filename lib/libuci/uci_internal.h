@@ -52,6 +52,7 @@ __plugin void uci_free_delta(struct uci_delta *h);
 __plugin struct uci_package *uci_alloc_package(struct uci_context *ctx, const char *name);
 
 __private FILE *uci_open_stream(struct uci_context *ctx, const char *filename, int pos, bool write, bool create);
+__private void uci_flush_stream(struct uci_context *ctx, FILE *stream);
 __private void uci_close_stream(FILE *stream);
 __private void uci_getln(struct uci_context *ctx, int offset);
 

@@ -745,13 +745,16 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 	if (f_out)
 	{
 		uci_export(ctx, f_out, p, false);
-		if( fsync(fileno(f_out)) )
-			UCI_THROW(ctx, UCI_ERR_IO);
+		uci_flush_stream(ctx, f_out);
 		uci_close_stream(f_out);
 		uci_close_stream(f_in);
 		f_out = NULL;
 		f_in = NULL;
-		rename(tmpfile, p->path);
+		if( rename(tmpfile, p->path) )
+			UCI_THROW(ctx, UCI_ERR_IO);
+		free(tmpfile);
+		tmpfile = 0;
+		sync();
 	}
 
 	UCI_TRAP_RESTORE(ctx);
@@ -764,7 +767,10 @@ done:
 	uci_close_stream(f_in);
 	uci_close_stream(f_out);
 	if (tmpfile)
+	{
+		unlink(tmpfile);
 		free(tmpfile);
+	}
 	if (ctx->err)
 		UCI_THROW(ctx, ctx->err);
 }
