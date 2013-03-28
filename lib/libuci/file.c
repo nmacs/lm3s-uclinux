@@ -678,6 +678,15 @@ static char *uci_config_path(struct uci_context *ctx, const char *name)
 	return filename;
 }
 
+static char *uci_default_config(struct uci_context *ctx, const char *path)
+{
+	char *defaultpath;
+	defaultpath = uci_malloc(ctx, strlen(path) + 8 + 1);
+	strcpy(defaultpath, path);
+	strcat(defaultpath, ".default");
+	return defaultpath;
+}
+
 static void uci_file_commit(struct uci_context *ctx, struct uci_package **package, bool overwrite)
 {
 	struct uci_package *p = *package;
@@ -686,6 +695,7 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 	char *name = NULL;
 	char *path = NULL;
 	char *tmpfile = NULL;
+	char *defaultpath = NULL;
 
 	tmpfile = strdup("/var/tmp/config_XXXXXX");
 	if( tmpfile == NULL )
@@ -705,11 +715,17 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 			UCI_THROW(ctx, UCI_ERR_INVAL);
 	}
 
+	UCI_TRAP_SAVE(ctx, done);
 	/* open the config file for reading now, so that it is locked */
-	f_in = uci_open_stream(ctx, p->path, SEEK_SET, false, false);
+	if( p->use_default )
+	{
+		defaultpath = uci_default_config(ctx, p->path);
+		f_in = uci_open_stream(ctx, defaultpath, SEEK_SET, false, false);
+	}
+	else
+		f_in = uci_open_stream(ctx, p->path, SEEK_SET, false, false);
 
 	/* flush unsaved changes and reload from delta file */
-	UCI_TRAP_SAVE(ctx, done);
 	if (p->has_delta) {
 		if (!overwrite) {
 
@@ -764,6 +780,8 @@ done:
 		free(name);
 	if (path)
 		free(path);
+	if (defaultpath)
+		free(defaultpath);
 	uci_close_stream(f_in);
 	uci_close_stream(f_out);
 	if (tmpfile)
@@ -843,7 +861,8 @@ static char **uci_list_config_files(struct uci_context *ctx)
 static struct uci_package *uci_file_load(struct uci_context *ctx, const char *name)
 {
 	struct uci_package *package = NULL;
-	char *filename;
+	char *filename = NULL;
+	char *defaulfilename = NULL;
 	bool confdir;
 	FILE *file = NULL;
 
@@ -866,19 +885,37 @@ static struct uci_package *uci_file_load(struct uci_context *ctx, const char *na
 		break;
 	}
 
+	UCI_TRAP_SAVE(ctx, trydefault);
+	ctx->err = 0;
 	file = uci_open_stream(ctx, filename, SEEK_SET, false, false);
 	ctx->err = 0;
+	UCI_INTERNAL(uci_import, ctx, file, name, &package, true);
+	goto loaded;
+	UCI_TRAP_RESTORE(ctx);
+
+trydefault:
 	UCI_TRAP_SAVE(ctx, done);
+	uci_close_stream(file);
+	defaulfilename = uci_default_config(ctx, filename);
+	ctx->err = 0;
+	file = uci_open_stream(ctx, defaulfilename, SEEK_SET, false, false);
+	ctx->err = 0;
 	UCI_INTERNAL(uci_import, ctx, file, name, &package, true);
 	UCI_TRAP_RESTORE(ctx);
 
+loaded:
 	if (package) {
 		package->path = filename;
+		package->use_default = defaulfilename ? 1 : 0;
 		package->has_delta = confdir;
 		uci_load_delta(ctx, package, false);
 	}
 
 done:
+	if( package == 0 && filename )
+		free(filename);
+	if( defaulfilename )
+		free(defaulfilename);
 	uci_close_stream(file);
 	if (ctx->err)
 		UCI_THROW(ctx, ctx->err);

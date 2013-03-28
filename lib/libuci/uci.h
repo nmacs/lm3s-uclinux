@@ -453,6 +453,7 @@ struct uci_package
 	struct uci_context *ctx;
 	bool has_delta;
 	char *path;
+	bool use_default;
 
 	/* private: */
 	struct uci_backend *backend;
