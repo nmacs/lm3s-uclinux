@@ -9,7 +9,7 @@ fi
 ARGS="-n"
 
 if [ -n "$system_syslog_remote" ]; then
-	ARGS="$ARGS -R $config_syslog_remote -L"
+	ARGS="$ARGS -R $system_syslog_remote -L"
 fi
 
 if [ -n "$system_syslog_level" ]; then
