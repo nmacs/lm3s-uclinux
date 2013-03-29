@@ -61,20 +61,31 @@ _VERSION     = "Copas 1.1.5"
 -- adds a FIFO queue for each value in the set
 -------------------------------------------------------------------------------
 local function newset()
+   local threads = {}
+   local threads_reverse = {}
    local reverse = {}
    local set = {}
    local q = {}
    setmetatable(set, { __index = {
-       insert = function(set, value)
+       insert = function(set, value, thread)
            if not reverse[value] then
+               if thread then
+                   threads[thread] = value
+                   threads_reverse[value] = thread
+               end
                set[#set + 1] = value
                reverse[value] = #set
            end
        end,
 
-       remove = function(set, value)
+       remove_by_value = function(set, value)
            local index = reverse[value]
            if index then
+               local thread = threads_reverse[value]
+               if thread then
+                   threads_reverse[value] = nil
+                   threads[thread] = nil
+               end
                reverse[value] = nil
                local top = set[#set]
                set[#set] = nil
@@ -82,6 +93,15 @@ local function newset()
                    reverse[top] = index
                    set[index] = top
                end
+           end
+       end,
+
+       remove_by_thread = function(set, thread)
+           local value = threads[thread]
+           if value then
+               set:remove_by_value(value)
+               set:pop_all(value)
+               return {set=set, value=value}
            end
        end,
 
@@ -103,17 +123,22 @@ local function newset()
            end
            return ret
          end
+       end,
+
+       pop_all = function (set, key)
+           q[key] = nil
        end
    }})
    return set
 end
 
-local _servers = newset() -- servers being handled
 local _reading_log = {}
 local _writing_log = {}
 
+local _servers = newset() -- servers being handled
 local _reading = newset() -- sockets currently being read
 local _writing = newset() -- sockets currently being written
+local _waiting = newset() -- just timeouts
 
 -------------------------------------------------------------------------------
 -- Coroutine based socket I/O functions.
@@ -259,17 +284,16 @@ local function _doTick (co, skt, ...)
            new_q = _reading
        elseif new_q == "writing" then
            new_q = _writing
+       elseif new_q == "waiting" then
+           new_q = _waiting
        end
    end
 
    if ok and res and new_q then
-	   if is_socket(res) then
-       elseif is_fd(res) then
-           if res.timeout then
-               res.timeout = os.clock() + res.timeout / 1000
-       	   end
+       if res.timeout then
+          res.timeout = os.clock() + res.timeout / 1000
        end
-       new_q:insert (res)
+       new_q:insert (res, co)
        new_q:push (res, co)
    else
        if not ok then copcall (_errhandlers [co] or _deferror, res, co, skt) end
@@ -303,6 +327,10 @@ local function _tickWrite (skt)
        _doTick (_writing:pop (skt), skt)
 end
 
+local function _tickWait (skt)
+       _doTick (_waiting:pop (skt), skt)
+end
+
 -------------------------------------------------------------------------------
 -- Adds a server/handler pair to Copas dispatcher
 -------------------------------------------------------------------------------
@@ -333,23 +361,33 @@ end
 -------------------------------------------------------------------------------
 
 function suspend(thread)
+    return _reading:remove_by_thread(thread) or _writing:remove_by_thread(thread)
 end
 
 function resume(thread, operation)
+    if not operation then return end
+    operation.set:insert(operation.value, thread)
+		operation.set:push(operation.value, thread)
 end
 
 -------------------------------------------------------------------------------
--- Copas select
+-- Copas wait functions
 -------------------------------------------------------------------------------
 
-function select(fd, write, timeout)
-	local set
-	if write then
-		set = _writing
-	else
-		set = _reading
-	end
+local function do_wait(set, fd, timeout)
 	return coroutine.yield({fd = fd, timeout = timeout}, set)
+end
+
+function wait_write(fd, timeout)
+	return do_wait(_writing, fd, timeout)
+end
+
+function wait_read(fd, timeout)
+	return do_wait(_reading, fd, timeout)
+end
+
+function wait(timeout)
+	return do_wait(_waiting, nil, timeout)
 end
 
 -------------------------------------------------------------------------------
@@ -368,6 +406,13 @@ end
 local function addtaskWrite (tsk)
        -- lets tasks call the default _tick()
        tsk.def_tick = _tickWrite
+
+       _tasks [tsk] = true
+end
+
+local function addtaskWait (tsk)
+       -- lets tasks call the default _tick()
+       tsk.def_tick = _tickWait
 
        _tasks [tsk] = true
 end
@@ -394,7 +439,7 @@ local _readable_t = {
 		if handler then
 			input = _accept(input, handler)
 		else
-			_reading:remove (input)
+			_reading:remove_by_value (input)
 			self.def_tick (input)
 		end
 	end
@@ -414,12 +459,29 @@ local _writable_t = {
 	end,
 
 	tick = function (self, output)
-		_writing:remove (output)
+		_writing:remove_by_value (output)
 		self.def_tick (output)
 	end
 }
 
 addtaskWrite (_writable_t)
+
+local _waitdone_t = {
+	events = function (self)
+		local i = 0
+		return function ()
+			i = i + 1
+			return self._evs [i]
+		end
+	end,
+
+	tick = function (self, output)
+		_waiting:remove_by_value (output)
+		self.def_tick (output)
+	end
+}
+
+addtaskWait (_waitdone_t)
 
 local last_cleansing = 0
 
@@ -431,7 +493,7 @@ local function _get_timeout(set, timeout)
 	    return timeout
 	end
 	for i, v in pairs(set) do
-		if v.timeout then
+		if v.timeout ~= nil then
 		    local diff = v.timeout - os.clock()
 		    if diff < 0 then
 		    	return 0
@@ -467,12 +529,15 @@ local function _select (timeout)
 
 	timeout = _get_timeout(_reading, timeout)
 	timeout = _get_timeout(_writing, timeout)
+	timeout = _get_timeout(_waiting, timeout)
 
 	_readable_t._evs, _writable_t._evs, err = socket.select(_reading, _writing, timeout)
 	local r_evs, w_evs = _readable_t._evs, _writable_t._evs
+	_waitdone_t._evs = {}
 
 	_handle_timeout(_reading, r_evs)
 	_handle_timeout(_writing, w_evs)
+	_handle_timeout(_waiting, _waitdone_t._evs)
 
 	if duration(now, last_cleansing) > WATCH_DOG_TIMEOUT then
 		last_cleansing = now
