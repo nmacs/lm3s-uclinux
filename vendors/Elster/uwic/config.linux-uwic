@@ -290,7 +290,7 @@ CONFIG_NOMMU_INITIAL_TRIM_EXCESS=1
 #
 CONFIG_ZBOOT_ROM_TEXT=0
 CONFIG_ZBOOT_ROM_BSS=0
-CONFIG_CMDLINE="earlyprintk ignore_loglevel root=/dev/nfs nfsroot=10.65.100.176:/nfsroot ip=10.65.100.205::10.65.100.1:255.255.255.0 ubi.mtd=1"
+CONFIG_CMDLINE="ubi.mtd=1 root=ubi0:rootfs rootfstype=ubifs"
 # CONFIG_XIP_KERNEL is not set
 # CONFIG_KEXEC is not set
 
