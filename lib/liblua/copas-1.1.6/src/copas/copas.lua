@@ -184,12 +184,6 @@ function send(client,data, from, to)
 
  repeat
    s, err, lastIndex = client:send(data, lastIndex + 1, to)
-   -- adds extra corrotine swap
-   -- garantees that high throuput dont take other threads to starvation
-   if (math.random(100) > 90) then
-       _writing_log[client] = os.time()
-       coroutine.yield(client, _writing)
-   end
    if s or err ~= "timeout" then
        _writing_log[client] = nil
        return s, err,lastIndex
