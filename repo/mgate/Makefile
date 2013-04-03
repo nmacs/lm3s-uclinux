@@ -21,6 +21,8 @@ content:
 	cp $(ROOTDIR)/user/elster/mgate/lua/wan.lua           content/usr/local/share/lua/5.1/mgate/wan.lua
 	cp $(ROOTDIR)/user/elster/mgate/lua/meter.lua         content/usr/local/share/lua/5.1/mgate/meter.lua
 	cp $(ROOTDIR)/user/elster/mgate/lua/uwic.lua          content/usr/local/share/lua/5.1/mgate/uwic.lua
+	cp $(ROOTDIR)/user/elster/mgate/lua/rexu.lua          content/usr/local/share/lua/5.1/mgate/rexu.lua
+	cp $(ROOTDIR)/user/elster/mgate/lua/web.lua           content/usr/local/share/lua/5.1/mgate/web.lua
 	cp $(ROOTDIR)/user/elster/eiwebplus/lua/eiwebplus.lua content/usr/local/share/lua/5.1/eiwebplus.lua
 	cp $(ROOTDIR)/user/elster/bin/mgate/mgate             content/bin/mgate
 	cp $(ROOTDIR)/user/elster/mgate/etc/config/*          content/etc/config/
