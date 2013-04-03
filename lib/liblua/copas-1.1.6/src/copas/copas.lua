@@ -404,13 +404,6 @@ local function addtaskWrite (tsk)
        _tasks [tsk] = true
 end
 
-local function addtaskWait (tsk)
-       -- lets tasks call the default _tick()
-       tsk.def_tick = _tickWait
-
-       _tasks [tsk] = true
-end
-
 local function tasks ()
        return next, _tasks
 end
@@ -472,10 +465,10 @@ local _waitdone_t = {
 	tick = function (self, output)
 		_waiting:remove_by_value (output)
 		self.def_tick (output)
-	end
-}
+	end,
 
-addtaskWait (_waitdone_t)
+	def_tick = _tickWait
+}
 
 local last_cleansing = 0
 
@@ -532,6 +525,10 @@ local function _select (timeout)
 	_handle_timeout(_reading, r_evs)
 	_handle_timeout(_writing, w_evs)
 	_handle_timeout(_waiting, _waitdone_t._evs)
+
+	for ev in _waitdone_t:events() do
+		_waitdone_t:tick (ev)
+	end
 
 	if duration(now, last_cleansing) > WATCH_DOG_TIMEOUT then
 		last_cleansing = now
