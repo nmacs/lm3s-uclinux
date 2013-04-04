@@ -23,8 +23,8 @@ function tcp ()
 	w_skt_mt={__index = skt
 	}
 	ret_skt = base.setmetatable ({socket = skt}, w_skt_mt)
-	ret_skt.settimeout = function (self,val)
-				return self.socket:settimeout (val)
+	ret_skt.settimeout = function (self, ...)
+				return self.socket:settimeout (...)
 			end
 	ret_skt.connect = function (self,host, port)
 				ret,err = copas.connect (self.socket,host, port)
