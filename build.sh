@@ -13,7 +13,7 @@ SYS_INSTALLER="sudo apt-get install"
 rm -rf ./romfs
 
 if [[ "$1" = "packages" ]]; then
-	packages="git git-svn openocd libncurses5-dev xutils-dev libgmp-dev libmpfr-dev libmpc-dev lzop u-boot-tools mtd-utils putty genext2fs cmake libglib2.0-dev libtool autoconf fakeroor"
+	packages="git git-svn openocd libncurses5-dev xutils-dev libgmp-dev libmpfr-dev libmpc-dev lzop u-boot-tools mtd-utils putty genext2fs cmake libglib2.0-dev libtool autoconf fakeroot"
 	$SYS_INSTALLER $packages
 	exit 0
 fi
