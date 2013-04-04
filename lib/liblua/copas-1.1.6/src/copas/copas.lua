@@ -19,8 +19,6 @@ end
 
 local socket = require "socket"
 
-require "coxpcall"
-
 local WATCH_DOG_TIMEOUT = 120
 
 -- Redefines LuaSocket functions with coroutine safe versions
@@ -32,7 +30,7 @@ end
 
 function socket.protect(func)
 	return function (...)
-    	return statusHandler(copcall(func, ...))
+    	return statusHandler(pcall(func, ...))
 	end
 end
 
@@ -40,7 +38,7 @@ function socket.newtry(finalizer)
 	return function (...)
     	local status = (...) or false
         if (status==false)then
-			copcall(finalizer, select(2, ...) )
+			pcall(finalizer, select(2, ...) )
 			error((select(2, ...)), 0)
 		end
 		return ...
@@ -290,7 +288,7 @@ local function _doTick (co, skt, ...)
        new_q:insert (res, co)
        new_q:push (res, co)
    else
-       if not ok then copcall (_errhandlers [co] or _deferror, res, co, skt) end
+       if not ok then pcall (_errhandlers [co] or _deferror, res, co, skt) end
        _errhandlers [co] = nil
    end
 end
