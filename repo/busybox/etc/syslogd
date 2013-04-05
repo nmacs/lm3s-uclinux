@@ -6,7 +6,7 @@ if [ -z "$system_syslog" ]; then
 	rm /tmp/syslog_conf
 fi
 
-ARGS="-n"
+ARGS="-n -S"
 
 if [ -n "$system_syslog_remote" ]; then
 	ARGS="$ARGS -R $system_syslog_remote -L"
@@ -16,4 +16,4 @@ if [ -n "$system_syslog_level" ]; then
 	ARGS="$ARGS -l $system_syslog_level"
 fi
 
-start-stop-daemon -p /var/run/syslog.pid -x /bin/syslogd -b -m -S -- $ARGS
+start-stop-daemon -p /var/run/syslogd.pid -x /bin/syslogd -b -m -S -- $ARGS
