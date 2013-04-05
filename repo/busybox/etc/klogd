@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if [ -z "$system_syslog" ]; then
+	uci -D_ -e show system.syslog > /tmp/syslog_conf
+	. /tmp/syslog_conf
+	rm /tmp/syslog_conf
+fi
+
+ARGS="-n"
+
+if [ -n "$system_klog_level" ]; then
+	ARGS="$ARGS -c $system_klog_level"
+fi
+
+start-stop-daemon -p /var/run/syslogd.pid -x /bin/klogd -b -m -S -- $ARGS
