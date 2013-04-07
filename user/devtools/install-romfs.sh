@@ -39,9 +39,9 @@ for i in $h ; do
     if [ "$nosubdir" = "1" ]; then
 	app=`basename $i`
 	if [ "$hardlinks" = "1" ]; then
-	    bb_path="$prefix"busybox
+	    bb_path="$prefix"devtools
 	else
-	    bb_path=busybox
+	    bb_path=devtools
 	fi
     else
 	app=$i
