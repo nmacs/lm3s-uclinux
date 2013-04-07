@@ -2588,6 +2588,15 @@ config USER_SNORT_SNORT
 	  OS fingerprinting attempts and much more.
 	  Approx. binary size: 800k
 
+config USER_SYSLOG_BB_SYSLOGD
+	bool "syslogd (BusyBox)"
+
+config USER_SYSLOG_BB_KLOGD
+	bool "klogd (BusyBox)"
+
+config USER_SYSLOG_BB_LOGGER
+	bool "logger (BusyBox)"
+
 config USER_SPEEDTOUCH_MODEM_RUN
 	bool "speedtouch modem_run"
 	help

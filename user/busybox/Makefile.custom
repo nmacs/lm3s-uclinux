@@ -46,7 +46,7 @@ ifneq ($(strip $(DO_INSTALL_LIBS)),n)
 	done
 endif
 
-INSTALLER=install-romfs.sh
+INSTALLER=$(CURDIR)/install-romfs.sh
 ifdef CONFIG_UCLINUX
 TARGETDIR=$(ROMFSDIR)/bin/ --nosubdir
 else
@@ -54,14 +54,14 @@ TARGETDIR=$(ROMFSDIR)/
 endif
 
 # Before copying, remove all existing busybox links
-romfs: $(INSTALLER) $(objtree)/busybox.links
-	if [ -f "$$ROMFSDIR/bin/busybox" ]; then \
-		inode=`ls -i $$ROMFSDIR/bin/busybox | awk '{print $$1}'`; \
-		ls -iL "$$ROMFSDIR/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
-		sed "s:^:$$ROMFSDIR/bin/:" | env -i xargs rm -f; \
-	fi
-	$(ROMFSINST) $(objtree)/busybox /bin/busybox
-	$(SHELL) $< $(TARGETDIR)
+#romfs: $(INSTALLER) $(objtree)/busybox.links
+#	if [ -f "$$ROMFSDIR/bin/busybox" ]; then \
+#		inode=`ls -i $$ROMFSDIR/bin/busybox | awk '{print $$1}'`; \
+#		ls -iL "$$ROMFSDIR/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
+#		sed "s:^:$$ROMFSDIR/bin/:" | env -i xargs rm -f; \
+#	fi
+#	$(ROMFSINST) $(objtree)/busybox /bin/busybox
+#	$(SHELL) $< $(TARGETDIR)
 
 REPO_TARGETDIR=$(REPODIR)/busybox/content
 
@@ -74,7 +74,7 @@ repo: $(INSTALLER) $(objtree)/busybox.links
 	fi
 	mkdir -p $(REPO_TARGETDIR)/bin
 	cp $(objtree)/busybox $(REPO_TARGETDIR)/bin/busybox
-	$(SHELL) $< $(REPO_TARGETDIR)/bin/ --nosubdir
+	cd $(objtree) && $(SHELL) $< $(REPO_TARGETDIR)/bin/ --nosubdir
 
 # Not very elegant: copies testsuite to objdir...
 # (cp -pPR is POSIX-compliant (cp -dpR or cp -a would not be))

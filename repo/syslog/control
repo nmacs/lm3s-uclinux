@@ -1,0 +1,8 @@
+Package: syslog
+Version: 0.0.1
+Section: base
+Architecture: all
+Description: Syslog is a standard for computer data logging.
+HomePage: http://http://www.busybox.net/
+Maintainer: Max Nekludov
+Priority: important
