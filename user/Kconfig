@@ -3004,6 +3004,9 @@ endmenu
 
 menu "Miscellaneous Applications"
 
+config USER_DEVTOOLS
+	bool "devtools"
+
 config USER_KEYUTILS_KEYUTILS
 	bool "keyutils"
 

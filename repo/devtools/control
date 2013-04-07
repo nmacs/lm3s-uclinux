@@ -1,0 +1,8 @@
+Package: devtools
+Version: 0.0.1
+Section: base
+Architecture: all
+Description: Applications for system develompemt and debugging
+HomePage:
+Maintainer: Max Nekludov
+Priority: important
