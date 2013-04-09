@@ -23,19 +23,6 @@ LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
 EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 
-ROMFS_DIRS  = bin dev etc home lib mnt proc sys usr tmp boot root var
-ROMFS_DIRS += etc/config
-ROMFS_DIRS += etc/rc.d
-ROMFS_DIRS += etc/romdisk
-ROMFS_DIRS += etc/secret
-ROMFS_DIRS += etc/.secret
-ROMFS_DIRS += var/tmp
-ROMFS_DIRS += var/opkg
-ROMFS_DIRS += var/opkg/upgrade
-ROMFS_DIRS += var/log
-ROMFS_DIRS += usr/lib
-ROMFS_DIRS += usr/lib/opkg
-ROMFS_DIRS += tmp/run
 
 clean:
 	rm -rf $(ROMFSDIR)
@@ -43,9 +30,6 @@ clean:
 
 romfs:
 	[ -d $(ROMFSDIR) ] || mkdir -p $(ROMFSDIR)
-	for i in $(ROMFS_DIRS); do \
-		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
-	done
 	$(ROOTDIR)/tools/opkg-cl -o $(ROMFSDIR) install $(REPODIR)/output/*.deb
 
 ifdef CONFIG_USER_PPPD_PPPD_PPPD
