@@ -5,4 +5,4 @@ Architecture: all
 Description: Applications for system develompemt and debugging
 HomePage:
 Maintainer: Max Nekludov
-Priority: important
+Priority: otional
