@@ -1,0 +1,8 @@
+Package: mtdutils
+Version: 0.0.1
+Section: base
+Architecture: all
+Description:
+HomePage:
+Maintainer: Max Nekludov
+Priority: otional
