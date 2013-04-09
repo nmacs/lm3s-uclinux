@@ -13,6 +13,8 @@ LINUXCOMPRESSEDFILE = Image.lzo
 LINUXUBOOTFILE      = Image.uboot
 LINUXSIGFILE        = Image.uboot.sig
 UBIFSFILE           = Image.ubifs
+UBIFSDEVFILE        = Image-dev.ubifs
+UBIFSFULLFILE       = Image-full.ubifs
 EXT2FILE            = Image.ext2
 
 LINUXBOOTDIR       = $(ROOTDIR)/$(LINUXDIR)/arch/arm/boot
@@ -21,16 +23,49 @@ LINUXUBOOTIMG      = $(LINUXBOOTDIR)/$(LINUXUBOOTFILE)
 LINUXSIG           = $(LINUXBOOTDIR)/$(LINUXSIGFILE)
 LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
+UBIFSDEVIMG        = $(IMAGEDIR)/$(UBIFSDEVFILE)
+UBIFSFULLIMG       = $(IMAGEDIR)/$(UBIFSFULLFILE)
 EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 
+OPKG       := $(ROOTDIR)/tools/opkg-cl -f /tmp/opkg.conf
+UBIFS      := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
 
 clean:
 	rm -rf $(ROMFSDIR)
+	rm -rf .content
 	rm -rf $(IMAGEDIR)
 
-romfs:
-	[ -d $(ROMFSDIR) ] || mkdir -p $(ROMFSDIR)
-	$(ROOTDIR)/tools/opkg-cl -o $(ROMFSDIR) install $(REPODIR)/output/*.deb
+opkg_conf:
+	echo 'src Packages file://$(REPODIR)/output/deb' > /tmp/opkg.conf
+	echo 'dest root /'                              >> /tmp/opkg.conf
+	echo 'dest ram /'                               >> /tmp/opkg.conf
+
+romfs: opkg_conf
+	[ -d $(ROMFSDIR)/usr/lib/opkg ] || mkdir -p $(ROMFSDIR)/usr/lib/opkg
+	$(OPKG) -o $(ROMFSDIR) update
+	$(OPKG) -o $(ROMFSDIR) install $(REPODIR)/output/deb/*.deb
+
+full_image: opkg_conf
+	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
+	rm -rf .content && mkdir -p .content/usr/lib/opkg
+	$(OPKG) -o .content update
+	$(OPKG) -o .content install $(REPODIR)/output/deb/*.deb
+	$(UBIFS) --root=.content --output=$(UBIFSFULLIMG)
+
+dev_image: opkg_conf
+	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
+	rm -rf .content && mkdir -p .content/usr/lib/opkg
+	$(OPKG) -o .content update
+	$(OPKG) -o .content install firmware
+	$(OPKG) -o .content install devtools
+	$(UBIFS) --root=.content --output=$(UBIFSDEVIMG)
+
+normal_image: opkg_conf
+	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
+	rm -rf .content && mkdir -p .content/usr/lib/opkg
+	$(OPKG) -o .content update
+	$(OPKG) -o .content install firmware
+	$(UBIFS) --root=.content --output=$(UBIFSIMG)
 
 ifdef CONFIG_USER_PPPD_PPPD_PPPD
 	$(ROMFSINST) -d pppd-peers-gprs /etc/ppp/peers/gprs
@@ -54,8 +89,7 @@ linux_image:
 	openssl dgst -sha1 -sign $(SIGNATURE_KEY) -out $(LINUXSIG) $(LINUXUBOOTIMG)
 	cat $(LINUXSIG) $(LINUXUBOOTIMG) > $(LINUXIMG)
 
-image:
+image: full_image dev_image normal_image
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
 	genext2fs -b 5120 -D $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
-	mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0 --root=$(ROMFSDIR) --output=$(UBIFSIMG)
 #	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
