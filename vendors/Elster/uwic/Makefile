@@ -29,16 +29,15 @@ EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 
 OPKG       := $(ROOTDIR)/tools/opkg-cl -f /tmp/opkg.conf
 UBIFS      := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
+CONTENT    := $(CURDIR)/.content
 
 clean:
 	rm -rf $(ROMFSDIR)
-	rm -rf .content
+	rm -rf $(CONTENT)
 	rm -rf $(IMAGEDIR)
 
 opkg_conf:
 	echo 'src Packages file://$(REPODIR)/output/deb' > /tmp/opkg.conf
-	echo 'dest root /'                              >> /tmp/opkg.conf
-	echo 'dest ram /'                               >> /tmp/opkg.conf
 
 romfs: opkg_conf
 	[ -d $(ROMFSDIR)/usr/lib/opkg ] || mkdir -p $(ROMFSDIR)/usr/lib/opkg
@@ -47,25 +46,28 @@ romfs: opkg_conf
 
 full_image: opkg_conf
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	rm -rf .content && mkdir -p .content/usr/lib/opkg
-	$(OPKG) -o .content update
-	$(OPKG) -o .content install $(REPODIR)/output/deb/*.deb
-	$(UBIFS) --root=.content --output=$(UBIFSFULLIMG)
+	rm -rf $(CONTENT) && mkdir -p $(CONTENT)/usr/lib/opkg
+	$(OPKG) -o $(CONTENT) update
+	$(OPKG) -o $(CONTENT) install $(REPODIR)/output/deb/*.deb
+	$(UBIFS) --root=$(CONTENT) --output=$(UBIFSFULLIMG)
+	rm -rf $(CONTENT)
 
 dev_image: opkg_conf
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	rm -rf .content && mkdir -p .content/usr/lib/opkg
-	$(OPKG) -o .content update
-	$(OPKG) -o .content install firmware
-	$(OPKG) -o .content install devtools
-	$(UBIFS) --root=.content --output=$(UBIFSDEVIMG)
+	rm -rf $(CONTENT) && mkdir -p $(CONTENT)/usr/lib/opkg
+	$(OPKG) -o $(CONTENT) update
+	$(OPKG) -o $(CONTENT) install firmware
+	$(OPKG) -o $(CONTENT) install devtools
+	$(UBIFS) --root=$(CONTENT) --output=$(UBIFSDEVIMG)
+	rm -rf $(CONTENT)
 
 normal_image: opkg_conf
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	rm -rf .content && mkdir -p .content/usr/lib/opkg
-	$(OPKG) -o .content update
-	$(OPKG) -o .content install firmware
-	$(UBIFS) --root=.content --output=$(UBIFSIMG)
+	rm -rf $(CONTENT) && mkdir -p $(CONTENT)/usr/lib/opkg
+	$(OPKG) -o $(CONTENT) update
+	$(OPKG) -o $(CONTENT) install firmware
+	$(UBIFS) --root=$(CONTENT) --output=$(UBIFSIMG)
+	rm -rf $(CONTENT)
 
 ifdef CONFIG_USER_PPPD_PPPD_PPPD
 	$(ROMFSINST) -d pppd-peers-gprs /etc/ppp/peers/gprs
