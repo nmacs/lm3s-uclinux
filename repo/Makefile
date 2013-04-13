@@ -2,7 +2,11 @@
 
 include $(ROOTDIR)/vendors/config/common/config.arch
 
-CALL_OPKG=$(OPKG) --tmp-dir /tmp -o /tmp -f /tmp/opkg.conf
+CALL_OPKG   := $(OPKG) --tmp-dir /tmp -o /tmp -f /tmp/opkg.conf
+PUBLISH_DEB := publish_package.sh
+LOAD_DEB    := load_package.sh
+
+APTREPODIR  := $(REPODIR)/apt
 
 .PHONY: repo
 repo:
@@ -11,21 +15,22 @@ repo:
 	mkdir -p $(REPODIR)/output/deb
 	touch $(REPODIR)/output/ucdeb/Packages
 	touch $(REPODIR)/output/deb/Packages
-	for dir in `ls`; do [ ! -f $$dir/Makefile ] || $(MAKEARCH) -C $$dir repo ; done
+	$(MAKEARCH) -C init repo
+#	for dir in `ls`; do [ ! -f $$dir/Makefile ] || $(MAKEARCH) -C $$dir repo ; done
 
-.PHONY: firmware
-firmware:
-	rm -rf $(REPODIR)/output/.firmware
-	mkdir -p $(REPODIR)/output/.firmware
-	mkdir -p /tmp/usr/lib/opkg
-	echo "src snapshots file://$(REPODIR)/output/ucdeb" > /tmp/opkg.conf
-	echo "lists_dir ext /" >> /tmp/opkg.conf
-	$(CALL_OPKG) update
-	$(CALL_OPKG) --cache $(REPODIR)/output/.firmware --download-only  install firmware
-	cp $(REPODIR)/output/ucdeb/Packages $(REPODIR)/output/.firmware/Packages
-	version=`cat $$REPODIR/firmware/control | grep Version: | cut -d' ' -f 2`; \
-	filename="firmware-$$version"; \
-	mkfs.cramfs "$$REPODIR/output/.firmware/" "$$REPODIR/output/$$filename"
+# .PHONY: firmware
+# firmware:
+# 	rm -rf $(REPODIR)/output/.firmware
+# 	mkdir -p $(REPODIR)/output/.firmware
+# 	mkdir -p /tmp/usr/lib/opkg
+# 	echo "src snapshots file://$(REPODIR)/output/ucdeb" > /tmp/opkg.conf
+# 	echo "lists_dir ext /" >> /tmp/opkg.conf
+# 	$(CALL_OPKG) update
+# 	$(CALL_OPKG) --cache $(REPODIR)/output/.firmware --download-only  install firmware
+# 	cp $(REPODIR)/output/ucdeb/Packages $(REPODIR)/output/.firmware/Packages
+# 	version=`cat $$REPODIR/firmware/control | grep Version: | cut -d' ' -f 2`; \
+# 	filename="firmware_$$version"; \
+# 	mkfs.cramfs "$$REPODIR/output/.firmware/" "$$REPODIR/output/$$filename"
 
 .PHONY: clean
 clean:
