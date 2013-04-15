@@ -13,8 +13,6 @@ LINUXCOMPRESSEDFILE = Image.lzo
 LINUXUBOOTFILE      = Image.uboot
 LINUXSIGFILE        = Image.uboot.sig
 UBIFSFILE           = Image.ubifs
-UBIFSDEVFILE        = Image-dev.ubifs
-UBIFSFULLFILE       = Image-full.ubifs
 EXT2FILE            = Image.ext2
 
 LINUXBOOTDIR       = $(ROOTDIR)/$(LINUXDIR)/arch/arm/boot
@@ -23,8 +21,6 @@ LINUXUBOOTIMG      = $(LINUXBOOTDIR)/$(LINUXUBOOTFILE)
 LINUXSIG           = $(LINUXBOOTDIR)/$(LINUXSIGFILE)
 LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
-UBIFSDEVIMG        = $(IMAGEDIR)/$(UBIFSDEVFILE)
-UBIFSFULLIMG       = $(IMAGEDIR)/$(UBIFSFULLFILE)
 EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 
 UBIFS      := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
@@ -62,3 +58,4 @@ image:
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
 	genext2fs -b 5120 -D $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
 #	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
+	$(UBIFS) -r $(ROMFSDIR) -o $(UBIFSIMG)
