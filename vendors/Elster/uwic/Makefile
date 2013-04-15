@@ -37,6 +37,7 @@ romfs:
 	[ -d $(ROMFSDIR) ] || mkdir -p $(ROMFSDIR)
 	$(MAKE) -C sys romfs
 	$(MAKE) -C init romfs
+	$(ROMFSINST) -d $(LINUXIMG) /boot/linux.bin
 
 modules.dep:
 ifdef CONFIG_MODULES
