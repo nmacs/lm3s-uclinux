@@ -20,8 +20,12 @@ do
 	else
 		info=`reprepro --basedir $repo list $codename $dep_package | grep $arch`
 		package_version=`echo $info | cut -s -d' ' -f 3`
-		echo "$name depends from $dep_package $package_version"
-		new_depends="$new_depends$dep_package(=$package_version), "
+		if [ -n "$package_version" ]; then
+			echo "$name depends from $dep_package $package_version"
+			new_depends="$new_depends$dep_package(=$package_version), "
+		else
+			new_depends="$new_depends$dep_package, "
+		fi
 	fi
 done
 new_depends=${new_depends:0:${#new_depends}-2}
