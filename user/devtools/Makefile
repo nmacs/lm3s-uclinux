@@ -1,13 +1,10 @@
 BUILDDIR   := $(CURDIR)/build
 KBUILD_SRC := $(ROOTDIR)/busybox
-REPO_TARGETDIR=$(REPODIR)/devtools/content
 
 all:
 	mkdir -p $(BUILDDIR)
 	cp config.devtools $(BUILDDIR)/.config
 	$(MAKE) -C $(BUILDDIR) KBUILD_SRC=$(KBUILD_SRC) -f $(KBUILD_SRC)/Makefile busybox
-
-romfs:
 
 clean:
 	$(MAKE) -C $(BUILDDIR) clean
@@ -19,15 +16,28 @@ INSTALLER=$(CURDIR)/install-romfs.sh
 $(objtree)/busybox.links: $(srctree)/applets/busybox.mkll $(objtree)/include/autoconf.h $(objtree)/include/applets.h
 	$(Q)-$(SHELL) $^ >$@
 
-REPO_TARGETDIR=$(REPODIR)/devtools/content
+ifdef CONFIG_UCLINUX
+TARGETDIR=$(ROMFSDIR)/bin/ --nosubdir
+else
+TARGETDIR=$(ROMFSDIR)/
+endif
 
-# Before copying, remove all existing links
-repo: $(INSTALLER) $(objtree)/busybox.links
-	if [ -f "$$REPO_TARGETDIR/bin/busybox" ]; then \
-		inode=`ls -i $$REPO_TARGETDIR/bin/busybox | awk '{print $$1}'`; \
-		ls -iL "$$REPO_TARGETDIR/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
-		sed "s:^:$$REPO_TARGETDIR/bin:" | env -i xargs rm -f; \
+# Before copying, remove all existing busybox links
+romfs: $(INSTALLER) $(objtree)/busybox.links
+	if [ -f "$$ROMFSDIR/bin/busybox" ]; then \
+		inode=`ls -i $$ROMFSDIR/bin/busybox | awk '{print $$1}'`; \
+		ls -iL "$$ROMFSDIR/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
+		sed "s:^:$$ROMFSDIR/bin/:" | env -i xargs rm -f; \
 	fi
-	mkdir -p $(REPO_TARGETDIR)/bin
-	cp $(objtree)/busybox $(REPO_TARGETDIR)/bin/devtools
-	cd $(objtree) && $(SHELL) $< $(REPO_TARGETDIR)/bin/ --nosubdir
+	$(ROMFSINST) -d $(objtree)/busybox /bin/devtools
+	cd $(objtree) && $(SHELL) $< $(TARGETDIR)
+
+# Before copying, remove all existing busybox links
+repo: $(INSTALLER) $(objtree)/busybox.links
+	if [ -f "$$CONTENT/bin/busybox" ]; then \
+		inode=`ls -i $$CONTENT/bin/busybox | awk '{print $$1}'`; \
+		ls -iL "$$CONTENT/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
+		sed "s:^:$$CONTENT/bin:" | env -i xargs rm -f; \
+	fi
+	$(REPOINST) $(objtree)/busybox /bin/devtools
+	cd $(objtree) && $(SHELL) $< $(CONTENT)/bin/ --nosubdir

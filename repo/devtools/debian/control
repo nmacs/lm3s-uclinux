@@ -1,8 +1,8 @@
 Package: devtools
 Version: 0.0.1
 Section: base
-Architecture: all
-Description: Applications for system develompemt and debugging
+Architecture: uwic-v1
+Description: Applications for system development and debugging
 HomePage:
 Maintainer: Max Nekludov
 Priority: otional

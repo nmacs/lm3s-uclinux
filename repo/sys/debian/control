@@ -1,8 +1,8 @@
 Package: sys
 Version: 0.0.1
 Section: base
-Architecture: all
-Description: Lua.
+Architecture: uwic-v1
+Description: Base system components and directories.
 HomePage: unknown
 Maintainer: Max Nekludov
 Priority: standard

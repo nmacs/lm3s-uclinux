@@ -10,13 +10,19 @@ APTREPODIR  := $(REPODIR)/apt
 
 .PHONY: repo
 repo:
-	rm -rf $(REPODIR)/output
-	mkdir -p $(REPODIR)/output/ucdeb
-	mkdir -p $(REPODIR)/output/deb
-	touch $(REPODIR)/output/ucdeb/Packages
-	touch $(REPODIR)/output/deb/Packages
-	$(MAKEARCH) -C init repo
-#	for dir in `ls`; do [ ! -f $$dir/Makefile ] || $(MAKEARCH) -C $$dir repo ; done
+	$(MAKE) -C sys repo
+	$(MAKE) -C init repo
+	$(MAKE) -C clock repo
+	$(MAKE) -C kernel repo
+	$(MAKE) -C mtdutils repo
+	$(MAKE) -C syslog repo
+	$(MAKE) -C busybox repo
+	$(MAKE) -C devtools repo
+	$(MAKE) -C lua repo
+	$(MAKE) -C mgate repo
+	$(MAKE) -C opkg repo
+	$(MAKE) -C watchdog repo
+	$(MAKE) -C firmware repo
 
 # .PHONY: firmware
 # firmware:

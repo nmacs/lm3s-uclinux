@@ -27,52 +27,14 @@ UBIFSDEVIMG        = $(IMAGEDIR)/$(UBIFSDEVFILE)
 UBIFSFULLIMG       = $(IMAGEDIR)/$(UBIFSFULLFILE)
 EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
 
-OPKG       := $(ROOTDIR)/tools/opkg-cl -f /tmp/opkg.conf
 UBIFS      := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
-CONTENT    := $(CURDIR)/.content
 
 clean:
 	rm -rf $(ROMFSDIR)
-	rm -rf $(CONTENT)
 	rm -rf $(IMAGEDIR)
 
-opkg_conf:
-	echo 'src Packages file://$(REPODIR)/output/deb' > /tmp/opkg.conf
-
-romfs: opkg_conf
-	[ -d $(ROMFSDIR)/usr/lib/opkg ] || mkdir -p $(ROMFSDIR)/usr/lib/opkg
-	$(OPKG) -o $(ROMFSDIR) update
-	$(OPKG) -o $(ROMFSDIR) install $(REPODIR)/output/deb/*.deb
-
-full_image: opkg_conf
-	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	rm -rf $(CONTENT) && mkdir -p $(CONTENT)/usr/lib/opkg
-	$(OPKG) -o $(CONTENT) update
-	$(OPKG) -o $(CONTENT) install $(REPODIR)/output/deb/*.deb
-	$(UBIFS) --root=$(CONTENT) --output=$(UBIFSFULLIMG)
-	rm -rf $(CONTENT)
-
-dev_image: opkg_conf
-	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	rm -rf $(CONTENT) && mkdir -p $(CONTENT)/usr/lib/opkg
-	$(OPKG) -o $(CONTENT) update
-	$(OPKG) -o $(CONTENT) install firmware
-	$(OPKG) -o $(CONTENT) install devtools
-	$(UBIFS) --root=$(CONTENT) --output=$(UBIFSDEVIMG)
-	rm -rf $(CONTENT)
-
-normal_image: opkg_conf
-	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	rm -rf $(CONTENT) && mkdir -p $(CONTENT)/usr/lib/opkg
-	$(OPKG) -o $(CONTENT) update
-	$(OPKG) -o $(CONTENT) install firmware
-	$(UBIFS) --root=$(CONTENT) --output=$(UBIFSIMG)
-	rm -rf $(CONTENT)
-
-ifdef CONFIG_USER_PPPD_PPPD_PPPD
-	$(ROMFSINST) -d pppd-peers-gprs /etc/ppp/peers/gprs
-	$(ROMFSINST) -d pppd-chat-gprs /etc/ppp/chat/gprs
-endif
+romfs:
+	[ -d $(ROMFSDIR) ] || mkdir -p $(ROMFSDIR)
 
 modules.dep:
 ifdef CONFIG_MODULES
@@ -83,7 +45,9 @@ ifdef CONFIG_MODULES
 	) > $(ROMFSDIR)/lib/modules/modules.dep
 endif
 
-linux_image:
+linux_image: $(LINUXIMG)
+
+$(LINUXIMG): $(LINUXBOOTDIR)/Image
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
 	lzop -9 -f -o $(LINUXCOMPRESSEDIMG) $(LINUXBOOTDIR)/Image
 #	gzip --best --force --stdout $(LINUXBOOTDIR)/Image > $(LINUXCOMPRESSEDIMG)
@@ -91,7 +55,7 @@ linux_image:
 	openssl dgst -sha1 -sign $(SIGNATURE_KEY) -out $(LINUXSIG) $(LINUXUBOOTIMG)
 	cat $(LINUXSIG) $(LINUXUBOOTIMG) > $(LINUXIMG)
 
-image: full_image dev_image normal_image
+image:
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
 	genext2fs -b 5120 -D $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
 #	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs

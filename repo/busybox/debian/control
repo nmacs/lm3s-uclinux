@@ -1,7 +1,7 @@
 Package: busybox
 Version: 0.0.1
 Section: base
-Architecture: all
+Architecture: uwic-v1
 Description: BusyBox combines tiny versions of many common UNIX utilities into a single small executable.
 HomePage: http://http://www.busybox.net/
 Maintainer: Max Nekludov

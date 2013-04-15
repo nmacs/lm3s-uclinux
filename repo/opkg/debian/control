@@ -1,8 +1,8 @@
-Package: kernel
+Package: opkg
 Version: 0.0.1
 Section: base
-Architecture: all
-Description: Linux kernel.
+Architecture: uwic-v1
+Description: Package manager.
 HomePage: unknown
 Maintainer: Max Nekludov
 Priority: required

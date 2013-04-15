@@ -31,4 +31,4 @@ uninstall:
 	rm -rf $(mandir)/man8/htpdate.8.gz
 
 romfs:
-	$(ROMFSINST) htpdate /bin/htpdate
+	$(ROMFSINST) -d htpdate /bin/htpdate

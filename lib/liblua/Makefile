@@ -97,68 +97,36 @@ clean:
 	$(MAKE) -C $(LSYSLOG_DIR) clean
 
 romfs:
-ifdef CONFIG_LIB_LUA_SHELL
-	$(ROMFSINST) $(LUA_DIR)/src/lua /bin/lua
-endif
-ifdef CONFIG_LIB_LUA_LUASOCKET
-	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/socket.lua /usr/local/share/lua/5.1/socket.lua
-	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/http.lua /usr/local/share/lua/5.1/socket/http.lua
-	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/wget.lua /usr/local/share/lua/5.1/socket/wget.lua
-	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/url.lua /usr/local/share/lua/5.1/socket/url.lua
-	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/ltn12.lua /usr/local/share/lua/5.1/ltn12.lua
-	$(ROMFSINST) -d $(LUASOCKET_DIR)/src/mime.lua /usr/local/share/lua/5.1/mime.lua
-endif
-ifdef CONFIG_LIB_LUA_LUACOXPCALL
-	$(ROMFSINST) -d $(LUACOXPCALL_DIR)/src/coxpcall.lua /usr/local/share/lua/5.1/coxpcall.lua
-endif
-ifdef CONFIG_LIB_LUA_LUACOPAS
-	$(ROMFSINST) -d $(LUACOPAS_DIR)/src/copas/copas.lua /usr/local/share/lua/5.1/copas.lua
-	$(ROMFSINST) -d $(LUACOPAS_DIR)/tests/cosocket.lua /usr/local/share/lua/5.1/copas/cosocket.lua
-endif
-ifdef CONFIG_LIB_LUA_LUAXAVANTE
-	$(ROMFSINST) -d $(LUAXAVANTE_DIR)/src/xavante/xavante.lua /usr/local/share/lua/5.1/xavante.lua
-	$(ROMFSINST) -d $(LUAXAVANTE_DIR)/src/xavante /usr/local/share/lua/5.1/xavante
-endif
-ifdef CONFIG_LIB_LUA_JSON
-	$(ROMFSINST) -d $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
-	$(ROMFSINST) -d $(JSON_DIR)/json/jsonrpc.lua /usr/local/share/lua/5.1/jsonrpc.lua
-endif
-
-REPO_TARGET="$(REPODIR)/lua/content"
+	$(ROMFSINST) -e CONFIG_LIB_LUA_SHELL -d $(LUA_DIR)/src/lua /bin/lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/socket.lua /usr/local/share/lua/5.1/socket.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/http.lua /usr/local/share/lua/5.1/socket/http.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/wget.lua /usr/local/share/lua/5.1/socket/wget.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/url.lua /usr/local/share/lua/5.1/socket/url.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/ltn12.lua /usr/local/share/lua/5.1/ltn12.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/mime.lua /usr/local/share/lua/5.1/mime.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUACOXPCALL -d $(LUACOXPCALL_DIR)/src/coxpcall.lua /usr/local/share/lua/5.1/coxpcall.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUACOPAS -d $(LUACOPAS_DIR)/src/copas/copas.lua /usr/local/share/lua/5.1/copas.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUACOPAS -d $(LUACOPAS_DIR)/tests/cosocket.lua /usr/local/share/lua/5.1/copas/cosocket.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUAXAVANTE -d $(LUAXAVANTE_DIR)/src/xavante/xavante.lua /usr/local/share/lua/5.1/xavante.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUAXAVANTE -d $(LUAXAVANTE_DIR)/src/xavante /usr/local/share/lua/5.1/xavante
+	$(ROMFSINST) -e CONFIG_LIB_LUA_JSON -d $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_JSON -d $(JSON_DIR)/json/jsonrpc.lua /usr/local/share/lua/5.1/jsonrpc.lua
 
 repo:
-ifdef CONFIG_LIB_LUA_SHELL
-	mkdir -p $(REPO_TARGET)/bin
-	cp $(LUA_DIR)/src/lua $(REPO_TARGET)/bin/lua
-endif
-ifdef CONFIG_LIB_LUA_LUASOCKET
-	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1/socket
-	cp $(LUASOCKET_DIR)/src/socket.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket.lua
-	cp $(LUASOCKET_DIR)/src/http.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket/http.lua
-	cp $(LUASOCKET_DIR)/src/wget.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket/wget.lua
-	cp $(LUASOCKET_DIR)/src/url.lua $(REPO_TARGET)/usr/local/share/lua/5.1/socket/url.lua
-	cp $(LUASOCKET_DIR)/src/ltn12.lua $(REPO_TARGET)/usr/local/share/lua/5.1/ltn12.lua
-	cp $(LUASOCKET_DIR)/src/mime.lua $(REPO_TARGET)/usr/local/share/lua/5.1/mime.lua
-endif
-ifdef CONFIG_LIB_LUA_LUACOXPCALL
-	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1
-	cp $(LUACOXPCALL_DIR)/src/coxpcall.lua $(REPO_TARGET)/usr/local/share/lua/5.1/coxpcall.lua
-endif
-ifdef CONFIG_LIB_LUA_LUACOPAS
-	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1/copas
-	cp $(LUACOPAS_DIR)/src/copas/copas.lua $(REPO_TARGET)/usr/local/share/lua/5.1/copas.lua
-	cp $(LUACOPAS_DIR)/tests/cosocket.lua $(REPO_TARGET)/usr/local/share/lua/5.1/copas/cosocket.lua
-endif
-ifdef CONFIG_LIB_LUA_LUAXAVANTE
-	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1
-	cp $(LUAXAVANTE_DIR)/src/xavante/xavante.lua $(REPO_TARGET)/usr/local/share/lua/5.1/xavante.lua
-	cp -r $(LUAXAVANTE_DIR)/src/xavante $(REPO_TARGET)/usr/local/share/lua/5.1/
-endif
-ifdef CONFIG_LIB_LUA_JSON
-	mkdir -p $(REPO_TARGET)/usr/local/share/lua/5.1
-	cp $(JSON_DIR)/json/json.lua $(REPO_TARGET)/usr/local/share/lua/5.1/json.lua
-	cp $(JSON_DIR)/json/jsonrpc.lua $(REPO_TARGET)/usr/local/share/lua/5.1/jsonrpc.lua
-endif
+	$(REPOINST) -e CONFIG_LIB_LUA_SHELL $(LUA_DIR)/src/lua /bin/lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/socket.lua /usr/local/share/lua/5.1/socket.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/http.lua /usr/local/share/lua/5.1/socket/http.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/wget.lua /usr/local/share/lua/5.1/socket/wget.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/url.lua /usr/local/share/lua/5.1/socket/url.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/ltn12.lua /usr/local/share/lua/5.1/ltn12.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/mime.lua /usr/local/share/lua/5.1/mime.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUACOXPCALL $(LUACOXPCALL_DIR)/src/coxpcall.lua /usr/local/share/lua/5.1/coxpcall.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUACOPAS $(LUACOPAS_DIR)/src/copas/copas.lua /usr/local/share/lua/5.1/copas.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUACOPAS $(LUACOPAS_DIR)/tests/cosocket.lua /usr/local/share/lua/5.1/copas/cosocket.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUAXAVANTE $(LUAXAVANTE_DIR)/src/xavante/xavante.lua /usr/local/share/lua/5.1/xavante.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUAXAVANTE $(LUAXAVANTE_DIR)/src/xavante /usr/local/share/lua/5.1/xavante
+	$(REPOINST) -e CONFIG_LIB_LUA_JSON $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_JSON $(JSON_DIR)/json/jsonrpc.lua /usr/local/share/lua/5.1/jsonrpc.lua
 
 romfs_user:
 

@@ -1,7 +1,7 @@
 Package: init
 Version: 0.0.1
 Section: base
-Architecture: uwic-1.0
+Architecture: uwic-v1
 Description: init application, rc script and init.rd scripts.
 HomePage: unknown
 Maintainer: Max Nekludov

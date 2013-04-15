@@ -16,9 +16,9 @@ DIRS += tmp/run
 
 content:
 	for i in $(DIRS); do \
-		[ -d content/$$i ] || mkdir -p content/$$i; \
+		[ -d $(CONTENT)/$$i ] || mkdir -p $(CONTENT)/$$i; \
 	done
-	ln -s /tmp/run content/var/run
-	ln -s /tmp/resolv.conf content/etc/resolv.conf
-	ln -s /tmp/hosts content/etc/hosts
-	$(ROOTDIR)/tools/device-table.pl -d content/ -f $(ROOTDIR)/vendors/Elster/uwic/dev.txt
+	$(REPOINST) -s /tmp/run /var/run
+	$(REPOINST) -s /tmp/resolv.conf /etc/resolv.conf
+	$(REPOINST) -s /tmp/hosts /etc/hosts
+	$(ROOTDIR)/tools/device-table.pl -d $(CONTENT) -f $(PRODUCTDIR)/dev.txt

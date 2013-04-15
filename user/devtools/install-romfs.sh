@@ -78,7 +78,4 @@ for i in $h ; do
     fi
 done
 
-romfs-inst.sh -e CONFIG_USER_BUSYBOX_TELNETD \
-	-a "telnet  stream tcp nowait root /bin/telnetd telnetd" /etc/inetd.conf
-
 exit 0

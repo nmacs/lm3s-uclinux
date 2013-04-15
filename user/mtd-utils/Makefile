@@ -1,8 +1,5 @@
 MTDUTILS_SRC := mtd-utils-1.5.0
 
-MTDUTILS_REPO := $(REPODIR)/mtdutils
-REPOINST      := $(ROMFSINST) -d -r $(MTDUTILS_REPO)/content
-
 CFLAGS += -I$(STAGEDIR)/include
 CFLAGS += -L$(STAGEDIR)/lib
 CFLAGS += $(ZLIBCPPFLAGS) $(LZOCPPFLAGS)

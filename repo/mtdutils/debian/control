@@ -1,8 +1,8 @@
 Package: mtdutils
 Version: 0.0.1
 Section: base
-Architecture: all
-Description:
+Architecture: uwic-v1
+Description: mtdutils
 HomePage:
 Maintainer: Max Nekludov
-Priority: otional
+Priority: optional

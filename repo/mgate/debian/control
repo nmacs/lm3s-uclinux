@@ -1,7 +1,7 @@
 Package: mgate
 Version: 0.0.1
 Section: base
-Architecture: all
+Architecture: uwic-v1
 Description: MeterGate.
 HomePage: unknown
 Maintainer: Max Nekludov

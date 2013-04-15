@@ -18,11 +18,16 @@ if [[ "$1" = "packages" ]]; then
 	exit 0
 fi
 
+if [[ "$1" = "repo" ]]; then
+	make repo CROSS=arm-uclinuxeabi- CROSS_COMPILE=arm-uclinuxeabi-
+	exit 0
+fi
+
 if [[ "$1" = "rebuild" ]]; then
   make clean CROSS=arm-uclinuxeabi- CROSS_COMPILE=arm-uclinuxeabi- || exit 1
 fi
 
 make TOOLCHAIN=$TOOLCHAIN CROSS_COMPILE=arm-uclinuxeabi- tools automake subdirs linux_image || exit 1
-fakeroot -- make TOOLCHAIN=$TOOLCHAIN CROSS_COMPILE=arm-uclinuxeabi- repo romfs image || exit 1
+fakeroot -- make TOOLCHAIN=$TOOLCHAIN CROSS_COMPILE=arm-uclinuxeabi- romfs image || exit 1
 
 echo == Compiled ==

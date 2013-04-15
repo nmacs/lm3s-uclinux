@@ -1,8 +1,8 @@
 Package: clock
 Version: 0.0.1
 Section: base
-Architecture: all
-Description: Clock setting.
+Architecture: uwic-v1
+Description: Syste clock control.
 HomePage: unknown
 Maintainer: Max Nekludov
 Priority: important

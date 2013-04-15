@@ -54,27 +54,24 @@ TARGETDIR=$(ROMFSDIR)/
 endif
 
 # Before copying, remove all existing busybox links
-#romfs: $(INSTALLER) $(objtree)/busybox.links
-#	if [ -f "$$ROMFSDIR/bin/busybox" ]; then \
-#		inode=`ls -i $$ROMFSDIR/bin/busybox | awk '{print $$1}'`; \
-#		ls -iL "$$ROMFSDIR/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
-#		sed "s:^:$$ROMFSDIR/bin/:" | env -i xargs rm -f; \
-#	fi
-#	$(ROMFSINST) $(objtree)/busybox /bin/busybox
-#	$(SHELL) $< $(TARGETDIR)
-
-REPO_TARGETDIR=$(REPODIR)/busybox/content
+romfs: $(INSTALLER) $(objtree)/busybox.links
+	if [ -f "$$ROMFSDIR/bin/busybox" ]; then \
+		inode=`ls -i $$ROMFSDIR/bin/busybox | awk '{print $$1}'`; \
+		ls -iL "$$ROMFSDIR/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
+		sed "s:^:$$ROMFSDIR/bin/:" | env -i xargs rm -f; \
+	fi
+	$(ROMFSINST) -d $(objtree)/busybox /bin/busybox
+	cd $(objtree) && $(SHELL) $< $(TARGETDIR)
 
 # Before copying, remove all existing busybox links
 repo: $(INSTALLER) $(objtree)/busybox.links
-	if [ -f "$$REPO_TARGETDIR/bin/busybox" ]; then \
-		inode=`ls -i $$REPO_TARGETDIR/bin/busybox | awk '{print $$1}'`; \
-		ls -iL "$$REPO_TARGETDIR/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
-		sed "s:^:$$REPO_TARGETDIR/bin:" | env -i xargs rm -f; \
+	if [ -f "$$CONTENT/bin/busybox" ]; then \
+		inode=`ls -i $$CONTENT/bin/busybox | awk '{print $$1}'`; \
+		ls -iL "$$CONTENT/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
+		sed "s:^:$$CONTENT/bin:" | env -i xargs rm -f; \
 	fi
-	mkdir -p $(REPO_TARGETDIR)/bin
-	cp $(objtree)/busybox $(REPO_TARGETDIR)/bin/busybox
-	cd $(objtree) && $(SHELL) $< $(REPO_TARGETDIR)/bin/ --nosubdir
+	$(REPOINST) $(objtree)/busybox /bin/busybox
+	cd $(objtree) && $(SHELL) $< $(CONTENT)/bin/ --nosubdir
 
 # Not very elegant: copies testsuite to objdir...
 # (cp -pPR is POSIX-compliant (cp -dpR or cp -a would not be))

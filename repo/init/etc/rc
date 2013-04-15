@@ -21,3 +21,4 @@ mkdir -p /tmp/run
 for i in /etc/rc.d/S*; do
 	. $i
 done
+

@@ -1,8 +1,8 @@
 Package: firmware
-Version: 0.1
+Version: 1
 Depends: kernel, opkg, sys, watchdog, init, clock, busybox, syslog, lua, mgate
 Section: base
-Architecture: uwic10
+Architecture: uwic-v1
 Description: Firmware assembly package for uWIC HW 1.0
 HomePage: unknown
 Maintainer: Max Nekludov

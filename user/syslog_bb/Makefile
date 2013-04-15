@@ -8,26 +8,24 @@ all:
 	$(MAKE) -C $(BUILDDIR) KBUILD_SRC=$(KBUILD_SRC) -f $(KBUILD_SRC)/Makefile busybox
 
 romfs:
+	$(ROMFSINST) -d $(BUILDDIR)/busybox /bin/syslog_bb
+	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_SYSLOGD -s syslog_bb /bin/syslogd
+	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_SYSLOGD etc/init.d/syslogd /etc/init.d/syslogd
+	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_SYSLOGD -s /etc/init.d/syslogd /etc/rc.d/S20syslogd
+	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_KLOGD -s syslog_bb /bin/klogd
+	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_KLOGD etc/init.d/klogd /etc/init.d/klogd
+	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_KLOGD -s /etc/init.d/klogd /etc/rc.d/S21klogd
+	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_LOGGER -s syslog_bb /bin/logger
 
 repo:
-	mkdir -p $(REPO_TARGETDIR)
-	mkdir -p $(REPO_TARGETDIR)/bin
-	mkdir -p $(REPO_TARGETDIR)/etc/init.d
-	mkdir -p $(REPO_TARGETDIR)/etc/rc.d
-	cp $(BUILDDIR)/busybox    $(REPO_TARGETDIR)/bin/syslog_bb
-ifdef CONFIG_USER_SYSLOG_BB_SYSLOGD
-	ln -s syslog_bb           $(REPO_TARGETDIR)/bin/syslogd
-	cp etc/syslogd            $(REPO_TARGETDIR)/etc/init.d/syslogd
-	ln -s /etc/init.d/syslogd $(REPO_TARGETDIR)/etc/rc.d/S20syslogd
-endif
-ifdef CONFIG_USER_SYSLOG_BB_KLOGD
-	ln -s syslog_bb           $(REPO_TARGETDIR)/bin/klogd
-	cp etc/klogd              $(REPO_TARGETDIR)/etc/init.d/klogd
-	ln -s /etc/init.d/klogd   $(REPO_TARGETDIR)/etc/rc.d/S21klogd
-endif
-ifdef CONFIG_USER_SYSLOG_BB_LOGGER
-	ln -s syslog_bb           $(REPO_TARGETDIR)/bin/logger
-endif
+	$(REPOINST) $(BUILDDIR)/busybox /bin/syslog_bb
+	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_SYSLOGD -s syslog_bb /bin/syslogd
+	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_SYSLOGD etc/init.d/syslogd /etc/init.d/syslogd
+	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_SYSLOGD -s /etc/init.d/syslogd /etc/rc.d/S20syslogd
+	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_KLOGD -s syslog_bb /bin/klogd
+	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_KLOGD etc/init.d/klogd /etc/init.d/klogd
+	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_KLOGD -s /etc/init.d/klogd /etc/rc.d/S21klogd
+	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_LOGGER -s syslog_bb /bin/logger
 
 clean:
 	$(MAKE) -C $(BUILDDIR) clean
