@@ -24,8 +24,8 @@ endif
 
 # Before copying, remove all existing busybox links
 romfs: $(INSTALLER) $(objtree)/busybox.links
-	if [ -f "$$ROMFSDIR/bin/busybox" ]; then \
-		inode=`ls -i $$ROMFSDIR/bin/busybox | awk '{print $$1}'`; \
+	if [ -f "$$ROMFSDIR/bin/devtools" ]; then \
+		inode=`ls -i $$ROMFSDIR/bin/devtools | awk '{print $$1}'`; \
 		ls -iL "$$ROMFSDIR/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
 		sed "s:^:$$ROMFSDIR/bin/:" | env -i xargs rm -f; \
 	fi
@@ -34,8 +34,8 @@ romfs: $(INSTALLER) $(objtree)/busybox.links
 
 # Before copying, remove all existing busybox links
 repo: $(INSTALLER) $(objtree)/busybox.links
-	if [ -f "$$CONTENT/bin/busybox" ]; then \
-		inode=`ls -i $$CONTENT/bin/busybox | awk '{print $$1}'`; \
+	if [ -f "$$CONTENT/bin/devtools" ]; then \
+		inode=`ls -i $$CONTENT/bin/devtools | awk '{print $$1}'`; \
 		ls -iL "$$CONTENT/bin" | grep "^ *$$inode" | awk '{print $$2}' | \
 		sed "s:^:$$CONTENT/bin:" | env -i xargs rm -f; \
 	fi
