@@ -16,9 +16,9 @@ romfs:
 	for i in $(DIRS); do \
 		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
 	done
-	$(REPOINST) -s /tmp/run /var/run
-	$(REPOINST) -s /tmp/resolv.conf /etc/resolv.conf
-	$(REPOINST) -s /tmp/hosts /etc/hosts
+	$(ROMFSINST) -s /tmp/run /var/run
+	$(ROMFSINST) -s /tmp/resolv.conf /etc/resolv.conf
+	$(ROMFSINST) -s /tmp/hosts /etc/hosts
 	device-table.pl -d $(ROMFSDIR) -f $(PRODUCTDIR)/dev.txt
 
 repo:
