@@ -35,6 +35,8 @@ clean:
 
 romfs:
 	[ -d $(ROMFSDIR) ] || mkdir -p $(ROMFSDIR)
+	$(MAKE) -C sys romfs
+	$(MAKE) -C init romfs
 
 modules.dep:
 ifdef CONFIG_MODULES
