@@ -23,6 +23,7 @@ repo:
 	$(MAKE) -C opkg repo
 	$(MAKE) -C watchdog repo
 	$(MAKE) -C firmware repo
+	$(MAKE) -C manufacturing
 
 # .PHONY: firmware
 # firmware:
