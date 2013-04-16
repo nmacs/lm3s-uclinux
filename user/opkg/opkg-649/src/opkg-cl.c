@@ -413,6 +413,7 @@ err0:
 	print_error_list();
 	free_error_list();
 
+#ifdef HAVE_FIRMWARE_UPGRADE
 	if (conf->reboot)
 	{
 		fprintf(stderr, "Rebooting system...\n");
@@ -420,6 +421,7 @@ err0:
 		sync();
 		reboot(LINUX_REBOOT_CMD_RESTART);
 	}
+#endif
 
 	return err;
 }
