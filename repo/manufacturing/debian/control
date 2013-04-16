@@ -2,7 +2,7 @@ Package: manufacturing
 Version: 0.0.1
 Depends: fakeroot, mtd-utils
 Section: base
-Architecture: amd64
+Architecture: any
 Description: Manufacturing tools.
 HomePage: unknown
 Maintainer: Max Nekludov

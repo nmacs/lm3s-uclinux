@@ -8,7 +8,7 @@ REPOINST := $(ROMFSINST) -r $(CONTENT) -d
 .PHONY: repo content clean
 
 repo: content
-	build_package.sh $(CURDIR) $(APTREPODIR) ekit
+	build_package.sh $(CURDIR) $(APTREPODIR) $(CODENAME) $(PKG_CROSS)
 
 clean:
 	rm -rf .content

@@ -28,7 +28,7 @@ DIRS    = $(VENDOR_TOPDIRS) include lib include user
 
 
 .PHONY: tools
-tools: ucfront cksum opkg
+tools: ucfront cksum
 	chmod +x tools/romfs-inst.sh tools/modules-alias.sh tools/build-udev-perms.sh
 
 .PHONY: ucfront
@@ -46,12 +46,9 @@ tools/cksum: tools/sg-cksum/*.c
 	ln -sf $(ROOTDIR)/tools/sg-cksum/cksum tools/cksum
 
 .PHONY: opkg
-opkg: tools/opkg-cl
-
-tools/opkg-cl: Makefile
-	cd tools/opkg && ./autogen.sh --disable-gpg --disable-curl --enable-static --disable-shared --disable-shave
-	$(MAKE) -C tools/opkg
-	ln -sf opkg/src/opkg-cl tools/opkg-cl
+opkg:
+	$(MAKE) HOST_ARCH=native -C $(ROOTDIR)/user/opkg
+	ln -sf $(ROOTDIR)/user/opkg/build-native/src/opkg-cl tools/opkg-cl
 
 .PHONY: automake
 automake:
@@ -169,7 +166,7 @@ linux_image:
 romfs: romfs.newlog romfs.subdirs modules_install romfs.post
 
 .PHONY: repo
-repo:
+repo: opkg
 	$(MAKEARCH) -C $(REPODIR) clean
 	$(MAKEARCH) -C $(REPODIR) repo
 	$(MAKEARCH) -C $(REPODIR) firmware

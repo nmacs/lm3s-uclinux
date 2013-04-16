@@ -10,20 +10,30 @@ APTREPODIR  := $(REPODIR)/apt
 
 .PHONY: repo
 repo:
-	$(MAKE) -C sys repo
-	$(MAKE) -C init repo
-	$(MAKE) -C clock repo
-	$(MAKE) -C kernel repo
-	$(MAKE) -C mtdutils repo
-	$(MAKE) -C syslog repo
-	$(MAKE) -C busybox repo
-	$(MAKE) -C devtools repo
-	$(MAKE) -C lua repo
-	$(MAKE) -C mgate repo
-	$(MAKE) -C opkg repo
-	$(MAKE) -C watchdog repo
-	$(MAKE) -C firmware repo
-	$(MAKE) -C manufacturing
+	$(MAKE) CODENAME=ekit -C sys repo
+	$(MAKE) CODENAME=ekit -C init repo
+	$(MAKE) CODENAME=ekit -C clock repo
+	$(MAKE) CODENAME=ekit -C kernel repo
+	$(MAKE) CODENAME=ekit -C mtdutils repo
+	$(MAKE) CODENAME=ekit -C syslog repo
+	$(MAKE) CODENAME=ekit -C busybox repo
+	$(MAKE) CODENAME=ekit -C devtools repo
+	$(MAKE) CODENAME=ekit -C lua repo
+	$(MAKE) CODENAME=ekit -C mgate repo
+	$(MAKE) CODENAME=ekit -C opkg repo
+	$(MAKE) CODENAME=ekit -C watchdog repo
+	$(MAKE) CODENAME=ekit -C firmware repo
+	$(MAKE) CODENAME=ekit-dev PKG_CROSS=i386 -C manufacturing repo
+	$(MAKE) CODENAME=ekit-dev PKG_CROSS=amd64 -C manufacturing repo
+	echo -n "Make ekit repository snapshot? [Y/n]: "; \
+	read answer; \
+	if [ -z "$$answer" ]; then \
+		answer="y"; \
+	fi; \
+	if [ "$$answer" = "y" ]; then \
+		date_stamp=`date +%F-%H-%M-%S`; \
+		reprepro -b $(APTREPODIR) gensnapshot ekit $$date_stamp; \
+	fi
 
 # .PHONY: firmware
 # firmware:
