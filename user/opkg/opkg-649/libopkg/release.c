@@ -180,9 +180,16 @@ release_download(release_t *release, pkg_src_t *dist, char *lists_dir, char *tmp
      for(i = 0; i < ncomp; i++){
 	  int err = 0;
 	  char *prefix;
+		char *snapshot;
 
 	  sprintf_alloc(&prefix, "%s/dists/%s/%s/binary", dist->value, dist->name,
 			comps[i]);
+		snapshot = strstr(prefix, "-snapshots-");
+		if( snapshot != 0 )
+		{
+			snapshot[0] = '/';
+			snapshot[10] = '/';
+		}
 
 	  list_for_each_entry(l , &conf->arch_list.head, node) {
 	       char *url;
