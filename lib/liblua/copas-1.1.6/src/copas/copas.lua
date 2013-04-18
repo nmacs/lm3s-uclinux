@@ -18,6 +18,7 @@ if package.loaded["socket.http"] then
 end
 
 local socket = require "socket"
+local syslog = require "syslog"
 
 local WATCH_DOG_TIMEOUT = 120
 
@@ -252,7 +253,8 @@ function setErrorHandler (err)
 end
 
 local function _deferror (msg, co, skt)
-       print (msg, co, skt)
+       --print (msg, co, skt)
+       syslog.syslog("LOG_WARNING", msg)
 end
 
 -------------------------------------------------------------------------------
