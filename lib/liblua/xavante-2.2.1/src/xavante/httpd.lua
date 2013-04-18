@@ -375,11 +375,16 @@ function redirect (res, d)
 	res.content = "redirect"
 end
 
-function register (host, port, serversoftware)
+function newserver (host, port, serversoftware)
 	local _server = assert(socket.bind(host, port))
 	_serversoftware = serversoftware
 	local _ip, _port = _server:getsockname()
 	_serverports[_port] = true
+	return _server
+end
+
+function register (host, port, serversoftware)
+	local _server = newserver(host, port, serversoftware)
 	copas.addserver(_server, connection)
 end
 
