@@ -644,9 +644,14 @@ int uci_import(struct uci_context *ctx, FILE *stream, const char *name, struct u
 error:
 		if (ctx->flags & UCI_FLAG_PERROR)
 			uci_perror(ctx, NULL);
+
 		if ((ctx->err != UCI_ERR_PARSE) ||
 			(ctx->flags & UCI_FLAG_STRICT))
+		{
+		        if( pctx->merge )
+		              pctx->package = 0;
 			UCI_THROW(ctx, ctx->err);
+		}
 	}
 
 	uci_fixup_section(ctx, ctx->pctx->section);
@@ -862,7 +867,7 @@ static struct uci_package *uci_file_load(struct uci_context *ctx, const char *na
 {
 	struct uci_package *package = NULL;
 	char *filename = NULL;
-	char *defaulfilename = NULL;
+	char *defaultfilename = NULL;
 	bool confdir;
 	FILE *file = NULL;
 
@@ -885,37 +890,36 @@ static struct uci_package *uci_file_load(struct uci_context *ctx, const char *na
 		break;
 	}
 
-	UCI_TRAP_SAVE(ctx, trydefault);
+        UCI_TRAP_SAVE(ctx, skipdefault);
+        uci_close_stream(file);
+        defaultfilename = uci_default_config(ctx, filename);
+        ctx->err = 0;
+        file = uci_open_stream(ctx, defaultfilename, SEEK_SET, false, false);
+        ctx->err = 0;
+        UCI_INTERNAL(uci_import, ctx, file, name, &package, true);
+        package->use_default = 1;
+        UCI_TRAP_RESTORE(ctx);
+
+skipdefault:
+	UCI_TRAP_SAVE(ctx, done);
 	ctx->err = 0;
 	file = uci_open_stream(ctx, filename, SEEK_SET, false, false);
 	ctx->err = 0;
 	UCI_INTERNAL(uci_import, ctx, file, name, &package, true);
-	goto loaded;
+	package->use_default = 0;
 	UCI_TRAP_RESTORE(ctx);
-
-trydefault:
-	UCI_TRAP_SAVE(ctx, done);
-	uci_close_stream(file);
-	defaulfilename = uci_default_config(ctx, filename);
-	ctx->err = 0;
-	file = uci_open_stream(ctx, defaulfilename, SEEK_SET, false, false);
-	ctx->err = 0;
-	UCI_INTERNAL(uci_import, ctx, file, name, &package, true);
-	UCI_TRAP_RESTORE(ctx);
-
-loaded:
-	if (package) {
-		package->path = filename;
-		package->use_default = defaulfilename ? 1 : 0;
-		package->has_delta = confdir;
-		uci_load_delta(ctx, package, false);
-	}
 
 done:
+        if (package) {
+                ctx->err = 0; // ignore non-default config load errors
+                package->path = filename;
+                package->has_delta = confdir;
+                uci_load_delta(ctx, package, false);
+        }
 	if( package == 0 && filename )
 		free(filename);
-	if( defaulfilename )
-		free(defaulfilename);
+	if( defaultfilename )
+		free(defaultfilename);
 	uci_close_stream(file);
 	if (ctx->err)
 		UCI_THROW(ctx, ctx->err);
