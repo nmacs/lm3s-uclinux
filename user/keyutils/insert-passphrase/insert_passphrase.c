@@ -211,6 +211,7 @@ static int read_passphrase_from_file(char* passphrase, char* passphrase_sig, cha
 
 	from_hex(passphrase, hex_passphrase + ECRYPTFS_SIG_SIZE_HEX, ECRYPTFS_MAX_KEY_BYTES);
 	memcpy(passphrase_sig, hex_passphrase, ECRYPTFS_SIG_SIZE_HEX);
+	passphrase_sig[ECRYPTFS_SIG_SIZE_HEX] = '\0';
 
 out:
 	return rc;
@@ -278,7 +279,6 @@ int main(int argc, char *argv[])
 		goto out;
 	} else
 		rc = 0;
-	passphrase_sig[ECRYPTFS_SIG_SIZE_HEX] = '\0';
 #ifdef DEBUG
 	printf("Inserted key with sig [%s] into the user session "
 	       "keyring\n", passphrase_sig);
