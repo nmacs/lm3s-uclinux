@@ -1,6 +1,6 @@
 romfs:
 	$(ROMFSINST) -d $(ROOTDIR)/user/init/init /bin/init
-	$(ROMFSINST) -d $(ROOTDIR)/user/keyutils/insert-passphrase/insert-passphrase /bin/insert-passphrase
+	$(MAKE)  -C $(ROOTDIR)/user/keyutils romfs
 	$(ROMFSINST) -d $(ROOTDIR)/user/keyutils/keyutils-1.5.5/keyctl-static /bin/keyctl
 	$(ROMFSINST) -d -p 444 etc/rc /etc/rc
 	$(ROMFSINST) -d -p 444 etc/inittab /etc/inittab
@@ -14,8 +14,7 @@ romfs:
 
 repo:
 	$(REPOINST) $(ROOTDIR)/user/init/init /bin/init
-	$(REPOINST) $(ROOTDIR)/user/keyutils/insert-passphrase/insert-passphrase /bin/insert-passphrase
-	$(REPOINST) $(ROOTDIR)/user/keyutils/keyutils-1.5.5/keyctl-static /bin/keyctl
+	$(MAKE)  -C $(ROOTDIR)/user/keyutils repo
 	$(REPOINST) -p 444 etc/rc /etc/rc
 	$(REPOINST) -p 444 etc/inittab /etc/inittab
 	$(REPOINST) -p 544 etc/init.d/leds /etc/init.d/leds
