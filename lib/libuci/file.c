@@ -683,6 +683,16 @@ static char *uci_config_path(struct uci_context *ctx, const char *name)
 	return filename;
 }
 
+static char *uci_tmp_path(struct uci_context *ctx)
+{
+	char *filename;
+
+	filename = uci_malloc(ctx, strlen(ctx->confdir) + 4 + 2);
+	sprintf(filename, "%s/tmp", ctx->confdir);
+
+	return filename;
+}
+
 static char *uci_default_config(struct uci_context *ctx, const char *path)
 {
 	char *defaultpath;
@@ -702,17 +712,6 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 	char *tmpfile = NULL;
 	char *defaultpath = NULL;
 
-	tmpfile = strdup("/var/tmp/config_XXXXXX");
-	if( tmpfile == NULL )
-		UCI_THROW(ctx, UCI_ERR_MEM);
-
-	tmpfile = mktemp(tmpfile);
-	if( tmpfile[0] == 0 )
-	{
-		free(tmpfile);
-		UCI_THROW(ctx, UCI_ERR_UNKNOWN);
-	}
-
 	if (!p->path) {
 		if (overwrite)
 			p->path = uci_config_path(ctx, p->e.name);
@@ -729,7 +728,6 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 	}
 	else
 		f_in = uci_open_stream(ctx, p->path, SEEK_SET, false, false);
-
 	/* flush unsaved changes and reload from delta file */
 	if (p->has_delta) {
 		if (!overwrite) {
@@ -739,7 +737,6 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 			/* dump our own changes to the delta file */
 			if (!uci_list_empty(&p->delta))
 				UCI_INTERNAL(uci_save, ctx, p);
-
 			/*
 			 * other processes might have modified the config
 			 * as well. dump and reload
@@ -747,7 +744,6 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 			uci_free_package(&p);
 			uci_cleanup(ctx);
 			UCI_INTERNAL(uci_import, ctx, f_in, name, &p, true);
-
 			p->path = path;
 			p->has_delta = true;
 			*package = p;
@@ -755,12 +751,12 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 			/* freed together with the uci_package */
 			path = NULL;
 		}
-
 		/* flush delta */
 		if (!uci_load_delta(ctx, p, true))
 			goto done;
 	}
 
+	tmpfile = uci_tmp_path(ctx);
 	f_out = uci_open_stream(ctx, tmpfile, SEEK_SET, true, true);
 
 	if (f_out)
