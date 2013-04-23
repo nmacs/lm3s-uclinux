@@ -181,7 +181,7 @@ __private FILE *uci_open_stream(struct uci_context *ctx, const char *filename, i
 {
 	struct stat statbuf;
 	FILE *file = NULL;
-	int fd, ret;
+	int fd = 0, ret = 0;
 	int mode = (write ? O_RDWR : O_RDONLY);
 
 	if (create)
@@ -195,6 +195,9 @@ __private FILE *uci_open_stream(struct uci_context *ctx, const char *filename, i
 	fd = open(filename, mode, UCI_FILEMODE);
 	if (fd < 0)
 		goto error;
+	if (write && create)
+		if (fsync(fd))
+			goto error;
 
 	ret = flock(fd, (write ? LOCK_EX : LOCK_SH));
 	if ((ret < 0) && (errno != ENOSYS))
@@ -210,6 +213,8 @@ __private FILE *uci_open_stream(struct uci_context *ctx, const char *filename, i
 		goto done;
 
 error:
+	if (fd >= 0)
+		close(fd);
 	UCI_THROW(ctx, UCI_ERR_IO);
 done:
 	return file;
@@ -222,11 +227,11 @@ __private void uci_flush_stream(struct uci_context *ctx, FILE *stream)
 	if (!stream)
 		return;
 
-	if( fflush(stream) )
+	if (fflush(stream))
 		UCI_THROW(ctx, UCI_ERR_IO);
 
 	fd = fileno(stream);
-	if( fsync(fd) )
+	if (fsync(fd))
 		UCI_THROW(ctx, UCI_ERR_IO);
 }
 
