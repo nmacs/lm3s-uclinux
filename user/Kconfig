@@ -4700,6 +4700,9 @@ menu "Vendor specific applications"
 config USER_ELSTER_MGATE
 	bool "Elster mgate"
 
+config USER_ELSTER_MANUFACTURING
+	bool "Elster manufacturing"
+
 endmenu
 
 #############################################################################

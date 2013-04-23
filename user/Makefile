@@ -445,6 +445,7 @@ dir_$(CONFIG_USER_ZEBRA_RIPD_RIPD)          += zebra
 dir_$(CONFIG_USER_ZEBRA_ZEBRA_ZEBRA)        += zebra
 
 dir_$(CONFIG_USER_ELSTER_MGATE)             += elster
+dir_$(CONFIG_USER_ELSTER_MANUFACTURING)     += elster
 
 dir_y += games
 #dir_y += mputest
