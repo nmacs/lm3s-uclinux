@@ -10,6 +10,9 @@
 
 //#define DEBUG
 
+#define ECRYPTFS_VERSION_MAJOR 0x00
+#define ECRYPTFS_VERSION_MINOR 0x04
+
 #ifdef DEBUG
 void usage(void)
 {
@@ -40,14 +43,10 @@ static int generate_payload(struct ecryptfs_auth_tok *auth_tok, const char *pass
 		 char *salt, char *session_key_encryption_key)
 {
 	int rc = 0;
-	int major, minor;
 
 	memset(auth_tok, 0, sizeof(struct ecryptfs_auth_tok));
-	//ecryptfs_get_versions(&major, &minor, NULL);
-	major = 0;
-	minor = 4;
-	auth_tok->version = (((uint16_t)(major << 8) & 0xFF00)
-			     | ((uint16_t)minor & 0x00FF));
+	auth_tok->version = (((uint16_t)(ECRYPTFS_VERSION_MAJOR << 8) & 0xFF00)
+			     | ((uint16_t)ECRYPTFS_VERSION_MINOR & 0x00FF));
 	auth_tok->token_type = ECRYPTFS_PASSWORD;
 	strncpy((char *)auth_tok->token.password.signature, passphrase_sig,
 		ECRYPTFS_PASSWORD_SIG_SIZE);
