@@ -2,3 +2,4 @@ output/
 src/
 unpack-s
 toolchain-s
+patch_gcc-s

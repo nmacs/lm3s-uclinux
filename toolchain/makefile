@@ -44,7 +44,7 @@ GCC_CONFIG_OPTS        := --target=arm-uclinuxeabi --disable-threads --disable-l
                           --disable-libgomp \
                           --with-build-time-tools=$(OUTPUT)/bin \
                           --disable-wchar_t \
-                          CFLAGS=-Os CXXFLAGS=-Os
+                          CFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" CXXFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections"
 
 ELF2FLT_CONFIG_OPTS    := --prefix=$(OUTPUT) --target=arm-uclinuxeabi \
                           '--with-pkgversion=Sourcery G++ Lite 2011.03-46' \
@@ -66,7 +66,7 @@ unpack-s:
 	touch unpack-s
 
 toolchain-s:
-	$(MAKE) gcc elf2flt || exit 1
+	$(MAKE) gcc || exit 1
 	touch toolchain-s
 
 .PHONY: binutils
@@ -119,19 +119,23 @@ libcloog: libcloog_config
 libcloog_config:
 	mkdir -p $(LIBCLOOG_DIR)/build; cd $(LIBCLOOG_DIR)/build; ../configure $(LIBCLOOG_CONFIG_OPTS) || exit 1
 
-gcc: gcc_stage_1 libc
-	AR_FOR_TARGET=arm-uclinuxeabi-ar NM_FOR_TARGET=arm-uclinuxeabi-nm OBJDUMP_FOR_TARET=arm-uclinuxeabi-objdump STRIP_FOR_TARGET=arm-uclinuxeabi-strip $(MAKE) -j4 -C $(GCC_DIR)/build LDFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc CPPFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc build_tooldir=$(OUTPUT)/arm-uclinuxeabi all
+gcc: gcc_stage_1 elf2flt libc
+	AR_FOR_TARGET=arm-uclinuxeabi-ar NM_FOR_TARGET=arm-uclinuxeabi-nm OBJDUMP_FOR_TARGET=arm-uclinuxeabi-objdump STRIP_FOR_TARGET=arm-uclinuxeabi-strip $(MAKE) -j4 -C $(GCC_DIR)/build LDFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc CPPFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc build_tooldir=$(OUTPUT)/arm-uclinuxeabi all
 	$(MAKE) -C $(GCC_DIR)/build install
 
-gcc_stage_1: linux-headers binutils libelf libgmp libmpfr libmpc gcc_config
-	cd $(GCC_DIR); patch -p1 < $(CURDIR)/gcc-patch-01
-	AR_FOR_TARGET=arm-uclinuxeabi-ar NM_FOR_TARGET=arm-uclinuxeabi-nm OBJDUMP_FOR_TARET=arm-uclinuxeabi-objdump STRIP_FOR_TARGET=arm-uclinuxeabi-strip $(MAKE) -j4 -C $(GCC_DIR)/build LDFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc CPPFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc build_tooldir=$(OUTPUT)/arm-uclinuxeabi all-gcc
+gcc_stage_1: linux-headers patch_gcc-s binutils libelf libgmp libmpfr libmpc libppl libcloog gcc_config
+	AR_FOR_TARGET=arm-uclinuxeabi-ar NM_FOR_TARGET=arm-uclinuxeabi-nm OBJDUMP_FOR_TARGET=arm-uclinuxeabi-objdump STRIP_FOR_TARGET=arm-uclinuxeabi-strip $(MAKE) -j4 -C $(GCC_DIR)/build LDFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc CPPFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc build_tooldir=$(OUTPUT)/arm-uclinuxeabi all-gcc
 	$(MAKE) -C $(GCC_DIR)/build install-gcc
+
+patch_gcc-s:
+	cd $(GCC_DIR); patch -p1 < $(CURDIR)/gcc-patch-01
+	cd $(GCC_DIR); patch -p1 < $(CURDIR)/gcc-patch-02
+	touch patch_gcc-s
 
 libc:
 	cp $(PRODUCTDIR)/config.uClibc $(UCLIBC_DIR)/.config
 	yes "" | $(MAKE) -C $(UCLIBC_DIR) oldconfig
-	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" $(MAKE) -C $(UCLIBC_DIR) V=1
+	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" CFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" $(MAKE) -C $(UCLIBC_DIR) V=1
 	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" PREFIX=$(OUTPUT)/arm-uclinuxeabi/libc $(MAKE) -C $(UCLIBC_DIR) V=1 install
 
 linux-headers:
@@ -156,8 +160,7 @@ elf2flt_config:
 
 clean:
 	rm -rf $(CURDIR)/src
-	rm -f  $(CURDIR)/unpack-s
-	rm -f  $(CURDIR)/toolchain-s
+	rm -f  $(CURDIR)/*-s
 	rm -rf $(OUTPUT)
 
 romfs:
