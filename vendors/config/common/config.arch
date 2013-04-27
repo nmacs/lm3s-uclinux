@@ -149,7 +149,7 @@ ifeq ($(UCLINUX_COMMON_LIB),1)
 	SLIBJPEG	=	-ljpeg
 	SLIBPNG		=	-lpng
 	ifdef CONFIG_LIB_USTL
-		SLIBSTDCPP	=	-lustl -lpthread
+		SLIBSTDCPP	=	-lustl
 	else
 	ifdef CONFIG_LIB_STLPORT
 		ifdef CONFIG_LIB_STLPORT_SHARED

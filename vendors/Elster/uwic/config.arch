@@ -28,6 +28,17 @@ include $(ROOTDIR)/vendors/config/armnommu/config.arch
 
 ############################################################################
 #
+# Setup cross-compiler
+#
+
+CROSS               := $(ROOTDIR)/toolchain/output/bin/arm-uclinuxeabi-
+CROSS_COMPILE       := $(CROSS)
+
+export CROSS
+export CROSS_COMPILE
+
+############################################################################
+#
 # Settings for building user apps
 #
 
@@ -41,10 +52,6 @@ ifdef UCLINUX_BUILD_USER
 #	LIBSUPCPP   = -lstdc++
 
 	LDPATH = -L$(ROOTDIR)/lib/$(LIBCDIR)/lib
-
-	ifdef CONFIG_LIB_SUPCPP
-		LDPATH   += -L$(ROOTDIR)/lib/libsupcpp/output/lib/thumb2
-	endif
 
 	LDLIBS     += $(LDPATH)
 	CXXLIBS    += $(LDPATH)

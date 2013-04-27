@@ -38,11 +38,6 @@ config LIB_CYASSL
 	bool "Build CyaSSL"
 	default n
 
-config LIB_SUPCPP
-	bool "Build lightweight version of libsupc++"
-	depends on LIB_USTL
-	default y
-
 source ../lib/libtommath/Kconfig
 source ../lib/libtomcrypt/Kconfig
 

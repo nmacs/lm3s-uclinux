@@ -13,7 +13,8 @@
 #
 
 ifeq (.config,$(wildcard .config))
-all: tools automake subdirs linux_image repo romfs image
+all: toolchain tools automake subdirs
+	fakeroot $(MAKE) linux_image romfs image
 else
 all: config_error
 endif
@@ -26,10 +27,13 @@ include vendors/config/common/config.arch
 
 DIRS    = $(VENDOR_TOPDIRS) include lib include user
 
-
 .PHONY: tools
 tools: ucfront cksum
 	chmod +x tools/romfs-inst.sh tools/modules-alias.sh tools/build-udev-perms.sh
+
+.PHONY: toolchain
+toolchain:
+	$(MAKE) -C $(CURDIR)/toolchain
 
 .PHONY: ucfront
 ucfront: tools/ucfront/*.c
@@ -287,6 +291,7 @@ distclean: mrproper
 	-rm -f tools/ucfront-gcc tools/ucfront-g++ tools/ucfront-ld tools/jlibtool
 	-$(MAKE) -C tools/sg-cksum clean
 	-rm -f tools/cksum
+	-$(MAKE) -C toolchain clean
 
 .PHONY: bugreport
 bugreport:

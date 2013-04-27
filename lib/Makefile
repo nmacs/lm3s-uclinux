@@ -17,26 +17,6 @@ include lib.mak
 
 ##############################################################################
 
-dir_base = $(LIBCDIR)
-
-ifeq ($(LIBCDIR),libc)
-.PHONY:
-libm: $(LIBCDIR)
-dir_base += libm
-lib_libm = *.a
-inc_libm = *.h,.
-endif
-
-.PHONY: libcrypt_old
-libcrypt_old: $(LIBCDIR)
-ifeq ($(LIBCDIR),libc)
-dir_base += libcrypt_old
-else
-dir_$(CONFIG_LIB_LIBCRYPT_OLD) += libcrypt_old
-endif
-lib_libcrypt_old = libcrypt_old.a
-inc_libcrypt_old = *.h,.
-
 dir_$(CONFIG_LIB_USTL) += libustl
 lib_libustl = output/lib/*.a
 inc_libustl = output/include/ustl.h,. \
@@ -64,9 +44,6 @@ lib_liblua_$(CONFIG_LIB_LUA_LSYSLOG) += lsyslog/liblsyslog.a
 lib_liblua = $(lib_liblua_y)
 
 dir_$(CONFIG_LIB_CYASSL) += cyassl
-
-dir_$(CONFIG_LIB_SUPCPP) += libsupcpp
-lib_libsupcpp = output/lib/thumb2/*.a
 
 dir_$(CONFIG_LIB_TOMMATH_MATH) += libtommath
 dir_$(CONFIG_LIB_TOMMATH_FASTMATH) += libtommath
@@ -288,9 +265,6 @@ dep_pwlib = STLport
 dir_$(CONFIG_LIB_LIBOPENH323) += libopenh323
 dep_libopenh323 = pwlib
 
-dir_y += uClibc
-lib_uClibc = lib/*.a
-
 #
 # dir 6, 7 and 8 reserved for Makefile.local
 #
@@ -303,8 +277,8 @@ include Makefile.auto
 
 ##############################################################################
 
-DIRS_y   = $(sort $(dir_base) $(dir_y) $(dir_extra))
-DIRS_all = $(dir_$(n)_n) $(dir_$(n)_) $(sort $(dir_base) $(dir_y) $(dir_n) $(dir_) $(dir_extra))
+DIRS_y   = $(sort $(dir_y) $(dir_extra))
+DIRS_all = $(dir_$(n)_n) $(dir_$(n)_) $(sort $(dir_y) $(dir_n) $(dir_) $(dir_extra))
 DIRPATH = $(if $(path_$(1)),$(path_$(1)),$(1))
 
 ##############################################################################
@@ -315,32 +289,22 @@ LD_LIB_DEST = $(STAGEDIR)/lib/ld-linux.so.2
 
 ##############################################################################
 
-all: base $(DIRS_y)
+all: $(DIRS_y)
 
 define dep
 .PHONY: $(1)
-$(1): base $(dep_$(1))
+$(1): $(dep_$(1))
 endef
 
 $(foreach d,$(sort $(dir_y) $(dir_n) $(dir_)),$(eval $(call dep,$(d))))
 
-.PHONY: base
-base: $(dir_base)
-	@ln -sf $(LD_LIB) $(LD_LIB_DEST)
-
-$(dir_base): baseprep
-
-.PHONY: baseprep
-baseprep:
-	mkdir -p $(STAGEDIR)/lib
-	$(MAKE) -j1 -C ../include || exit $$?
-
 .PHONY: $(dir_extra)
-$(dir_extra): base $(dir_y)
+$(dir_extra): $(dir_y)
 
 # the actual dir target
 .PHONY: $(DIRS_y)
 $(DIRS_y):
+	mkdir -p $(STAGEDIR)/lib
 	i=$(call DIRPATH,$@); [ ! -d $$i ] || ( touch $$i/.sgbuilt_lib && $(MAKE) $(SUBDIR_SMP_BUILD) -C $$i ) || exit $$?
 	@set -f; \
 	for p in $(lib_$@); do \
