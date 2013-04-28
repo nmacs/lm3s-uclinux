@@ -151,9 +151,13 @@ zlib: zlib_config
 zlib_config:
 	cd $(ZLIB_DIR); ./configure $(ZLIB_CONFIG_OPTS) || exit 1
 
-elf2flt: zlib elf2flt_config
+elf2flt: patch_elf2flt-s zlib elf2flt_config
 	$(MAKE) -j4 -C $(ELF2FLT_DIR)/build
 	$(MAKE) -C $(ELF2FLT_DIR)/build install
+
+patch_elf2flt-s:
+	cd $(ELF2FLT_DIR); patch -p1 < $(CURDIR)/elf2flt-patch-01
+	touch patch_elf2flt-s
 
 elf2flt_config:
 	mkdir -p $(ELF2FLT_DIR)/build; cd $(ELF2FLT_DIR)/build; ../configure $(ELF2FLT_CONFIG_OPTS) || exit 1

@@ -1,0 +1,11 @@
+--- a/elf2flt.c
++++ b/elf2flt.c
+@@ -2291,7 +2291,7 @@
+ 	  | (pic_with_got ? FLAT_FLAG_GOTPIC : 0)
+ 	  | (compress ? (compress == 2 ? FLAT_FLAG_GZDATA : FLAT_FLAG_GZIP) : 0)
+ 	  );
+-  hdr.build_date = htonl((unsigned long)time(NULL));
++  hdr.build_date = 0;
+   bzero(hdr.filler, sizeof(hdr.filler));
+ 
+   for (i=0; i<reloc_len; i++) reloc[i] = htonl(reloc[i]);
