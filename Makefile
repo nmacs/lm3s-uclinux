@@ -15,12 +15,13 @@
 ifeq (.config,$(wildcard .config))
 all: prerequisites toolchain tools automake subdirs
 	fakeroot $(MAKE) linux_image romfs image
-	@echo == Compiled ==
+	@echo == Compiled [all] ==
 else
 all: config_error
 endif
 
 full: all uboot romdisk
+	@echo == Compiled [full] ==
 
 ROOTDIR = $(shell pwd)
 
