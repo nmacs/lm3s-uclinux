@@ -36,6 +36,15 @@ STAGEDIR   = $(ROOTDIR)/staging
 TFTPDIR    = /tftpboot
 export IMAGEDIR RELDIR ROMFSDIR REPODIR SCRIPTSDIR STAGEDIR TFTPDIR
 
+ROMDISK    = $(ROOTDIR)/romdisk
+ROMDISK_IMG = $(IMAGEDIR)/romdisk.img
+export ROMDISK ROMDISK_IMG
+
+UBOOT      = $(ROOTDIR)/uboot
+UBOOT_IMG  = $(IMAGEDIR)/uboot.img
+
+export UBOOT UBOOT_IMG
+
 ifndef NON_SMP_BUILD
 HOST_NCPU ?= $(shell if [ -f /proc/cpuinfo ]; then n=`grep -c processor /proc/cpuinfo`; if [ $$n -gt 1 ];then expr $$n \* 2; else echo $$n; fi; else echo 1; fi)
 # currently a lot of packages cannot be "parallel" built. Uncomment the

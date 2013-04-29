@@ -15,13 +15,16 @@ LINUXSIGFILE        = Image.uboot.sig
 UBIFSFILE           = Image.ubifs
 EXT2FILE            = Image.ext2
 
-LINUXBOOTDIR       = $(ROOTDIR)/$(LINUXDIR)/arch/arm/boot
-LINUXCOMPRESSEDIMG = $(LINUXBOOTDIR)/$(LINUXCOMPRESSEDFILE)
-LINUXUBOOTIMG      = $(LINUXBOOTDIR)/$(LINUXUBOOTFILE)
-LINUXSIG           = $(LINUXBOOTDIR)/$(LINUXSIGFILE)
-LINUXIMG           = $(IMAGEDIR)/$(LINUXFILE)
-UBIFSIMG           = $(IMAGEDIR)/$(UBIFSFILE)
-EXT2IMG            = $(IMAGEDIR)/$(EXT2FILE)
+LINUXBOOTDIR        = $(ROOTDIR)/$(LINUXDIR)/arch/arm/boot
+LINUXCOMPRESSEDIMG  = $(LINUXBOOTDIR)/$(LINUXCOMPRESSEDFILE)
+LINUXUBOOTIMG       = $(LINUXBOOTDIR)/$(LINUXUBOOTFILE)
+LINUXSIG            = $(LINUXBOOTDIR)/$(LINUXSIGFILE)
+LINUXIMG            = $(IMAGEDIR)/$(LINUXFILE)
+UBIFSIMG            = $(IMAGEDIR)/$(UBIFSFILE)
+EXT2IMG             = $(IMAGEDIR)/$(EXT2FILE)
+
+KEY                ?= $(CURDIR)/security/key
+PUB_KEY            ?= $(CURDIR)/security/pub_key
 
 UBIFS      := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
 
@@ -34,6 +37,10 @@ romfs:
 	$(MAKE) -C sys romfs
 	$(MAKE) -C init romfs
 	$(ROMFSINST) -d $(LINUXIMG) /boot/linux.bin
+
+romdisk:
+	$(ROMFSINST) -r $(ROMDISK) $(KEY)     /key
+	$(ROMFSINST) -r $(ROMDISK) $(PUB_KEY) /pub_key
 
 modules.dep:
 ifdef CONFIG_MODULES

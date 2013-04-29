@@ -20,6 +20,8 @@ else
 all: config_error
 endif
 
+full: all uboot romdisk
+
 ROOTDIR = $(shell pwd)
 
 include vendors/config/common/config.arch
@@ -213,6 +215,18 @@ image:
 	[ -d $(IMAGEDIR) ] || mkdir $(IMAGEDIR)
 	$(MAKEARCH) -C vendors image
 
+.PHONY: uboot
+uboot:
+	$(MAKE) -C $(ROOTDIR)/uboot uwic_config || exit 1
+	$(MAKE) -j 4 -C $(ROOTDIR)/uboot ARCH=arm u-boot.bin || exit 1
+	cp $(ROOTDIR)/uboot/u-boot.bin $(UBOOT_IMG)
+
+.PHONY: romdisk
+romdisk:
+	mkdir -p $(ROMDISK)
+	$(MAKE) -C $(PRODUCTDIR) romdisk
+	mkfs.cramfs $(ROMDISK) $(ROMDISK_IMG) || exit1
+
 .PHONY: release
 release:
 	$(MAKE) -C release release
@@ -284,6 +298,7 @@ clean: modules_clean
 	rm -rf $(ROMFSDIR)/*
 	rm -rf $(STAGEDIR)/*
 	rm -rf $(IMAGEDIR)/*
+	rm -rf $(ROMDISK)/*
 	rm -f $(LINUXDIR)/linux
 	rm -f $(LINUXDIR)/include/asm
 	rm -f $(LINUXDIR)/include/linux/autoconf.h
@@ -309,6 +324,7 @@ distclean: mrproper
 	-$(MAKE) -C toolchain clean
 	-$(MAKE) -C $(ROOTDIR)/user/opkg clean
 	-rm -f tools/opkg-cl
+	-$(MAKE) -C $(ROOTDIR)/uboot ARCH=arm clean
 
 .PHONY: bugreport
 bugreport:

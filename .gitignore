@@ -8,6 +8,7 @@
 *.lo
 /staging
 /romfs
+/romdisk
 
 
 /Kconfig
@@ -21,3 +22,4 @@
 /config/kconfig/mconf
 /images/
 /linux-uwic
+/uboot
