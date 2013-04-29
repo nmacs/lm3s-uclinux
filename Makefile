@@ -13,8 +13,9 @@
 #
 
 ifeq (.config,$(wildcard .config))
-all: toolchain tools automake subdirs
+all: prerequisites toolchain tools automake subdirs
 	fakeroot $(MAKE) linux_image romfs image
+	@echo == Compiled ==
 else
 all: config_error
 endif
@@ -118,6 +119,19 @@ oldconfig: Kconfig conf
 	@$(MAKE) oldconfig_uClibc
 	@config/setconfig final
 
+PREREQUISITES := openocd libncurses5-dev xutils-dev libgmp-dev libmpfr-dev libmpc-dev lzop u-boot-tools mtd-utils putty genext2fs cmake libglib2.0-dev libtool autoconf fakeroot
+
+prerequisites:
+	for i in $(PREREQUISITES); do \
+	  echo $$i; \
+	  if ! dpkg-query -l $$i; then \
+	    echo Package $$i not found. Run \'sudo make prerequisites-install\' to install all required packages.; exit 1; \
+	  fi \
+	done
+
+prerequisites-install:
+	apt-get install $(PREREQUISITES)
+
 .PHONY: generated_headers
 generated_headers:
 	if [ ! -f $(LINUXDIR)/include/linux/autoconf.h ] ; then \
@@ -176,8 +190,7 @@ romfs: romfs.newlog romfs.subdirs modules_install romfs.post
 .PHONY: repo
 repo: opkg
 	$(MAKEARCH) -C $(REPODIR) clean
-	$(MAKEARCH) -C $(REPODIR) repo
-	$(MAKEARCH) -C $(REPODIR) firmware
+	fakeroot $(MAKEARCH) -C $(REPODIR) repo
 
 .PHONY: romfs.newlog
 romfs.newlog:
@@ -268,8 +281,6 @@ relink:
 clean: modules_clean
 	for dir in $(LINUXDIR) $(DIRS); do [ ! -d $$dir ] || $(MAKEARCH) -C $$dir clean ; done
 	$(MAKE) -C $(REPODIR) clean
-	-$(MAKE) -C tools/opkg clean
-	rm -f tools/opkg/Makefile
 	rm -rf $(ROMFSDIR)/*
 	rm -rf $(STAGEDIR)/*
 	rm -rf $(IMAGEDIR)/*
@@ -296,6 +307,8 @@ distclean: mrproper
 	-$(MAKE) -C tools/sg-cksum clean
 	-rm -f tools/cksum
 	-$(MAKE) -C toolchain clean
+	-$(MAKE) -C $(ROOTDIR)/user/opkg clean
+	-rm -f tools/opkg-cl
 
 .PHONY: bugreport
 bugreport:
@@ -366,9 +379,8 @@ config_error:
 	@echo "*************************************************"
 	@echo "You have not run make config."
 	@echo "The build sequence for this source tree is:"
-	@echo "1. 'make config' or 'make xconfig'"
-	@echo "2. 'make dep'"
-	@echo "3. 'make'"
+	@echo "1. 'make config_elster_uwic'"
+	@echo "2. 'make'"
 	@echo "*************************************************"
 	@exit 1
 
