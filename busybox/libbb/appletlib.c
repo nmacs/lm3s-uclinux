@@ -638,11 +638,6 @@ static int busybox_main(char **argv)
 			)
 			"   or: function [arguments]...\n"
 			"\n"
-			"\tBusyBox is a multi-call binary that combines many common Unix\n"
-			"\tutilities into a single executable.  Most people will create a\n"
-			"\tlink to busybox for each function they wish to use and BusyBox\n"
-			"\twill act like whatever it was invoked as.\n"
-			"\n"
 			"Currently defined functions:\n"
 		);
 		col = 0;
