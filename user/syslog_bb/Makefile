@@ -4,7 +4,7 @@ REPO_TARGETDIR=$(REPODIR)/syslog/content
 
 all:
 	mkdir -p $(BUILDDIR)
-	cp config.logging $(BUILDDIR)/.config
+	cmp -s config.logging $(BUILDDIR)/.config || cp config.logging $(BUILDDIR)/.config
 	$(MAKE) -C $(BUILDDIR) KBUILD_SRC=$(KBUILD_SRC) -f $(KBUILD_SRC)/Makefile busybox
 
 romfs:
@@ -28,4 +28,5 @@ repo:
 	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_LOGGER -s syslog_bb /bin/logger
 
 clean:
-	$(MAKE) -C $(BUILDDIR) clean
+	-$(MAKE) -C $(BUILDDIR) clean
+	-rm -f $(BUILDDIR)/.config
