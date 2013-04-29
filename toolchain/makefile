@@ -34,6 +34,7 @@ GCC_CONFIG_OPTS        := --target=arm-uclinuxeabi --disable-threads --disable-l
                           --disable-shared --disable-threads --disable-libssp --disable-libgomp --without-headers \
                           --disable-decimal-float --disable-libffi --disable-libquadmath --enable-languages=c,c++ \
                           --with-sysroot=$(OUTPUT)/arm-uclinuxeabi/libc --with-build-sysroot=$(OUTPUT)/arm-uclinuxeabi/libc \
+                          --enable-poison-system-directories \
                           --with-gmp=$(OUTPUT) \
                           --with-mpfr=$(OUTPUT) \
                           --with-mpc=$(OUTPUT) \
@@ -137,6 +138,7 @@ libc:
 	yes "" | $(MAKE) -C $(UCLIBC_DIR) oldconfig
 	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" CFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" $(MAKE) -C $(UCLIBC_DIR) V=1
 	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" PREFIX=$(OUTPUT)/arm-uclinuxeabi/libc $(MAKE) -C $(UCLIBC_DIR) V=1 install
+	mkdir -p $(OUTPUT)/arm-uclinuxeabi/libc/usr/local; ln -f -s ../include $(OUTPUT)/arm-uclinuxeabi/libc/usr/local/include
 
 linux-headers:
 	$(MAKE) -C $(ROOTDIR)/$(LINUXDIR) ARCH=arm INSTALL_HDR_PATH=$(OUTPUT)/arm-uclinuxeabi/libc/usr headers_install
