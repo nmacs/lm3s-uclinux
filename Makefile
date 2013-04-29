@@ -25,6 +25,10 @@ include vendors/config/common/config.arch
 
 ############################################################################
 
+config_elster_uwic:
+	cp $(ROOTDIR)/vendors/Elster/uwic/config.root .config
+	yes "" | $(MAKE) oldconfig
+
 DIRS    = $(VENDOR_TOPDIRS) include lib include user
 
 .PHONY: tools
