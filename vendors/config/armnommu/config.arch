@@ -147,7 +147,7 @@ ifdef UCLINUX_BUILD_LIB
 
 	CFLAGS  += -Dlinux -D__linux__ -Dunix
 	CFLAGS  += -D__uClinux__
-	LDFLAGS += -Wl,-elf2flt -msoft-float
+	LDFLAGS += -Wl,-elf2flt
   ifndef DISABLE_MOVE_RODATA
   	LDFLAGS += -Wl,-move-rodata
   endif
@@ -202,7 +202,7 @@ ifdef UCLINUX_BUILD_USER
 	CXXFLAGS = $(CFLAGS) -nostdinc++
 	CXXSUP :=
 
-	LDFLAGS += -Wl,-elf2flt -msoft-float
+	LDFLAGS += -Wl,-elf2flt
   ifndef DISABLE_MOVE_RODATA
   	LDFLAGS += -Wl,-move-rodata
   endif

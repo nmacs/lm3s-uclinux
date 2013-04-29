@@ -51,8 +51,6 @@ ifdef UCLINUX_BUILD_USER
 	LIBSUPCPP   = -lsupc++
 #	LIBSUPCPP   = -lstdc++
 
-	LDPATH = -L$(ROOTDIR)/lib/$(LIBCDIR)/lib
-
 	LDLIBS     += $(LDPATH)
 	CXXLIBS    += $(LDPATH)
 
