@@ -1,7 +1,0 @@
-extra/config/conf
-extra/config/lex.zconf.c
-extra/config/lxdialog/pathc
-extra/config/zconf.hash.c
-extra/config/zconf.tab.c
-libpthread/linuxthreads/Makefile.in
-libpthread/linuxthreads_db/Makefile.in
