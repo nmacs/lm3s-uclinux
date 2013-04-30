@@ -36,7 +36,7 @@ config_elster_uwic:
 DIRS    = $(VENDOR_TOPDIRS) include lib include user
 
 .PHONY: tools
-tools: ucfront cksum
+tools: ucfront cksum luac
 	chmod +x tools/romfs-inst.sh tools/modules-alias.sh tools/build-udev-perms.sh
 
 .PHONY: toolchain
@@ -61,6 +61,12 @@ tools/cksum: tools/sg-cksum/*.c
 opkg:
 	$(MAKE) HOST_ARCH=native -C $(ROOTDIR)/user/opkg
 	ln -sf $(ROOTDIR)/user/opkg/build-native/src/opkg-cl tools/opkg-cl
+
+.PHONY: luac
+luac: tools/luac
+tools/luac:
+	$(MAKE) -C $(ROOTDIR)/lib/liblua lua_x86
+	ln -sf $(ROOTDIR)/lib/liblua/lua-5.1.5-x86/luac tools/luac
 
 .PHONY: automake
 automake:
@@ -189,6 +195,7 @@ linux_image:
 
 .PHONY: romfs
 romfs: romfs.newlog romfs.subdirs modules_install romfs.post
+	lua-compile $(ROMFSDIR)
 
 .PHONY: repo
 repo: opkg
@@ -304,6 +311,7 @@ clean: modules_clean
 	rm -f $(LINUXDIR)/include/asm
 	rm -f $(LINUXDIR)/include/linux/autoconf.h
 	rm -rf $(LINUXDIR)/net/ipsec/alg/libaes $(LINUXDIR)/net/ipsec/alg/perlasm
+	-rm -f tools/luac
 
 real_clean mrproper: clean
 	[ -d "$(LINUXDIR)" ] && $(MAKEARCH_KERNEL) -C $(LINUXDIR) mrproper || :

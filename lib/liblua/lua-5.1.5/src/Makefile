@@ -14,6 +14,9 @@ CFLAGS += $(MYCFLAGS) $(COCOCFLAGS)
 RM= rm -f
 LIBS= -lm $(MYLIBS)
 
+HOST_CC := gcc
+HOST_AR := ar
+
 MYCFLAGS=
 MYLDFLAGS=
 MYLIBS=
@@ -136,6 +139,11 @@ solaris:
 
 # list targets that do not create files (but not all makes understand .PHONY)
 .PHONY: all $(PLATS) default o a clean depend echo none
+
+%.c:
+	ln -s $(SRC_DIR)/$@ $@
+%.h:
+	ln -s $(SRC_DIR)/$@ $@
 
 # DO NOT DELETE
 

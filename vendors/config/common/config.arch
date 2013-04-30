@@ -21,7 +21,7 @@ VERSIONSTR ?= $(CONFIG_VENDOR)/$(CONFIG_PRODUCT) Version $(VERSIONPKG)
 BUILD_START_STRING ?= $(shell date "+%a, %d %b %Y %T %z")
 export VERSIONPKG VERSIONSTR BUILD_START_STRING
 
-PATH	 := $(PATH):$(ROOTDIR)/tools
+PATH	 := $(ROOTDIR)/tools:$(PATH)
 ROMFSINST = romfs-inst.sh
 OPKG = opkg-cl
 LIBTOOL   = jlibtool

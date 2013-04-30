@@ -54,6 +54,13 @@ all: lua
 lua: $(LUA_DIR)/src/autoconf.h $(lua_libs)
 	$(MAKE) -C $(LUA_DIR) generic
 
+.PHONY: lua_x86
+lua_x86:
+	mkdir -p $(LUA_DIR)-x86
+	$(MAKE) -C $(LUA_DIR)-x86 -f $(CURDIR)/$(LUA_DIR)/src/Makefile \
+		SRC_DIR=$(CURDIR)/$(LUA_DIR)/src MYCFLAGS="-DLUA_USE_POSIX -m32" \
+		CC=gcc RANLIB=ranlib AR=ar all
+
 $(LUA_DIR)/src/autoconf.h:
 	ln -sf $(ROOTDIR)/config/autoconf.h $(LUA_DIR)/src/autoconf.h
 
@@ -95,6 +102,7 @@ clean:
 	$(MAKE) -C $(BITSTRING_DIR) clean
 	-rm -f $(BITSTRING_DIR)/Makefile
 	$(MAKE) -C $(LSYSLOG_DIR) clean
+	-rm -rf $(LUA_DIR)-x86
 
 romfs:
 	$(ROMFSINST) -e CONFIG_LIB_LUA_SHELL -d $(LUA_DIR)/src/lua /bin/lua
@@ -127,6 +135,7 @@ repo:
 	$(REPOINST) -e CONFIG_LIB_LUA_LUAXAVANTE $(LUAXAVANTE_DIR)/src/xavante /usr/local/share/lua/5.1/xavante
 	$(REPOINST) -e CONFIG_LIB_LUA_JSON $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
 	$(REPOINST) -e CONFIG_LIB_LUA_JSON $(JSON_DIR)/json/jsonrpc.lua /usr/local/share/lua/5.1/jsonrpc.lua
+	lua-compile $(CONTENT)
 
 romfs_user:
 

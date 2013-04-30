@@ -1,6 +1,7 @@
 cksum
 jlibtool
 opkg-cl
+luac
 sg-cksum/cksum
 ucfront-g++
 ucfront-gcc
