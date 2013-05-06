@@ -45,7 +45,8 @@ GCC_CONFIG_OPTS        := --target=arm-uclinuxeabi --disable-threads --disable-l
                           --disable-libgomp \
                           --with-build-time-tools=$(OUTPUT)/bin \
                           --disable-wchar_t \
-                          CFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" CXXFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections"
+                          CFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" CXXFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" \
+                          TARGET_CFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections" TARGET_CXXFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections"
 
 ELF2FLT_CONFIG_OPTS    := --prefix=$(OUTPUT) --target=arm-uclinuxeabi \
                           '--with-pkgversion=Sourcery G++ Lite 2011.03-46' \
@@ -113,12 +114,16 @@ libppl: libppl_config
 libppl_config:
 	mkdir -p $(LIBPPL_DIR)/build; cd $(LIBPPL_DIR)/build; ../configure $(LIBPPL_CONFIG_OPTS) || exit 1
 
-libcloog: libcloog_config
+libcloog: patch_cloog-s libcloog_config
 	$(MAKE) -j4 -C $(LIBCLOOG_DIR)/build
 	$(MAKE) -C $(LIBCLOOG_DIR)/build install
 
 libcloog_config:
 	mkdir -p $(LIBCLOOG_DIR)/build; cd $(LIBCLOOG_DIR)/build; ../configure $(LIBCLOOG_CONFIG_OPTS) || exit 1
+
+patch_cloog-s:
+	cd $(LIBCLOOG_DIR); patch -p1 < $(CURDIR)/cloog-patch-01
+	touch patch_cloog-s
 
 gcc: gcc_stage_1 elf2flt libc
 	AR_FOR_TARGET=arm-uclinuxeabi-ar NM_FOR_TARGET=arm-uclinuxeabi-nm OBJDUMP_FOR_TARGET=arm-uclinuxeabi-objdump STRIP_FOR_TARGET=arm-uclinuxeabi-strip $(MAKE) -j4 -C $(GCC_DIR)/build LDFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc CPPFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc build_tooldir=$(OUTPUT)/arm-uclinuxeabi all
@@ -136,7 +141,7 @@ patch_gcc-s:
 libc:
 	cp $(PRODUCTDIR)/config.uClibc $(UCLIBC_DIR)/.config
 	yes "" | $(MAKE) -C $(UCLIBC_DIR) oldconfig
-	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" CFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" $(MAKE) -C $(UCLIBC_DIR) V=1
+	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" CFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections" $(MAKE) -C $(UCLIBC_DIR) V=1
 	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" PREFIX=$(OUTPUT)/arm-uclinuxeabi/libc $(MAKE) -C $(UCLIBC_DIR) V=1 install
 	mkdir -p $(OUTPUT)/arm-uclinuxeabi/libc/usr/local; ln -f -s ../include $(OUTPUT)/arm-uclinuxeabi/libc/usr/local/include
 

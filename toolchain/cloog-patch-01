@@ -1,0 +1,10 @@
+--- a/configure
++++ b/configure
+@@ -11174,6 +11174,7 @@
+ 	elif test x$host_alias != xi686-mingw32; then
+ 	    LIBS="$LIBS -lgcc_s"
+ 	fi
++	LIBS="$LIBS -lm"
+ 
+ $as_echo "#define CLOOG_PPL_BACKEND 1" >>confdefs.h
+ 
