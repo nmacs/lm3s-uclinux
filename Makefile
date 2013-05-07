@@ -330,10 +330,10 @@ distclean: mrproper
 	-rm -f tools/ucfront-gcc tools/ucfront-g++ tools/ucfront-ld tools/jlibtool
 	-$(MAKE) -C tools/sg-cksum clean
 	-rm -f tools/cksum
-	-$(MAKE) -C toolchain clean
 	-$(MAKE) -C $(ROOTDIR)/user/opkg clean
 	-rm -f tools/opkg-cl
 	-$(MAKE) -C $(ROOTDIR)/uboot ARCH=arm clean
+	-$(MAKE) -C toolchain clean
 
 .PHONY: bugreport
 bugreport:
