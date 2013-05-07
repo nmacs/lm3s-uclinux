@@ -22,8 +22,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifdef UCI_PLUGIN_SUPPORT
 #include <dlfcn.h>
 #include <glob.h>
+#endif /* UCI_PLUGIN_SUPPORT */
+
 #include "uci.h"
 
 static const char *uci_errstr[] = {
