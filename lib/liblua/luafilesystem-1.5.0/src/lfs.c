@@ -20,6 +20,7 @@
 ** $Id: lfs.c,v 1.61 2009/07/04 02:10:16 mascarenhas Exp $
 */
 
+#ifdef HAS_LFS
 #ifndef _WIN32
 #ifndef _AIX
 #define _FILE_OFFSET_BITS 64 /* Linux, Solaris and HP-UX */
@@ -29,6 +30,7 @@
 #endif
 
 #define _LARGEFILE64_SOURCE
+#endif /* HAS_LFS */
 
 #include <errno.h>
 #include <stdio.h>
