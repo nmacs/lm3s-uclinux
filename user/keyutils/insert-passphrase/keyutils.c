@@ -15,7 +15,11 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+
+#ifdef NO_GLIBC_KEYERR
 #include <dlfcn.h>
+#endif /* NO_GLIBC_KEYERR */
+
 #include <sys/uio.h>
 #include <errno.h>
 #include <asm/unistd.h>

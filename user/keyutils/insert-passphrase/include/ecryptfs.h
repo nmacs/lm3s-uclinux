@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <syslog.h>
 #endif
-#include <pthread.h>
 #include <unistd.h>
 #ifndef S_SPLINT_S
 #include <sys/types.h>
