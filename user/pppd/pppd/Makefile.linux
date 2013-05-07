@@ -32,8 +32,8 @@ endif
 
 # Uncomment the next 2 lines to include support for Microsoft's
 # MS-CHAP authentication protocol.  Also, edit plugins/radius/Makefile.linux.
-CHAPMS=y
-USE_CRYPT=y
+#CHAPMS=y
+#USE_CRYPT=y
 
 # Don't use MSLANMAN unless you really know what you're doing.
 #MSLANMAN=y
