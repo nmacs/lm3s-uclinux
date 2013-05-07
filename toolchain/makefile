@@ -8,7 +8,7 @@ LIBMPFR_DIR   := $(CURDIR)/src/mpfr-2011.03
 LIBMPC_DIR    := $(CURDIR)/src/mpc-0.8.1
 LIBPPL_DIR    := $(CURDIR)/src/ppl-0.10.2
 LIBCLOOG_DIR  := $(CURDIR)/src/cloog-0.15
-UCLIBC_DIR    := $(CURDIR)/src/uclibc-0.29
+UCLIBC_DIR    := $(CURDIR)/src/uClibc-0.9.33.2
 ELF2FLT_DIR   := $(CURDIR)/src/elf2flt-2006q1
 ZLIB_DIR      := $(CURDIR)/src/zlib-1.2.3
 
@@ -138,12 +138,16 @@ patch_gcc-s:
 	cd $(GCC_DIR); patch -p1 < $(CURDIR)/gcc-patch-02
 	touch patch_gcc-s
 
-libc:
+libc: patch_uclibc-s
 	cp $(PRODUCTDIR)/config.uClibc $(UCLIBC_DIR)/.config
 	yes "" | $(MAKE) -C $(UCLIBC_DIR) oldconfig
-	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" CFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections" $(MAKE) -C $(UCLIBC_DIR) V=1
+	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" CFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections -D__thumb2__" $(MAKE) -C $(UCLIBC_DIR) V=1
 	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" PREFIX=$(OUTPUT)/arm-uclinuxeabi/libc $(MAKE) -C $(UCLIBC_DIR) V=1 install
 	mkdir -p $(OUTPUT)/arm-uclinuxeabi/libc/usr/local; ln -f -s ../include $(OUTPUT)/arm-uclinuxeabi/libc/usr/local/include
+
+patch_uclibc-s:
+	cd $(UCLIBC_DIR); patch -p1 < $(CURDIR)/uclibc-patch-01
+	touch patch_uclibc-s
 
 linux-headers:
 	$(MAKE) -C $(ROOTDIR)/$(LINUXDIR) ARCH=arm INSTALL_HDR_PATH=$(OUTPUT)/arm-uclinuxeabi/libc/usr headers_install

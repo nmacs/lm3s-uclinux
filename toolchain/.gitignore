@@ -1,6 +1,3 @@
 output/
 src/
-unpack-s
-toolchain-s
-patch_gcc-s
-patch_elf2flt-s
+*-s
