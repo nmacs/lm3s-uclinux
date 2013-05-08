@@ -23,8 +23,10 @@ repo:
 	$(MAKE) CODENAME=ekit -C opkg repo
 	$(MAKE) CODENAME=ekit -C watchdog repo
 	$(MAKE) CODENAME=ekit -C firmware repo
+ifdef CONFIG_USER_ELSTER_MANUFACTURING
 	$(MAKE) CODENAME=ekit-dev PKG_CROSS=i386 -C manufacturing repo
 	$(MAKE) CODENAME=ekit-dev PKG_CROSS=amd64 -C manufacturing repo
+endif
 	echo -n "Make ekit repository snapshot? [Y/n]: "; \
 	read answer; \
 	if [ -z "$$answer" ]; then \

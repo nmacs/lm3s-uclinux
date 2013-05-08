@@ -6,7 +6,6 @@ include $(LINUX_CONFIG)
 include $(CONFIG_CONFIG)
 include $(ARCH_CONFIG)
 
-SIGNATURE_KEY       = $(ROOTDIR)/../u-boot-uwic/board/elster/uwic/testkey.pem
 
 LINUXFILE           = linux.bin
 LINUXCOMPRESSEDFILE = Image.lzo
@@ -24,6 +23,7 @@ UBIFSIMG            = $(IMAGEDIR)/$(UBIFSFILE)
 EXT2IMG             = $(IMAGEDIR)/$(EXT2FILE)
 
 KEY                ?= $(CURDIR)/security/key
+PRIV_KEY           ?= $(CURDIR)/security/priv_key
 PUB_KEY            ?= $(CURDIR)/security/pub_key
 
 UBIFS      := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
@@ -55,14 +55,14 @@ linux_image: $(LINUXIMG)
 
 $(LINUXIMG): $(LINUXBOOTDIR)/Image
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	lzop -9 -f -o $(LINUXCOMPRESSEDIMG) $(LINUXBOOTDIR)/Image
+	cat $(LINUXBOOTDIR)/Image | lzop -9 -f -o $(LINUXCOMPRESSEDIMG) -
 #	gzip --best --force --stdout $(LINUXBOOTDIR)/Image > $(LINUXCOMPRESSEDIMG)
 	mkimage -A arm -O linux -T kernel -C lzo -a 0x60008000 -e 0x60008000 -n "Linux kernel image" -d $(LINUXCOMPRESSEDIMG) $(LINUXUBOOTIMG)
-	openssl dgst -sha1 -sign $(SIGNATURE_KEY) -out $(LINUXSIG) $(LINUXUBOOTIMG)
+	openssl dgst -sha1 -sign $(PRIV_KEY) -out $(LINUXSIG) $(LINUXUBOOTIMG)
 	cat $(LINUXSIG) $(LINUXUBOOTIMG) > $(LINUXIMG)
 
 image:
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	genext2fs -b 5120 -D $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/uwic/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
+	genext2fs -b 5120 -D $(PRODUCTDIR)/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
 #	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
 	$(UBIFS) -r $(ROMFSDIR) -o $(UBIFSIMG)

@@ -32,3 +32,6 @@ uninstall:
 
 romfs:
 	$(ROMFSINST) -d htpdate /bin/htpdate
+
+repo:
+	$(REPOINST) htpdate /bin/htpdate

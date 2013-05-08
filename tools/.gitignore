@@ -9,3 +9,5 @@ ucfront-ld
 ucfront/jlibtool
 ucfront/ucfront
 ucfront/ucfront-ld
+mkimage
+lzop

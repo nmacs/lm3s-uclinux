@@ -9,8 +9,6 @@ CONFIGURE_OPTIONS += --disable-fast-install
 CONFIGURE_OPTIONS += --disable-shave
 CONFIGURE_OPTIONS += --with-opkglockfile=/tmp/opkg-lock
 
-OPKG_CFLAGS  = -Wl,-elf2flt="-s32768"
-
 ifdef HOST_ARCH
 	ifeq "$(HOST_ARCH)" "i386"
 		CFLAGS = -m32
@@ -32,6 +30,7 @@ ifdef HOST_ARCH
 	endif
 else
 	HOST_ARCH   := arm-uclinux
+	OPKG_CFLAGS  = -Wl,-elf2flt="-s32768"
 	OPKG_CFLAGS += -DHAVE_ATOMIC_EXTRACT
 	OPKG_CFLAGS += -DHAVE_FIRMWARE_UPGRADE
 	OPKG_CFLAGS += -DHAVE_BUILTIN_CONFIG

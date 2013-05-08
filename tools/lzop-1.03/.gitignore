@@ -1,0 +1,9 @@
+Makefile
+config.h
+config.log
+config.status
+configure.lineno
+doc/Makefile
+src/Makefile
+stamp-h1
+

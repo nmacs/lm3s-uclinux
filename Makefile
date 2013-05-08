@@ -36,7 +36,7 @@ config_elster_uwic:
 DIRS    = $(VENDOR_TOPDIRS) include lib include user
 
 .PHONY: tools
-tools: ucfront cksum luac
+tools: ucfront cksum luac lzop mkimage
 	chmod +x tools/romfs-inst.sh tools/modules-alias.sh tools/build-udev-perms.sh
 
 .PHONY: toolchain
@@ -67,6 +67,20 @@ luac: tools/luac
 tools/luac:
 	$(MAKE) -C $(ROOTDIR)/lib/liblua lua_x86
 	ln -sf $(ROOTDIR)/lib/liblua/lua-5.1.5-x86/luac tools/luac
+
+.PHONY: lzop
+lzop: tools/lzop
+tools/lzop:
+	cd tools/lzop-1.03; ./configure CFLAGS='-DNO_STDIN_TIMESTAMP'
+	$(MAKE) -C tools/lzop-1.03
+	ln -sf $(ROOTDIR)/tools/lzop-1.03/src/lzop tools/lzop
+
+.PHONY: mkimage
+mkimage: tools/mkimage
+tools/mkimage:
+	$(MAKE) -C $(ROOTDIR)/uboot unconfig
+	$(MAKE) -C $(ROOTDIR)/uboot tools
+	ln -sf $(ROOTDIR)/uboot/tools/mkimage tools/mkimage
 
 .PHONY: automake
 automake:
@@ -128,7 +142,7 @@ oldconfig: Kconfig conf
 	@$(MAKE) oldconfig_uClibc
 	@config/setconfig final
 
-PREREQUISITES := openocd libncurses5-dev xutils-dev libgmp-dev libmpfr-dev libmpc-dev lzop u-boot-tools mtd-utils putty genext2fs cmake libglib2.0-dev libtool autoconf fakeroot
+PREREQUISITES := openocd libncurses5-dev xutils-dev libgmp-dev libmpfr-dev libmpc-dev lzop u-boot-tools mtd-utils putty genext2fs cmake libglib2.0-dev libtool autoconf fakeroot liblzo2-dev
 
 prerequisites:
 	for i in $(PREREQUISITES); do \
@@ -267,7 +281,7 @@ linux linux%_only:
 		echo "ERROR: you need to do a 'make dep' first" ; \
 		exit 1 ; \
 	fi
-	$(MAKEARCH_KERNEL) -j$(HOST_NCPU) -C $(LINUXDIR) $(LINUXTARGET) || exit 1
+	KBUILD_BUILD_VERSION='0' KCONFIG_NOTIMESTAMP=1 KBUILD_BUILD_TIMESTAMP='Sun May  1 12:00:00 CEST 2011' $(MAKEARCH_KERNEL) -j$(HOST_NCPU) -C $(LINUXDIR) $(LINUXTARGET) || exit 1
 	@if expr "$(LINUXDIR)" : 'linux-\(2.6\|3\).*' > /dev/null ; then \
 		: ignore failure in headers_install; \
 		$(MAKEARCH_KERNEL) -j$(HOST_NCPU) -C $(LINUXDIR) headers_install || true; \
@@ -332,7 +346,10 @@ distclean: mrproper
 	-rm -f tools/cksum
 	-$(MAKE) -C $(ROOTDIR)/user/opkg clean
 	-rm -f tools/opkg-cl
-	-$(MAKE) -C $(ROOTDIR)/uboot ARCH=arm clean
+	-$(MAKE) -C tools/lzop-1.03 distclean
+	-$(MAKE) -C $(ROOTDIR)/uboot ARCH=arm distclean
+	-rm -f tools/mkimage
+	-rm -f tools/lzop
 	-$(MAKE) -C toolchain clean
 
 .PHONY: bugreport
