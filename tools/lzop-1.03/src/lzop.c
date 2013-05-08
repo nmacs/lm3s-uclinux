@@ -1559,7 +1559,12 @@ static lzo_bool open_stdin(file_t *ft)
 #endif
     setmode_done = 1;
 
+#ifndef NO_STDIN_TIMESTAMP
     ft->st.st_mtime = time(NULL);
+#else
+    ft->st.st_mtime = 0;
+#endif
+
 #if 1 && defined(HAVE_FSTAT)
     {
         struct stat st;
