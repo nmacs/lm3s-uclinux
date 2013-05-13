@@ -355,13 +355,21 @@ end
 -------------------------------------------------------------------------------
 
 function suspend(thread)
-    return _reading:remove_by_thread(thread) or _writing:remove_by_thread(thread)
+    return _reading:remove_by_thread(thread) or 
+           _writing:remove_by_thread(thread) or 
+           _waiting:remove_by_thread(thread)
 end
 
-function resume(thread, operation)
+function resume_and_wait(thread, operation)
     if not operation then return end
     operation.set:insert(operation.value, thread)
-		operation.set:push(operation.value, thread)
+	operation.set:push(operation.value, thread)
+end
+
+function resume_and_run(thread)
+	local value = {timeout = 0}
+	_waiting:insert(value, thread)
+	_waiting:push(value, thread)
 end
 
 -------------------------------------------------------------------------------
