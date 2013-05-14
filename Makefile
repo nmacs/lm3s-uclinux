@@ -142,7 +142,7 @@ oldconfig: Kconfig conf
 	@$(MAKE) oldconfig_uClibc
 	@config/setconfig final
 
-PREREQUISITES := openocd libncurses5-dev xutils-dev libgmp-dev libmpfr-dev libmpc-dev lzop u-boot-tools mtd-utils putty genext2fs cmake libglib2.0-dev libtool autoconf fakeroot liblzo2-dev
+PREREQUISITES := openocd libncurses5-dev xutils-dev libgmp-dev libmpfr-dev libmpc-dev lzop u-boot-tools mtd-utils putty genext2fs cmake libglib2.0-dev libtool autoconf fakeroot liblzo2-dev texinfo flex bison g++ g++-multilib lua5.1
 
 prerequisites:
 	for i in $(PREREQUISITES); do \
