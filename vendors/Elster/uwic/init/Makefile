@@ -1,7 +1,6 @@
 romfs:
 	$(ROMFSINST) -d $(ROOTDIR)/user/init/init /bin/init
 	$(MAKE)  -C $(ROOTDIR)/user/keyutils romfs
-	$(ROMFSINST) -d $(ROOTDIR)/user/keyutils/keyutils-1.5.5/keyctl-static /bin/keyctl
 	$(ROMFSINST) -d -p 444 etc/rc /etc/rc
 	$(ROMFSINST) -d -p 444 etc/inittab /etc/inittab
 	$(ROMFSINST) -d -p 544 etc/init.d/leds /etc/init.d/leds
