@@ -885,12 +885,18 @@ static int builtin_return(char **argv) FAST_FUNC;
 
 static int builtin_rm(char **argv) FAST_FUNC;
 static int builtin_mount(char **argv) FAST_FUNC;
+static int builtin_mkdir(char **argv) FAST_FUNC;
+static int builtin_ln(char **argv) FAST_FUNC;
+static int builtin_cp(char **argv) FAST_FUNC;
 static int builtin_date(char **argv) FAST_FUNC;
 static int builtin_kill(char **argv) FAST_FUNC;
 static int builtin_reboot(char **argv) FAST_FUNC;
 
 int rm_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 int mount_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+int mkdir_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+int ln_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+int cp_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 #if ENABLE_DATE
 int date_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 #endif
@@ -978,6 +984,9 @@ static const struct built_in_command bltins2[] = {
 	BLTIN("test"     , builtin_test    , NULL),
 	BLTIN("rm"       , builtin_rm      , NULL),
 	BLTIN("mount"    , builtin_mount   , NULL),
+	BLTIN("mkdir"    , builtin_mkdir   , NULL),
+	BLTIN("ln"       , builtin_ln      , NULL),
+	BLTIN("cp"       , builtin_cp      , NULL),
 #if ENABLE_DATE
 	BLTIN("date"     , builtin_date    , NULL),
 #endif
@@ -8236,6 +8245,21 @@ static int builtin_rm(char **argv)
 static int builtin_mount(char **argv)
 {
 	return run_applet_main(argv, mount_main);
+}
+
+static int builtin_mkdir(char **argv)
+{
+	return run_applet_main(argv, mkdir_main);
+}
+
+static int builtin_ln(char **argv)
+{
+	return run_applet_main(argv, ln_main);
+}
+
+static int builtin_cp(char **argv)
+{
+	return run_applet_main(argv, cp_main);
 }
 
 #if ENABLE_DATE

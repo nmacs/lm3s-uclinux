@@ -14,7 +14,7 @@
 
 ifeq (.config,$(wildcard .config))
 all: prerequisites toolchain tools automake subdirs
-	fakeroot $(MAKE) linux_image romfs image
+	fakeroot $(MAKE) linux_image romfs image firmware
 	@echo == Compiled [all] ==
 else
 all: config_error
@@ -237,6 +237,10 @@ image:
 	[ -d $(IMAGEDIR) ] || mkdir $(IMAGEDIR)
 	$(MAKEARCH) -C vendors image
 
+.PHONY: firmware
+firmware:
+	$(MAKE) -C repo firmware
+
 .PHONY: uboot
 uboot:
 	$(MAKE) -C $(ROOTDIR)/uboot uwic_config || exit 1
@@ -272,9 +276,8 @@ vendor_%:
 
 .PHONY: linux
 linux linux%_only:
-	. $(LINUXDIR)/.config; if [ "$$CONFIG_INITRAMFS_SOURCE" != "" ]; then \
-		mkdir -p `dirname $$CONFIG_INITRAMFS_SOURCE`; \
-		touch $$CONFIG_INITRAMFS_SOURCE || exit 1; \
+	. $(LINUXDIR)/.config; if [ "$$CONFIG_INITRAMFS_SOURCE" != "" ] && [ -f $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio ]; then \
+		touch $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio || exit 1; \
 	fi
 	@if expr "$(LINUXDIR)" : 'linux-2\.[0-4].*' > /dev/null && \
 			 [ ! -f $(LINUXDIR)/.depend ] ; then \

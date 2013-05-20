@@ -12,10 +12,10 @@ rm -rf /var/tmp/*
 
 uci -D_ -e show system > /tmp/conf
 . /tmp/conf
-/bin/rm /tmp/conf
+rm /tmp/conf
 
-[ "$system_kernel_have_sysfs" = "1" ] && /bin/mount -t sysfs sys /sys
-[ "$system_kernel_have_devpts" = "1" ] && /bin/mount -t devpts devpts /dev/pts
+[ "$system_kernel_have_sysfs" = "1" ] && mount -t sysfs sys /sys
+[ "$system_kernel_have_devpts" = "1" ] && mount -t devpts devpts /dev/pts
 
 mkdir -p /tmp/run
 

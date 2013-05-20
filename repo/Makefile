@@ -8,21 +8,14 @@ LOAD_DEB    := load_package.sh
 
 APTREPODIR  := $(REPODIR)/apt
 
+PACKAGES := sys init clock kernel mtdutils syslog busybox devtools lua mgate opkg watchdog
+FIRMWARE_PACKAGES := sys init clock syslog busybox lua mgate watchdog devtools
+
 .PHONY: repo
 repo:
-	$(MAKE) CODENAME=ekit -C sys repo
-	$(MAKE) CODENAME=ekit -C init repo
-	$(MAKE) CODENAME=ekit -C clock repo
-	$(MAKE) CODENAME=ekit -C kernel repo
-	$(MAKE) CODENAME=ekit -C mtdutils repo
-	$(MAKE) CODENAME=ekit -C syslog repo
-	$(MAKE) CODENAME=ekit -C busybox repo
-	$(MAKE) CODENAME=ekit -C devtools repo
-	$(MAKE) CODENAME=ekit -C lua repo
-	$(MAKE) CODENAME=ekit -C mgate repo
-	$(MAKE) CODENAME=ekit -C opkg repo
-	$(MAKE) CODENAME=ekit -C watchdog repo
-	$(MAKE) CODENAME=ekit -C firmware repo
+	for p in $$PACKAGES; do \
+		$(MAKE) CODENAME=ekit -C $$p repo; \
+	done
 ifdef CONFIG_USER_ELSTER_MANUFACTURING
 	$(MAKE) CODENAME=ekit-dev PKG_CROSS=i386 -C manufacturing repo
 	$(MAKE) CODENAME=ekit-dev PKG_CROSS=amd64 -C manufacturing repo
@@ -37,19 +30,29 @@ endif
 		reprepro -b $(APTREPODIR) gensnapshot ekit $$date_stamp; \
 	fi
 
-# .PHONY: firmware
-# firmware:
-# 	rm -rf $(REPODIR)/output/.firmware
-# 	mkdir -p $(REPODIR)/output/.firmware
-# 	mkdir -p /tmp/usr/lib/opkg
-# 	echo "src snapshots file://$(REPODIR)/output/ucdeb" > /tmp/opkg.conf
-# 	echo "lists_dir ext /" >> /tmp/opkg.conf
-# 	$(CALL_OPKG) update
-# 	$(CALL_OPKG) --cache $(REPODIR)/output/.firmware --download-only  install firmware
-# 	cp $(REPODIR)/output/ucdeb/Packages $(REPODIR)/output/.firmware/Packages
-# 	version=`cat $$REPODIR/firmware/control | grep Version: | cut -d' ' -f 2`; \
-# 	filename="firmware_$$version"; \
-# 	mkfs.cramfs "$$REPODIR/output/.firmware/" "$$REPODIR/output/$$filename"
+.PHONY: packages
+packages:
+	rm -r $(PACKAGESDIR)
+	mkdir -p $(PACKAGESDIR)
+	for p in $$PACKAGES; do \
+		$(MAKE) -C $$p package; \
+		mv $$p/.pkg.cramfs $(PACKAGESDIR)/$$p; \
+	done
+
+UBIFS := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
+
+.PHONY: firmware
+firmware: packages
+	rm -r $(FIRMWAREDIR)
+	mkdir -p $(FIRMWAREDIR)/boot
+	mkdir -p $(FIRMWAREDIR)/opt
+	mkdir -p $(FIRMWAREDIR)/etc
+	echo "0.0" > $(FIRMWAREDIR)/etc/version
+	cp $(IMAGEDIR)/linux.bin $(FIRMWAREDIR)/boot/linux.bin
+	for p in $$FIRMWARE_PACKAGES; do \
+		cp $(PACKAGESDIR)/$$p $(FIRMWAREDIR)/opt; \
+	done
+	$(UBIFS) -r $(FIRMWAREDIR) -o $(IMAGEDIR)/firmware.ubifs
 
 .PHONY: clean
 clean:

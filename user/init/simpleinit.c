@@ -61,6 +61,8 @@ static int delaytime = 5;
 #define CTRL(X) ((X)&037)
 #endif
 
+char *global_path = 0;
+
 #ifdef INCLUDE_TIMEZONE
 char tzone[BUF_SIZ];
 #endif
@@ -236,7 +238,10 @@ static int do_command(const char *path, const char *filename, int dowait)
 		argv[1] = (char *)filename;
 		argv[2] = NULL;
 
-		env[0] = "PATH=/bin:/usr/bin:/etc:/sbin:/usr/sbin";
+		if( global_path ) 
+			env[0] = global_path;
+		else
+			env[0] = "PATH=/bin:/usr/bin:/etc:/sbin:/usr/sbin";
 #ifdef INCLUDE_TIMEZONE
 		strcpy(tz, "TZ=");
 		strcat(tz, tzone);
@@ -339,6 +344,9 @@ int main(int argc, char *argv[])
 {
 	int 	i;
 	struct sigaction sa;
+	
+	if( argc > 1 && strncmp(argv[1], "PATH=", 5) == 0 )
+		global_path = argv[1];
 
 	/*
 	 * setup all the signal handlers here
@@ -619,7 +627,10 @@ void spawn(int i)
 		strcpy(term, "TERM=");
 		strcat(term, it->termcap);
 		env[0] = term;
-		env[1] = "PATH=/bin:/usr/bin:/etc:/sbin:/usr/sbin";
+		if( global_path )
+			env[1] = global_path;
+		else
+			env[1] = "PATH=/bin:/usr/bin:/etc:/sbin:/usr/sbin";
 #ifdef INCLUDE_TIMEZONE
 		strcpy(tz, "TZ=");
 		strcat(tz, tzone);
