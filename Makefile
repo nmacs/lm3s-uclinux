@@ -228,9 +228,6 @@ romfs.subdirs:
 romfs.post:
 	$(MAKEARCH) -C vendors romfs.post
 	-find $(ROMFSDIR)/. -name CVS | xargs -r rm -rf
-	. $(LINUXDIR)/.config; if [ "$$CONFIG_INITRAMFS_SOURCE" != "" ]; then \
-		$(MAKEARCH_KERNEL) -j$(HOST_NCPU) -C $(LINUXDIR) $(LINUXTARGET) || exit 1; \
-	fi
 
 .PHONY: image
 image:
