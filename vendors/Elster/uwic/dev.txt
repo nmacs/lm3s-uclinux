@@ -33,6 +33,7 @@
 
 #<name>		<type>	<mode>	<uid>	<gid>	<major>	<minor>	<start>	<inc>	<count>
 /dev		d	755	0	0	-	-	-	-	-
+/tmp/log	s	/dev/log	0	0	-	-	-	-	-
 /dev/net	d	755	0	0	-	-	-	-	-
 /dev/pts	d	755	0	0	-	-	-	-	-
 /dev/mem	c	640	0	0	1	1	0	0	-
