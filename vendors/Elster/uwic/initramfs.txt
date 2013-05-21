@@ -18,5 +18,5 @@ slink /bin/mkdir busybox 777 0 0
 slink /bin/ln busybox 777 0 0
 slink /bin/ls busybox 777 0 0
 slink /bin/cp busybox 777 0 0
-file /bin/busybox initramfs/bin/busybox 755 0 0
+file /bin/busybox initramfs/busybox 755 0 0
 file /init initramfs/init.sh 755 0 0
