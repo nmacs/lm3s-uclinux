@@ -10,6 +10,7 @@ APTREPODIR  := $(REPODIR)/apt
 
 PACKAGES := sys init clock kernel mtdutils syslog busybox devtools lua mgate opkg watchdog
 FIRMWARE_PACKAGES := sys init clock syslog busybox lua mgate watchdog devtools
+DISTRIBUTION_PACKAGES := sys init clock syslog busybox lua mgate watchdog devtools
 
 .PHONY: repo
 repo:
@@ -32,29 +33,38 @@ endif
 
 .PHONY: packages
 packages:
-	rm -r $(PACKAGESDIR)
+	rm -rf $(PACKAGESDIR)
 	mkdir -p $(PACKAGESDIR)
 	for p in $$PACKAGES; do \
 		$(MAKE) -C $$p package; \
 		mv $$p/.pkg.cramfs $(PACKAGESDIR)/$$p; \
 	done
 
+.PHONY: distribution
+distribution:
+	rm -rf $(IMAGEDIR)/distribution
+	mkdir -p $(IMAGEDIR)/distribution
+	for p in $$DISTRIBUTION_PACKAGES; do \
+		$(MAKE) -C $$p content; \
+		cp -rd $$p/.content/* $(IMAGEDIR)/distribution; \
+	done
+	mkfs.cramfs $(IMAGEDIR)/distribution $(IMAGEDIR)/distribution.cramfs
+
 UBIFS := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
 
 .PHONY: firmware
-firmware: packages
-	rm -r $(FIRMWAREDIR)
+firmware: distribution
+	rm -rf $(FIRMWAREDIR)
 	mkdir -p $(FIRMWAREDIR)/boot
 	mkdir -p $(FIRMWAREDIR)/opt
 	mkdir -p $(FIRMWAREDIR)/etc
+	mkdir -p $(FIRMWAREDIR)/var/log
 	echo "0.0" > $(FIRMWAREDIR)/etc/version
 	cp $(IMAGEDIR)/linux.bin $(FIRMWAREDIR)/boot/linux.bin
-	for p in $$FIRMWARE_PACKAGES; do \
-		cp $(PACKAGESDIR)/$$p $(FIRMWAREDIR)/opt; \
-	done
+	cp $(IMAGEDIR)/distribution.cramfs $(FIRMWAREDIR)/opt/distribution.cramfs
 	$(UBIFS) -r $(FIRMWAREDIR) -o $(IMAGEDIR)/firmware.ubifs
 
 .PHONY: clean
 clean:
-	for dir in `ls`; do [ ! -f $$dir/Makefile ] || $(MAKEARCH) -C $$dir clean ; done
+	for dir in `ls`; do [ ! -f $$dir/Makefile ] || $(MAKEARCH) -C $$dir clean; done
 	rm -rf output
