@@ -16,4 +16,4 @@ if [ -n "$system_syslog_level" ]; then
 	ARGS="$ARGS -l $system_syslog_level"
 fi
 
-start-stop-daemon -p /var/run/syslogd.pid -x syslogd -b -m -S -- $ARGS
+start-stop-daemon -p /tmp/run/syslogd.pid -x syslogd -b -m -S -- $ARGS

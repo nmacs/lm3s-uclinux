@@ -7,4 +7,4 @@ if [ -z "$system_clock" ]; then
 fi
 
 date -s "$system_clock_default"
-start-stop-daemon -x htpdate -p /var/run/htpdate.pid -m -b -S -- -D -s -4 "$system_clock_timeserver"
+start-stop-daemon -x htpdate -p /tmp/run/htpdate.pid -m -b -S -- -D -s -4 "$system_clock_timeserver"

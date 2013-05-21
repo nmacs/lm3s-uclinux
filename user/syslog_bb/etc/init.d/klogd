@@ -12,4 +12,4 @@ if [ -n "$system_klog_level" ]; then
 	ARGS="$ARGS -c $system_klog_level"
 fi
 
-start-stop-daemon -p /var/run/klogd.pid -x klogd -b -m -S -- $ARGS
+start-stop-daemon -p /tmp/run/klogd.pid -x klogd -b -m -S -- $ARGS
