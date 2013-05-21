@@ -28,16 +28,15 @@ else
 	mkdir /newroot/media
 	mkdir /newroot/media/flash
 	mkdir /newroot/tmp
+	mkdir /newroot/tmp/run
 	mkdir /newroot/proc
 	mkdir /newroot/sys
-	mkdir /newroot/var
-	mkdir /newroot/var/run
 
 	ln -s /opt/dev /newroot/dev
 	ln -s /opt/bin /newroot/bin
 	ln -s /opt/etc /newroot/etc
 	ln -s /opt/usr /newroot/usr
-	ln -s /media/flash/var/log /newroot/var/log
+	ln -s /media/flash/var /newroot/var
 	ln -s /opt/www /newroot/www
 	
 	echo "Mounting ubifs to /media/flash..."
