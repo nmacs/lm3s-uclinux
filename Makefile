@@ -271,10 +271,19 @@ single:
 vendor_%:
 	$(MAKEARCH) -C vendors $@
 
+.PHONY: linux_initramfs
+linux_initramfs:
+	rm -rf $(LINUXDIR)/initramfs
+	mkdir $(LINUXDIR)/initramfs
+	cp $(PRODUCTDIR)/initramfs/init.sh $(LINUXDIR)/initramfs/init.sh
+	$(MAKEARCH) -C user/initramfs_bb
+	cp user/initramfs_bb/build/busybox $(LINUXDIR)/initramfs/busybox
+
 .PHONY: linux
 linux linux%_only:
 	. $(LINUXDIR)/.config; if [ "$$CONFIG_INITRAMFS_SOURCE" != "" ] && [ -f $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio ]; then \
 		touch $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio || exit 1; \
+		$(MAKE) linux_initramfs; \
 	fi
 	@if expr "$(LINUXDIR)" : 'linux-2\.[0-4].*' > /dev/null && \
 			 [ ! -f $(LINUXDIR)/.depend ] ; then \
