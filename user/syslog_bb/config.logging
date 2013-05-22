@@ -692,6 +692,7 @@ CONFIG_FEATURE_CROND_DIR=""
 # CONFIG_TIMEOUT is not set
 # CONFIG_TTYSIZE is not set
 # CONFIG_UCI is not set
+# CONFIG_RSACHECK is not set
 # CONFIG_VOLNAME is not set
 # CONFIG_WALL is not set
 # CONFIG_WATCHDOG is not set

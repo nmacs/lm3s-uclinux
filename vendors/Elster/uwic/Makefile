@@ -22,10 +22,6 @@ LINUXIMG            = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG            = $(IMAGEDIR)/$(UBIFSFILE)
 EXT2IMG             = $(IMAGEDIR)/$(EXT2FILE)
 
-KEY                ?= $(CURDIR)/security/key
-PRIV_KEY           ?= $(CURDIR)/security/priv_key
-PUB_KEY            ?= $(CURDIR)/security/pub_key
-
 UBIFS      := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
 
 clean:

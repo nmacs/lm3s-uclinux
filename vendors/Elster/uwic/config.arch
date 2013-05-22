@@ -39,6 +39,17 @@ export CROSS_COMPILE
 
 ############################################################################
 #
+# Setup security context
+#
+
+KEY                ?= $(PRODUCTDIR)/security/key
+PRIV_KEY           ?= $(PRODUCTDIR)/security/priv_key
+PUB_KEY            ?= $(PRODUCTDIR)/security/pub_key
+
+export KEY PRIV_KEY PUB_KEY
+
+############################################################################
+#
 # Settings for building user apps
 #
 

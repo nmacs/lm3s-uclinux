@@ -5,11 +5,13 @@ dir /sys 755 0 0
 dir /mnt 755 0 0
 dir /tmp 755 0 0
 dir /newroot 755 0 0
+dir /romdisk 755 0 0
 nod /dev/console 644 0 0 c 5 1
 nod /dev/loop0 644 0 0 b 7 0
 nod /dev/ubi0 644 0 0 c 254 0
 nod /dev/ubi0_0 644 0 0 c 254 1
 nod /dev/watchdog 640 0 0 c 10 130
+nod /dev/mtdblock0 640 0 0 b 31 0
 slink /bin/sh busybox 777 0 0
 slink /bin/mount busybox 777 0 0
 slink /bin/umount busybox 777 0 0
@@ -18,5 +20,11 @@ slink /bin/mkdir busybox 777 0 0
 slink /bin/ln busybox 777 0 0
 slink /bin/ls busybox 777 0 0
 slink /bin/cp busybox 777 0 0
+slink /bin/rsacheck busybox 777 0 0
+slink /bin/wget busybox 777 0 0
+slink /bin/sync busybox 777 0 0
+slink /bin/start-stop-daemon busybox 777 0 0
 file /bin/busybox initramfs/busybox 755 0 0
+file /bin/ubiupdatevol initramfs/ubiupdatevol 755 0 0
+file /bin/watchdogd initramfs/watchdogd 755 0 0
 file /init initramfs/init.sh 755 0 0

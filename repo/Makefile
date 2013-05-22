@@ -49,6 +49,7 @@ distribution:
 		cp -rd $$p/.content/* $(IMAGEDIR)/distribution; \
 	done
 	mkfs.cramfs $(IMAGEDIR)/distribution $(IMAGEDIR)/distribution.cramfs
+	openssl dgst -sha1 -sign $(PRIV_KEY) -out $(IMAGEDIR)/distribution.cramfs.sig $(IMAGEDIR)/distribution.cramfs
 
 UBIFS := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
 
@@ -62,6 +63,7 @@ firmware: distribution
 	echo "0.0" > $(FIRMWAREDIR)/etc/version
 	cp $(IMAGEDIR)/linux.bin $(FIRMWAREDIR)/boot/linux.bin
 	cp $(IMAGEDIR)/distribution.cramfs $(FIRMWAREDIR)/opt/distribution.cramfs
+	cp $(IMAGEDIR)/distribution.cramfs.sig $(FIRMWAREDIR)/opt/distribution.cramfs.sig
 	$(UBIFS) -r $(FIRMWAREDIR) -o $(IMAGEDIR)/firmware.ubifs
 
 .PHONY: clean
