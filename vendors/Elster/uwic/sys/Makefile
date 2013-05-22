@@ -1,9 +1,8 @@
 DIRS  = bin dev etc home lib mnt proc sys usr tmp boot root var
 DIRS += etc/config
+DIRS += etc/default_config
 DIRS += etc/rc.d
 DIRS += etc/romdisk
-DIRS += etc/secret
-DIRS += etc/.secret
 DIRS += var/tmp
 DIRS += var/opkg
 DIRS += var/opkg/upgrade

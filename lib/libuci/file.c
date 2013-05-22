@@ -693,13 +693,15 @@ static char *uci_tmp_path(struct uci_context *ctx)
 	return filename;
 }
 
-static char *uci_default_config(struct uci_context *ctx, const char *path)
+static char *uci_default_config(struct uci_context *ctx, const char *name)
 {
-	char *defaultpath;
-	defaultpath = uci_malloc(ctx, strlen(path) + 8 + 1);
-	strcpy(defaultpath, path);
-	strcat(defaultpath, ".default");
-	return defaultpath;
+	char *filename;
+
+	UCI_ASSERT(ctx, uci_validate_package(name));
+	filename = uci_malloc(ctx, strlen(name) + strlen(ctx->defconfdir) + 2);
+	sprintf(filename, "%s/%s", ctx->defconfdir, name);
+
+	return filename;
 }
 
 static void uci_file_commit(struct uci_context *ctx, struct uci_package **package, bool overwrite)
@@ -723,7 +725,7 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 	/* open the config file for reading now, so that it is locked */
 	if( p->use_default )
 	{
-		defaultpath = uci_default_config(ctx, p->path);
+		defaultpath = uci_default_config(ctx, p->e.name);
 		f_in = uci_open_stream(ctx, defaultpath, SEEK_SET, false, false);
 	}
 	else
@@ -820,8 +822,8 @@ static char **uci_list_config_files(struct uci_context *ctx)
 	char *buf;
 	char *dir;
 
-	dir = uci_malloc(ctx, strlen(ctx->confdir) + 1 + sizeof("/*"));
-	sprintf(dir, "%s/*", ctx->confdir);
+	dir = uci_malloc(ctx, strlen(ctx->defconfdir) + 1 + sizeof("/*"));
+	sprintf(dir, "%s/*", ctx->defconfdir);
 	if (glob(dir, GLOB_MARK, NULL, &globbuf) != 0) {
 		free(dir);
 		UCI_THROW(ctx, UCI_ERR_NOTFOUND);
@@ -888,7 +890,7 @@ static struct uci_package *uci_file_load(struct uci_context *ctx, const char *na
 
         UCI_TRAP_SAVE(ctx, skipdefault);
         uci_close_stream(file);
-        defaultfilename = uci_default_config(ctx, filename);
+        defaultfilename = uci_default_config(ctx, name);
         ctx->err = 0;
         file = uci_open_stream(ctx, defaultfilename, SEEK_SET, false, false);
         ctx->err = 0;

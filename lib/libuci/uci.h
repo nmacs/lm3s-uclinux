@@ -36,6 +36,7 @@ extern "C" {
 #include <stdint.h>
 
 #define UCI_CONFDIR "/etc/config"
+#define UCI_DEFCONFDIR "/etc/default_config"
 #define UCI_SAVEDIR "/tmp/.uci"
 #define UCI_DIRMODE 0700
 #define UCI_FILEMODE 0600
@@ -429,6 +430,7 @@ struct uci_context
 	enum uci_flags flags;
 
 	char *confdir;
+	char *defconfdir;
 	char *savedir;
 
 	/* search path for delta files */

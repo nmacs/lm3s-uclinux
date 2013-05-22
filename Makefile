@@ -13,7 +13,7 @@
 #
 
 ifeq (.config,$(wildcard .config))
-all: prerequisites toolchain tools automake subdirs
+all: prerequisites toolchain tools automake subdirs linux
 	fakeroot $(MAKE) linux_image romfs image firmware
 	@echo == Compiled [all] ==
 else
@@ -276,6 +276,7 @@ linux_initramfs:
 	rm -rf $(LINUXDIR)/initramfs
 	mkdir $(LINUXDIR)/initramfs
 	cp $(PRODUCTDIR)/initramfs/init.sh $(LINUXDIR)/initramfs/init.sh
+	$(MAKEARCH) -C $(ROOTDIR)/user romfs
 	cp $(ROMFSDIR)/bin/ubiupdatevol $(LINUXDIR)/initramfs/ubiupdatevol
 	cp $(ROMFSDIR)/bin/watchdogd $(LINUXDIR)/initramfs/watchdogd
 	$(MAKEARCH) -C user/initramfs_bb
@@ -283,8 +284,10 @@ linux_initramfs:
 
 .PHONY: linux
 linux linux%_only:
-	. $(LINUXDIR)/.config; if [ "$$CONFIG_INITRAMFS_SOURCE" != "" ] && [ -f $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio ]; then \
-		touch $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio || exit 1; \
+	. $(LINUXDIR)/.config; if [ "$$CONFIG_INITRAMFS_SOURCE" != "" ]; then \
+		if [ -f $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio ]; then \
+			touch $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio || exit 1; \
+		fi; \
 		$(MAKE) linux_initramfs; \
 	fi
 	@if expr "$(LINUXDIR)" : 'linux-2\.[0-4].*' > /dev/null && \
@@ -310,7 +313,7 @@ sparseall:
 	$(MAKEARCH_KERNEL) -C $(LINUXDIR) C=2 $(LINUXTARGET) || exit 1
 
 .PHONY: subdirs
-subdirs: linux modules
+subdirs:
 	for dir in $(DIRS) ; do [ ! -d $$dir ] || $(MAKEARCH) -C $$dir || exit 1 ; done
 
 dep:

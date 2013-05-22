@@ -56,10 +56,13 @@ UBIFS := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --rese
 .PHONY: firmware
 firmware: distribution
 	rm -rf $(FIRMWAREDIR)
-	mkdir -p $(FIRMWAREDIR)/boot
-	mkdir -p $(FIRMWAREDIR)/opt
-	mkdir -p $(FIRMWAREDIR)/etc
-	mkdir -p $(FIRMWAREDIR)/var/log
+	mkdir -p $(FIRMWAREDIR)
+	mkdir $(FIRMWAREDIR)/boot
+	mkdir $(FIRMWAREDIR)/opt
+	mkdir $(FIRMWAREDIR)/etc
+	mkdir $(FIRMWAREDIR)/etc/config
+	mkdir $(FIRMWAREDIR)/var
+	mkdir $(FIRMWAREDIR)/var/log
 	echo "0.0" > $(FIRMWAREDIR)/etc/version
 	cp $(IMAGEDIR)/linux.bin $(FIRMWAREDIR)/boot/linux.bin
 	cp $(IMAGEDIR)/distribution.cramfs $(FIRMWAREDIR)/opt/distribution.cramfs

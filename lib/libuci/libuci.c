@@ -49,6 +49,7 @@ static void uci_unload_plugin(struct uci_context *ctx, struct uci_plugin *p);
 #include "list.c"
 
 __private const char *uci_confdir = UCI_CONFDIR;
+__private const char *uci_defconfdir = UCI_DEFCONFDIR;
 __private const char *uci_savedir = UCI_SAVEDIR;
 
 /* exported functions */
@@ -69,6 +70,7 @@ struct uci_context *uci_alloc_context(void)
 	ctx->flags = UCI_FLAG_STRICT | UCI_FLAG_SAVED_DELTA;
 
 	ctx->confdir = (char *) uci_confdir;
+	ctx->defconfdir = (char *) uci_defconfdir;
 	ctx->savedir = (char *) uci_savedir;
 
 	uci_list_add(&ctx->backends, &uci_file_backend.e.list);

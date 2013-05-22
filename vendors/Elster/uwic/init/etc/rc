@@ -5,8 +5,7 @@ mount -t proc proc /proc || exit 1
 
 mount -t cramfs /dev/mtdblock0 /etc/romdisk || exit 1
 insert-passphrase /etc/romdisk/key || exit 1
-mount -t ecryptfs /etc/.secret /etc/secret -o rw,ecryptfs_sig=0000000000000001,ecryptfs_key_bytes=16,ecryptfs_cipher=aes,ecryptfs_no_symlinks || exit 1
-#mount -t ecryptfs /etc/config /etc/config -o rw,ecryptfs_sig=0000000000000001,ecryptfs_key_bytes=16,ecryptfs_cipher=aes,ecryptfs_no_symlinks || exit 1
+mount -t ecryptfs /media/flash/etc/config /etc/config -o rw,ecryptfs_sig=0000000000000001,ecryptfs_key_bytes=16,ecryptfs_cipher=aes,ecryptfs_no_symlinks || exit 1
 
 rm -rf /var/tmp/*
 
