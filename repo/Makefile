@@ -48,6 +48,7 @@ distribution:
 		$(MAKE) -C $$p content; \
 		cp -rd $$p/.content/* $(IMAGEDIR)/distribution; \
 	done
+	echo "0.0" > $(IMAGEDIR)/distribution/etc/version
 	mkfs.cramfs $(IMAGEDIR)/distribution $(IMAGEDIR)/distribution.cramfs
 	openssl dgst -sha1 -sign $(PRIV_KEY) -out $(IMAGEDIR)/distribution.cramfs.sig $(IMAGEDIR)/distribution.cramfs
 
@@ -63,7 +64,6 @@ firmware: distribution
 	mkdir $(FIRMWAREDIR)/etc/config
 	mkdir $(FIRMWAREDIR)/var
 	mkdir $(FIRMWAREDIR)/var/log
-	echo "0.0" > $(FIRMWAREDIR)/etc/version
 	cp $(IMAGEDIR)/linux.bin $(FIRMWAREDIR)/boot/linux.bin
 	cp $(IMAGEDIR)/distribution.cramfs $(FIRMWAREDIR)/opt/distribution.cramfs
 	cp $(IMAGEDIR)/distribution.cramfs.sig $(FIRMWAREDIR)/opt/distribution.cramfs.sig
