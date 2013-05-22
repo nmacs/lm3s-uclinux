@@ -18,13 +18,10 @@ if [ "$answer" == "y" ]; then
 		url=$default_url
 	fi
 
-	echo "Downloading firmware from '$url'..."
-	wget -O /tmp/firmware -T 10 $url
-	
-	echo "Flashing..."
-	ubiupdatevol /dev/ubi0_0 /tmp/firmware
+	(echo "Downloading firmware from '$url'..."; wget -O /tmp/firmware -T 10 $url) && 
+  (echo "Flashing..."; ubiupdatevol /dev/ubi0_0 /tmp/firmware)
 
-	rm /tmp/firmware
+	rm -f /tmp/firmware
 	umount /sys
 	echo "Done"
 fi
