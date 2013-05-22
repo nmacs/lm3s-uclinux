@@ -16,9 +16,9 @@ fi
 
 if [ -n "$network_lan" ]; then
 	if [ "$network_lan_proto" = "static" ]; then
-		#ifconfig $config_wan_iface down
+		ifconfig $network_lan_ifname down
 		ifconfig $network_lan_ifname hw ether $network_lan_macaddr
-		#ifconfig $config_wan_iface up
+		ifconfig $network_lan_ifname up
 		ifconfig $network_lan_ifname $network_lan_ipaddr netmask $network_lan_netmask
 	fi
 

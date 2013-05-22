@@ -10,10 +10,15 @@ read -t 5 -p "Upgrade firmware [y/N]: " answer
 if [ "$answer" == "y" ]; then
 	mount -t sysfs sys /sys
 	start-stop-daemon -x watchdogd -p /tmp/watchdogd.pid -m -b -S -- -f
+	ifconfig eth0 10.65.100.205 netmask 255.255.255.0
 
-	read -p "Enter firmware image downloading URL: " url
+	default_url="http://10.65.100.176/firmware.ubifs"
+	read -p "Enter firmware URL [$default_url]: " url
+	if [ "$url" == "" ]; then
+		url=$default_url
+	fi
 
-	echo "Downloading firmware..."
+	echo "Downloading firmware from '$url'..."
 	wget -O /tmp/firmware -T 10 $url
 	
 	echo "Flashing..."
