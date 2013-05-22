@@ -49,3 +49,4 @@ lib-$(CONFIG_VOLNAME)     += volname.o
 lib-$(CONFIG_WALL)        += wall.o
 lib-$(CONFIG_WATCHDOG)    += watchdog.o
 lib-$(CONFIG_UCI)         += uci.o
+lib-$(CONFIG_RSACHECK)    += rsacheck.o

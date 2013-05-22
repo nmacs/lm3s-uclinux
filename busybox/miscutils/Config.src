@@ -592,6 +592,12 @@ config UCI
 	  UCI is a small utility written in C and is intended to centralize
 	  the whole configuration of a device.
 
+config RSACHECK
+	bool "rsacheck"
+	default n
+	help
+	  Checks RSA digital signature.
+
 config VOLNAME
 	bool "volname"
 	default y
