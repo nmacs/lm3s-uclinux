@@ -2,13 +2,13 @@
 SHELL=/bin/sh
 
 # To assist in cross-compiling
-CC=gcc
-AR=ar
-RANLIB=ranlib
-LDFLAGS=
+# CC=gcc
+# AR=ar
+# RANLIB=ranlib
+# LDFLAGS=
 
-BIGFILES=-D_FILE_OFFSET_BITS=64
-CFLAGS=-Wall -Winline -O -g $(BIGFILES)
+# BIGFILES=-D_FILE_OFFSET_BITS=64
+CFLAGS=-Wall -Winline $(BIGFILES)
 
 # Where you want it installed when you do 'make install'
 PREFIX=/usr
@@ -22,7 +22,7 @@ OBJS= blocksort.o  \
       decompress.o \
       bzlib.o
 
-all: libbz2.a bzip2 bzip2recover test
+all: libbz2.a
 
 bzip2: libbz2.a bzip2.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2 bzip2.o -L. -lbz2
@@ -203,3 +203,5 @@ manual.pdf: $(MANUAL_SRCS)
 
 manual.html: $(MANUAL_SRCS)
 	./xmlproc.sh -html manual.xml
+
+romfs:

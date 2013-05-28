@@ -3073,6 +3073,18 @@ config USER_BZIP2_BZIP2
 	  Features high compression rate but slower performance than
 	  gzip and compress.
 
+config USER_BSDIFF_BSDIFF
+	bool "bsdiff"
+	select LIB_LIBBZ2
+	help
+	  bsdiff and bspatch are tools for building and applying patches to binary files.
+
+config USER_BSDIFF_BSPATCH
+	bool "bspatch"
+	select LIB_LIBBZ2
+	help
+	  bsdiff and bspatch are tools for building and applying patches to binary files.
+
 config USER_CAL_CAL
 	bool "cal"
 	help
