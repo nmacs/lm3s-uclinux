@@ -24,6 +24,8 @@
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
 #           -Wstrict-prototypes -Wmissing-prototypes
 
+CFLAGS += -DDYNAMIC_CRC_TABLE -DBUILDFIXED
+
 LDFLAGS=libz.a
 LDSHARED=$(CC) -shared
 CPP=$(CC) -E
