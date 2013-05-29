@@ -170,7 +170,9 @@ inc_pcre = \
 	pcreposix.h,.
 
 dir_$(CONFIG_LIB_LIBLZMA) += liblzma
-lib_libzlma = *.a
+lib_liblzma = staging/lib/liblzma.a
+inc_liblzma = staging/include/lzma.h,. \
+              staging/include/lzma,.
 
 dir_$(CONFIG_LIB_OSIP2) += osip2
 lib_osip2 = build/install/lib/*.a
