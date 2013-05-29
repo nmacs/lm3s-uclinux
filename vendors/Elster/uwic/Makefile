@@ -51,8 +51,9 @@ linux_image: $(LINUXIMG)
 
 $(LINUXIMG): $(LINUXBOOTDIR)/Image
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
+#	cat $(LINUXBOOTDIR)/Image | lzma -c -z -e - > $(LINUXCOMPRESSEDIMG)
 	cat $(LINUXBOOTDIR)/Image | lzop -9 -f -o $(LINUXCOMPRESSEDIMG) -
-#	gzip --best --force --stdout $(LINUXBOOTDIR)/Image > $(LINUXCOMPRESSEDIMG)
+#	gzip --fast --force --stdout $(LINUXBOOTDIR)/Image > $(LINUXCOMPRESSEDIMG)
 	mkimage -A arm -O linux -T kernel -C lzo -a 0x60008000 -e 0x60008000 -n "Linux kernel image" -d $(LINUXCOMPRESSEDIMG) $(LINUXUBOOTIMG)
 	openssl dgst -sha1 -sign $(PRIV_KEY) -out $(LINUXSIG) $(LINUXUBOOTIMG)
 	cat $(LINUXSIG) $(LINUXUBOOTIMG) > $(LINUXIMG)
