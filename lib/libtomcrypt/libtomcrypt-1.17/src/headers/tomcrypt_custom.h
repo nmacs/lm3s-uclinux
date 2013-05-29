@@ -43,7 +43,7 @@
    #ifdef memcmp 
    #define LTC_NO_PROTOTYPES
    #endif
-#define XMEMCMP  memcmp
+#define XMEMCMP  crypto_memcmp
 #endif
 #ifndef XSTRCMP
    #ifdef strcmp
