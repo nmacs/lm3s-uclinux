@@ -45,6 +45,11 @@ lib_liblua = $(lib_liblua_y)
 
 dir_$(CONFIG_LIB_CYASSL) += cyassl
 
+dir_$(CONFIG_LIB_LIBSODIUM) += libsodium
+lib_libsodium += staging/lib/libsodium.a
+inc_libsodium += staging/include/sodium.h,. \
+                 staging/include/sodium,.
+
 dir_$(CONFIG_LIB_TOMMATH_MATH) += libtommath
 dir_$(CONFIG_LIB_TOMMATH_FASTMATH) += libtommath
 lib_libtommath = output/lib/libtfm.a output/lib/libtommath.a

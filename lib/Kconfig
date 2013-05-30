@@ -220,6 +220,15 @@ config LIB_LIBUPNP
 	  Only enable this if you want to force the library to be built.
 	  The Config will make sure this library is built if it is needed.
 
+config LIB_LIBSODIUM
+	bool "Build libsodium"
+	default n
+	help
+	  Sodium is a portable, cross-compilable, installable,
+	  packageable crypto library based on NaCl, with a compatible API.
+	  NaCl (pronounced "salt") is a new easy-to-use high-speed software library 
+	  for network communication, encryption, decryption, signatures, etc.
+
 config LIB_LIBSYSFS
 	bool "Build libsysfs"
 	default n

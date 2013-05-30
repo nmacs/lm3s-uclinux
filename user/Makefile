@@ -27,6 +27,7 @@ dir_$(CONFIG_JFFS2_FS)                      += mtd-utils
 
 dir_$(CONFIG_USER_KEYUTILS_KEYUTILS)        += keyutils
 dir_$(CONFIG_USER_SOCAT_SOCAT)              += socat
+dir_$(CONFIG_USER_SODIUM_SODIUM)            += sodium
 dir_$(CONFIG_USER_OPKG_OPKG)                += opkg
 dir_$(CONFIG_USER_AGETTY_AGETTY)            += agetty
 dir_$(CONFIG_USER_APPWEB_APPWEB)            += appWeb

@@ -3033,6 +3033,12 @@ config USER_SOCAT_SOCAT
 	  These modes include generation of "listening" sockets, named pipes, and pseudo
 	  terminals.
 
+config USER_SODIUM_SODIUM
+	bool "sodium"
+	select LIB_LIBSODIUM
+	help
+	  "libsodium test application"
+
 config USER_P7ZIP_7ZA
 	bool "7za"
 	help
