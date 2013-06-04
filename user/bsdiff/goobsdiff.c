@@ -230,7 +230,7 @@ static int compress2gzip(Bytef *dest, uLongf *destLen,
 	stream.opaque = (voidpf)0;
 
 	err = deflateInit2(&stream,
-	                   level, Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY);
+	                   level, Z_DEFLATED, 16 + MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
 	if (err != Z_OK) return err;
 
 	err = deflate(&stream, Z_FINISH);

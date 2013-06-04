@@ -187,6 +187,11 @@ config LIB_ZLIB
 	  Only enable this if you want to force the library to be built.
 	  The Config will make sure this library is built if it is needed.
 
+config LIB_ZLIB_MAXWBITS
+	int "zlib MAXWBITS"
+	depends on LIB_ZLIB
+	default 15
+
 config LIB_LIBBZ2
 	bool "Build libBZIP2"
 	default n
