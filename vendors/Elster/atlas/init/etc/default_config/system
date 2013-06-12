@@ -1,0 +1,19 @@
+config kernel 'kernel'
+	option have_sysfs  1
+	option have_devpts 1
+
+config leds 'leds'
+	option trigger 'cpuidle'
+
+config clock 'clock'
+	option default     '2013.01.10-14:00'
+	option timeserver  'www.google.com'
+
+config nfs 'nfs'
+	option options   'port=2049,nolock,proto=tcp,vers=2'
+	option server    '10.65.100.176'
+	option path      '/nfsroot'
+
+config syslog 'syslog'
+	option remote '10.65.100.176'
+	option level  8

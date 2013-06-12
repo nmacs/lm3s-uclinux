@@ -33,10 +33,14 @@ config_elster_uwic:
 	cp $(ROOTDIR)/vendors/Elster/uwic/config.root .config
 	yes "" | $(MAKE) oldconfig
 
+config_elster_atlas:
+	cp $(ROOTDIR)/vendors/Elster/atlas/config.root .config
+	yes "" | $(MAKE) oldconfig
+
 DIRS    = $(VENDOR_TOPDIRS) include lib include user
 
 .PHONY: tools
-tools: ucfront cksum luac lzop mkimage
+tools: ucfront cksum luac lzop mkimage openocd
 	chmod +x tools/romfs-inst.sh tools/modules-alias.sh tools/build-udev-perms.sh
 
 .PHONY: toolchain
@@ -61,6 +65,16 @@ tools/cksum: tools/sg-cksum/*.c
 opkg:
 	$(MAKE) HOST_ARCH=native -C $(ROOTDIR)/user/opkg
 	ln -sf $(ROOTDIR)/user/opkg/build-native/src/opkg-cl tools/opkg-cl
+
+.PHONY: openocd
+openocd: tools/openocd
+tools/openocd: tools/openocd-0.7.0/Makefile
+	$(MAKE) -C tools/openocd-0.7.0 -j 4
+	$(MAKE) -C tools/openocd-0.7.0 install
+	ln -sf $(ROOTDIR)/tools/openocd-0.7.0/output/bin/openocd tools/openocd
+
+tools/openocd-0.7.0/Makefile:
+	cd tools/openocd-0.7.0; ./configure CC=gcc RANLIB=ranlib --prefix=$(CURDIR)/tools/openocd-0.7.0/output --enable-ft2232_libftdi --enable-maintainer-mode
 
 .PHONY: luac
 luac: tools/luac
@@ -240,15 +254,15 @@ firmware:
 
 .PHONY: uboot
 uboot:
-	$(MAKE) -C $(ROOTDIR)/uboot uwic_config || exit 1
-	$(MAKE) -j 4 -C $(ROOTDIR)/uboot ARCH=arm u-boot.bin || exit 1
-	cp $(ROOTDIR)/uboot/u-boot.bin $(UBOOT_IMG)
+	$(MAKE) -C $(PRODUCTDIR) uboot
 
 .PHONY: romdisk
 romdisk:
-	mkdir -p $(ROMDISK)
 	$(MAKE) -C $(PRODUCTDIR) romdisk
-	mkfs.cramfs $(ROMDISK) $(ROMDISK_IMG) || exit1
+
+.PHONY: flash_mcu
+flash_mcu:
+	$(MAKE) -C $(PRODUCTDIR) flash_mcu
 
 .PHONY: release
 release:
@@ -364,6 +378,8 @@ distclean: mrproper
 	-$(MAKE) -C $(ROOTDIR)/uboot ARCH=arm distclean
 	-rm -f tools/mkimage
 	-rm -f tools/lzop
+	-rm -f tools/openocd
+	-$(MAKE) -C tools/openocd-0.7.0 distclean
 	-$(MAKE) -C toolchain clean
 
 .PHONY: bugreport

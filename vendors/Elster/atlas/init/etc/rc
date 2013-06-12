@@ -1,0 +1,24 @@
+#!/bin/sh
+
+mount -t ramfs ramfs /tmp || exit 1
+mount -t proc proc /proc || exit 1
+
+mount -t cramfs /dev/mtdblock0 /etc/romdisk || exit 1
+insert-passphrase /etc/romdisk/key || exit 1
+mount -t ecryptfs /media/flash/etc/config /etc/config -o rw,ecryptfs_sig=0000000000000001,ecryptfs_key_bytes=16,ecryptfs_cipher=aes,ecryptfs_no_symlinks || exit 1
+
+rm -rf /var/tmp/*
+
+uci -D_ -e show system > /tmp/conf
+. /tmp/conf
+rm /tmp/conf
+
+[ "$system_kernel_have_sysfs" = "1" ] && mount -t sysfs sys /sys
+[ "$system_kernel_have_devpts" = "1" ] && mount -t devpts devpts /dev/pts
+
+mkdir -p /tmp/run
+
+for i in /etc/rc.d/S*; do
+	. $i
+done
+

@@ -1,0 +1,73 @@
+############################################################################
+#
+# Vendor specific settings
+#
+
+CONSOLE_BAUD_RATE = 115200
+
+############################################################################
+#
+#
+#
+
+CPUFLAGS            := -mtune=cortex-m3 -march=armv7-m -mthumb
+DISABLE_XIP         := 1
+DISABLE_MOVE_RODATA := 1
+LOPT                := -Os
+UOPT                := -Os
+VENDOR_CFLAGS       := -ffunction-sections -fdata-sections -Wl,--gc-sections
+
+export CPUFLAGS
+
+############################################################################
+#
+#
+#
+
+include $(ROOTDIR)/vendors/config/armnommu/config.arch
+
+############################################################################
+#
+# Setup cross-compiler
+#
+
+CROSS               := $(ROOTDIR)/toolchain/output/bin/arm-uclinuxeabi-
+CROSS_COMPILE       := $(CROSS)
+
+export CROSS
+export CROSS_COMPILE
+
+############################################################################
+#
+# Setup security context
+#
+
+KEY                ?= $(PRODUCTDIR)/security/key
+PRIV_KEY           ?= $(PRODUCTDIR)/security/priv_key
+PUB_KEY            ?= $(PRODUCTDIR)/security/pub_key
+
+export KEY PRIV_KEY PUB_KEY
+
+############################################################################
+#
+# Settings for building user apps
+#
+
+ifdef UCLINUX_BUILD_USER
+	LIBC        = -lc
+	LIBCRYPTO   = -lcrypto
+	LIBCRYPT    = -lcrypt
+	LIBGCC      = -lgcc
+	LIBIBERTY   = -liberty
+	LIBSUPCPP   = -lsupc++
+#	LIBSUPCPP   = -lstdc++
+
+	LDLIBS     += $(LDPATH)
+	CXXLIBS    += $(LDPATH)
+
+	ifdef CONFIG_LIB_USTL
+		LDPATH   += -L$(ROOTDIR)/lib/libustl/output/lib
+		CXXFLAGS += -I$(ROOTDIR)/lib/libustl/output/include
+		CXXLIBS  += -nodefaultlib $(LIBSTDCPP) $(LIBSUPCPP) $(LIBC) $(LIBGCC)
+	endif
+endif

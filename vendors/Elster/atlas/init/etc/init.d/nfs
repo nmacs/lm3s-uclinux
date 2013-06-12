@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ -z "$system_nfs" ]; then
+	uci -D_ -e show system.nfs > /tmp/nfs_conf
+	. /tmp/nfs_conf
+	rm /tmp/nfs_conf
+fi
+
+mount -t nfs -o $system_nfs_options $system_nfs_server:$system_nfs_path /mnt
