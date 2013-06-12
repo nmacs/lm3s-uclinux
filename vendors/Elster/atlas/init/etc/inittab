@@ -1,1 +1,1 @@
-ttyS0::respawn:/bin/sh
+ttyS1::respawn:/bin/sh
