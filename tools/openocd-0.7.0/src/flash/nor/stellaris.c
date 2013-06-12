@@ -414,6 +414,7 @@ static struct {
 	{0x05, 0xEA, "LM4FS1GH5BB"},
 	{0x05, 0xE4, "LM4FS99H5BB"},
 	{0x05, 0xE1, "LM4FSXLH5BB"},
+	{0x0A, 0xC8, "ATLAS_MCU"},
 	{0xFF, 0x00, "Unknown Part"}
 };
 
@@ -731,6 +732,8 @@ static int stellaris_read_part_info(struct flash_bank *bank)
 		case 3:			/* DustDevil */
 			stellaris_info->xtal_mask = 0x1f;
 			break;
+		case 10:
+			stellaris_info->dc0 = 0x1ff;
 
 		default:
 			LOG_WARNING("Unknown did0 class");
