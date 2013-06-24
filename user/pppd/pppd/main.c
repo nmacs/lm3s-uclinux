@@ -1527,6 +1527,8 @@ bad_signal(sig)
 
 #ifdef __uClinux__
 
+extern int real_ttyfd;
+
 /*
  * device_script - run a program to talk to the serial device
  * (e.g. to run the connector or disconnector script).
@@ -1589,8 +1591,11 @@ device_script(program, in, out, dont_wait)
 
 	if (log_to_fd > 2)
 		close(log_to_fd);
-	if (the_channel->close)
+	if (the_channel->close) {
+		int old_descryptor = real_ttyfd;
 		(*the_channel->close)();
+		real_ttyfd = old_descryptor;
+	}
 	else
 		close(devfd);	/* some plugins don't have a close function */
 	close(fd_ppp);

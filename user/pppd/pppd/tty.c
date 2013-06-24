@@ -124,7 +124,11 @@ static void maybe_relock __P((void *, int));
 
 static int pty_master;		/* fd for master side of pty */
 static int pty_slave;		/* fd for slave side of pty */
+#ifdef __uClinux__
+int real_ttyfd;		/* fd for actual serial port (not pty) */
+#else
 static int real_ttyfd;		/* fd for actual serial port (not pty) */
+#endif
 static int ttyfd;		/* Serial port file descriptor */
 static char speed_str[16];	/* Serial port speed as string */
 
