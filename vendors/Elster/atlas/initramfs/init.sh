@@ -12,17 +12,28 @@ if [ "$answer" == "y" ]; then
 	start-stop-daemon -x watchdogd -p /tmp/watchdogd.pid -m -b -S -- -f
 	ifconfig eth0 10.65.100.205 netmask 255.255.255.0
 
-	default_url="http://10.65.100.176/firmware.ubifs"
+	default_url="http://10.65.100.176"
 	read -p "Enter firmware URL [$default_url]: " url
 	if [ "$url" == "" ]; then
 		url=$default_url
 	fi
 
-	(echo "Downloading firmware from '$url'..."; wget -O /tmp/firmware -T 10 $url) && 
-  (echo "Flashing..."; ubiupdatevol /dev/ubi0_0 /tmp/firmware)
+	echo "Mounting ubifs to /mnt..."
+	mount -t ubifs /dev/ubi0_0 /mnt
+
+	rm -f /mnt/boot/linux.bin
+	rm -f /mnt/opt/distribution.cramfs
+	rm -f /mnt/opt/distribution.cramfs.sig
+
+	echo "Downloading firmware from '$url'..."
+	wget -O /mnt/boot/linux.bin -T 10 "$url/linux.bin"
+	wget -O /mnt/opt/distribution.cramfs -T 10 "$url/distribution.cramfs"
+	wget -O /mnt/opt/distribution.cramfs.sig -T 10 "$url/distribution.cramfs.sig"
+	sync
 
 	rm -f /tmp/firmware
 	umount /sys
+	umount /mnt
 	echo "Done"
 fi
 
@@ -41,7 +52,7 @@ ln -s /opt/dev /newroot/dev
 ln -s /opt/bin /newroot/bin
 ln -s /opt/etc /newroot/etc
 ln -s /opt/usr /newroot/usr
-ln -s /media/flash/var /newroot/var
+ln -s /opt/var /newroot/var
 ln -s /opt/www /newroot/www
 
 echo "Mounting ubifs to /media/flash..."
