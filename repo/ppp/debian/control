@@ -1,0 +1,8 @@
+Package: ppp
+Version: 0.0.1
+Section: base
+Architecture: uwic-v1
+Description: pppd, chat and related scripts and configs.
+HomePage: unknown
+Maintainer: Max Nekludov
+Priority: important

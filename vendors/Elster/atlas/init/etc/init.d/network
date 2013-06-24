@@ -27,6 +27,12 @@ if [ -n "$network_lan" ]; then
 	fi
 fi
 
-if [ -n "$network_route" ]; then
-	route add $network_route_target gw $network_route_gateway metric $network_route_metric dev $network_route_ifname
+if [ -n "$network_wan" ]; then
+	echo on > /proc/driver/telit_pwr
+	route del default
+	start-stop-daemon -p /var/run/pppd0.pid -x pppd -b -S -- call gprs
+else
+	if [ -n "$network_route" ]; then
+		route add $network_route_target gw $network_route_gateway metric $network_route_metric dev $network_route_ifname
+	fi
 fi

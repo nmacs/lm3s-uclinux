@@ -10,7 +10,7 @@ APTREPODIR  := $(REPODIR)/apt
 
 PACKAGES := sys init clock kernel mtdutils syslog busybox devtools lua mgate opkg watchdog
 FIRMWARE_PACKAGES := sys init clock syslog busybox lua mgate watchdog devtools
-DISTRIBUTION_PACKAGES := sys init clock syslog busybox lua mgate watchdog devtools
+DISTRIBUTION_PACKAGES := sys init clock syslog busybox lua ppp mgate watchdog devtools
 
 .PHONY: repo
 repo:
