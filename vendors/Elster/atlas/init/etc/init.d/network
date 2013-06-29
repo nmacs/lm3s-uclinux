@@ -28,8 +28,6 @@ if [ -n "$network_lan" ]; then
 fi
 
 if [ -n "$network_wan" ]; then
-	echo on > /proc/driver/telit_pwr
-	route del default
 	start-stop-daemon -p /var/run/pppd0.pid -x pppd -b -S -- call gprs
 else
 	if [ -n "$network_route" ]; then
