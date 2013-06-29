@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if [ -z "$system_leds" ]; then
-	uci -D_ -e show system.leds > /tmp/leds_conf
-	. /tmp/leds_conf
-	rm /tmp/leds_conf
-fi
-
-echo $system_leds_trigger > /sys/class/leds/cpu-led/trigger
