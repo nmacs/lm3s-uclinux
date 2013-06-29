@@ -481,6 +481,11 @@ static int f_sync(lua_State *L) {
   return pushresult(L, fflush(f) == 0 && fsync(fileno(f)) == 0, NULL);
 }
 
+static int f_getfd(lua_State *L) {
+  FILE *f = tofile(L);
+	lua_pushinteger(L, fileno(f));
+  return 1;
+}
 
 static const luaL_Reg iolib[] = {
   {"close", io_close},
@@ -504,9 +509,10 @@ static const luaL_Reg flib[] = {
   {"lines", f_lines},
   {"read", f_read},
   {"seek", f_seek},
-	{"sync", f_sync},
+  {"sync", f_sync},
   {"setvbuf", f_setvbuf},
   {"write", f_write},
+  {"getfd", f_getfd},
   {"__gc", io_gc},
   {"__tostring", io_tostring},
   {NULL, NULL}
