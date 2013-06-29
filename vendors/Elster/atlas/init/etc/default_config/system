@@ -1,5 +1,5 @@
 config kernel 'kernel'
-	option have_sysfs  1
+	option have_sysfs  0
 	option have_devpts 1
 
 config leds 'leds'

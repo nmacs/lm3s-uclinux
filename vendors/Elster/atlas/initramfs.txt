@@ -1,7 +1,6 @@
 dir /dev 755 0 0
 dir /bin 755 1000 1000
 dir /proc 755 0 0
-dir /sys 755 0 0
 dir /mnt 755 0 0
 dir /tmp 755 0 0
 dir /newroot 755 0 0
@@ -26,6 +25,5 @@ slink /bin/sync busybox 777 0 0
 slink /bin/start-stop-daemon busybox 777 0 0
 slink /bin/ifconfig busybox 777 0 0
 file /bin/busybox initramfs/busybox 755 0 0
-file /bin/ubiupdatevol initramfs/ubiupdatevol 755 0 0
 file /bin/watchdogd initramfs/watchdogd 755 0 0
 file /init initramfs/init.sh 755 0 0

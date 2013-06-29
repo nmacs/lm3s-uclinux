@@ -8,7 +8,6 @@ mount -t cramfs /dev/mtdblock0 /romdisk
 read -t 5 -p "Upgrade firmware [y/N]: " answer
 
 if [ "$answer" == "y" ]; then
-	mount -t sysfs sys /sys
 	start-stop-daemon -x watchdogd -p /tmp/watchdogd.pid -m -b -S -- -f
 	ifconfig eth0 10.65.100.205 netmask 255.255.255.0
 
@@ -32,7 +31,6 @@ if [ "$answer" == "y" ]; then
 	sync
 
 	rm -f /tmp/firmware
-	umount /sys
 	umount /mnt
 	echo "Done"
 fi
