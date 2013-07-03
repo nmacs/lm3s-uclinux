@@ -10,7 +10,7 @@ CONSOLE_BAUD_RATE = 115200
 #
 #
 
-CPUFLAGS            := -mtune=cortex-m3 -march=armv7-m -mthumb
+CPUFLAGS            := -mcpu=cortex-m4 -mthumb
 DISABLE_XIP         := 1
 DISABLE_MOVE_RODATA := 1
 LOPT                := -Os
