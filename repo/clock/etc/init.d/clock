@@ -6,5 +6,4 @@ if [ -z "$system_clock" ]; then
 	rm /tmp/clock_conf
 fi
 
-date -s "$system_clock_default"
 start-stop-daemon -x htpdate -p /tmp/run/htpdate.pid -m -b -S -- -D -s -4 "$system_clock_timeserver"
