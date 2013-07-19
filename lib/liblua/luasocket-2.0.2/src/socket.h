@@ -51,7 +51,7 @@ void socket_setblocking(p_socket ps);
 
 int socket_waitfd(p_socket ps, int sw, p_timeout tm);
 int socket_select(t_socket n, fd_set *rfds, fd_set *wfds, fd_set *efds, 
-        p_timeout tm);
+        p_timeout tm, int interruptible);
 
 int socket_connect(p_socket ps, SA *addr, socklen_t addr_len, p_timeout tm); 
 int socket_create(p_socket ps, int domain, int type, int protocol);

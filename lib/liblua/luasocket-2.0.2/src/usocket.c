@@ -103,7 +103,7 @@ void socket_destroy(p_socket ps) {
 * Select with timeout control
 \*-------------------------------------------------------------------------*/
 int socket_select(t_socket n, fd_set *rfds, fd_set *wfds, fd_set *efds, 
-        p_timeout tm) {
+        p_timeout tm, int interruptible) {
     int ret;
     do {
         struct timeval tv;
@@ -112,7 +112,7 @@ int socket_select(t_socket n, fd_set *rfds, fd_set *wfds, fd_set *efds,
         tv.tv_usec = (int) ((t - tv.tv_sec) * 1.0e6);
         /* timeout = 0 means no wait */
         ret = select(n, rfds, wfds, efds, t >= 0.0 ? &tv: NULL);
-    } while (ret < 0 && errno == EINTR);
+    } while (!interruptible && ret < 0 && errno == EINTR);
     return ret;
 }
 
