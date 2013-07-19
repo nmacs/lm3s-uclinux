@@ -261,14 +261,6 @@ end
 -- Thread handling
 -------------------------------------------------------------------------------
 
-local function is_socket(skt)
-	return skt.getfd ~= nil
-end
-
-local function is_fd(skt)
-    return skt.fd ~= nil
-end
-
 local function _doTick (co, skt, ...)
    if not co then return end
 
@@ -308,14 +300,14 @@ end
 
 -- handle threads on a queue
 local function _tickRead (skt)
-       if is_fd(skt) and skt.status == nil then
+       if type(skt) == "table" and skt.status == nil then
            skt.status = 1
        end
        _doTick (_reading:pop (skt), skt)
 end
 
 local function _tickWrite (skt)
-       if is_fd(skt) and skt.status == nil then
+       if type(skt) == "table" and skt.status == nil then
            skt.status = 1
        end
        _doTick (_writing:pop (skt), skt)
@@ -361,8 +353,8 @@ function suspend(thread)
 end
 
 function resume_and_wait(thread, operation)
-    if not operation then return end
-    operation.set:insert(operation.value, thread)
+	if not operation then return end
+	operation.set:insert(operation.value, thread)
 	operation.set:push(operation.value, thread)
 end
 
@@ -376,8 +368,13 @@ end
 -- Copas wait functions
 -------------------------------------------------------------------------------
 
-local function do_wait(set, fd, timeout)
-	return coroutine.yield({fd = fd, timeout = timeout}, set)
+local function do_wait(set, fd, timeout, interruptible)
+	return coroutine.yield(
+		{
+			getfd = function () return fd end, 
+			timeout = timeout, 
+			interruptible = interruptible
+		}, set)
 end
 
 function wait_write(fd, timeout)
@@ -388,8 +385,8 @@ function wait_read(fd, timeout)
 	return do_wait(_reading, fd, timeout)
 end
 
-function wait(timeout)
-	return do_wait(_waiting, nil, timeout)
+function wait(timeout, interruptible)
+	return do_wait(_waiting, nil, timeout, interruptible)
 end
 
 -------------------------------------------------------------------------------
@@ -501,14 +498,16 @@ local function _get_timeout(set, timeout)
 	return timeout
 end
 
-local function _handle_timeout(set, events)
+local function _handle_timeout(set, events, err)
 	for i, v in pairs(set) do
-		if v.timeout ~= nil then
-			if os.clock() > v.timeout and events[v] == nil then
-				v.status = 0
-				events[#events + 1] = v
-				events[v] = #events
-			end
+		if events[v] == nil and err == "signal" and v.interruptible then
+			v.status = 0
+			events[#events + 1] = v
+			events[v] = #events
+		elseif events[v] == nil and v.timeout ~= nil and os.clock() > v.timeout then
+			v.status = 0
+			events[#events + 1] = v
+			events[v] = #events
 		end
 	end
 end
@@ -526,13 +525,13 @@ local function _select (timeout)
 	timeout = _get_timeout(_writing, timeout)
 	timeout = _get_timeout(_waiting, timeout)
 
-	_readable_t._evs, _writable_t._evs, err = socket.select(_reading, _writing, timeout)
+	_readable_t._evs, _writable_t._evs, err = socket.select(_reading, _writing, timeout, true)
 	local r_evs, w_evs = _readable_t._evs, _writable_t._evs
 	_waitdone_t._evs = {}
 
-	_handle_timeout(_reading, r_evs)
-	_handle_timeout(_writing, w_evs)
-	_handle_timeout(_waiting, _waitdone_t._evs)
+	_handle_timeout(_reading, r_evs, err)
+	_handle_timeout(_writing, w_evs, err)
+	_handle_timeout(_waiting, _waitdone_t._evs, err)
 
 	for ev in _waitdone_t:events() do
 		_waitdone_t:tick (ev)
@@ -556,7 +555,7 @@ local function _select (timeout)
 			end
 		end
 	end
-
+	
 	if err == "timeout" and #r_evs + #w_evs > 0 then
 		return nil
 	else
@@ -571,7 +570,8 @@ end
 -------------------------------------------------------------------------------
 function step(timeout)
 	local err = _select (timeout)
-	if err == "timeout" then return end
+	if err == "timeout" then return err end
+	if err == "signal"  then return err end
 
 	if err then
 		error(err)
