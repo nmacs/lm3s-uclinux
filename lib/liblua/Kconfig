@@ -73,3 +73,7 @@ config LIB_LUA_BITSTRING
 config LIB_LUA_LSYSLOG
 	bool "Lua wrapper for the syslog C API"
 	depends on LIB_LUA
+
+config LIB_LUA_LSIGNALS
+	bool "Lua wrapper for signals API"
+	depends on LIB_LUA

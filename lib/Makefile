@@ -40,6 +40,7 @@ lib_liblua_$(CONFIG_LIB_LUA_SQLITE) += lsqlite3_svn08/liblsqlite3.a
 lib_liblua_$(CONFIG_LIB_LUA_UCI) += libuci/libucilua.a
 lib_liblua_$(CONFIG_LIB_LUA_BITSTRING) += bitstring-1.0/src/bitstring/.libs/libbitstring.a
 lib_liblua_$(CONFIG_LIB_LUA_LSYSLOG) += lsyslog/liblsyslog.a
+lib_liblua_$(CONFIG_LIB_LUA_LSIGNALS) += lsignals/liblsignals.a
 
 lib_liblua = $(lib_liblua_y)
 

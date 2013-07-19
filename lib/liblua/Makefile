@@ -11,6 +11,7 @@ SQLITE_DIR        := lsqlite3_svn08
 UCILUA_DIR        := libuci
 BITSTRING_DIR     := bitstring-1.0
 LSYSLOG_DIR       := lsyslog
+LSIGNALS_DIR      := lsignals
 
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
@@ -45,6 +46,11 @@ endif
 ifdef CONFIG_LIB_LUA_LSYSLOG
 	CFLAGS          += -Wl,-llsyslog -L$(CURDIR)/$(LSYSLOG_DIR)
 	lua_libs        += lsyslog
+endif
+
+ifdef CONFIG_LIB_LUA_LSIGNALS
+	CFLAGS          += -Wl,-llsignals -L$(CURDIR)/$(LSIGNALS_DIR)
+	lua_libs        += lsignals
 endif
 
 .PHONY: all lua repo romfs
@@ -91,6 +97,10 @@ $(BITSTRING_DIR)/Makefile: Makefile
 lsyslog: $(LSYSLOG_DIR)/Makefile
 	$(MAKE) -C $(LSYSLOG_DIR)
 
+.PHONY: lsignals
+lsignals: $(LSIGNALS_DIR)/Makefile
+	$(MAKE) -C $(LSIGNALS_DIR)
+
 ############################################################################
 
 clean:
@@ -102,6 +112,7 @@ clean:
 	$(MAKE) -C $(BITSTRING_DIR) clean
 	-rm -f $(BITSTRING_DIR)/Makefile
 	$(MAKE) -C $(LSYSLOG_DIR) clean
+	$(MAKE) -C $(LSIGNALS_DIR) clean
 	-rm -rf $(LUA_DIR)-x86
 
 romfs:
