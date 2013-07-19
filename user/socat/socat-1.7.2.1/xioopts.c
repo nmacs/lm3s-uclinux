@@ -12,6 +12,8 @@
 #include "xiolockfile.h"
 #include "nestlex.h"
 
+#undef HAVE_RESOLV_H
+
 bool xioopts_ignoregroups;
 
 #define IF_ANY(a,b) {a,b},

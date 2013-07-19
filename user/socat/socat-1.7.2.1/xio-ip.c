@@ -15,6 +15,7 @@
 #include "xio-ip.h"
 #include "xio-ip6.h"
 
+#undef HAVE_RESOLV_H
 
 #if WITH_IP4 || WITH_IP6
 
