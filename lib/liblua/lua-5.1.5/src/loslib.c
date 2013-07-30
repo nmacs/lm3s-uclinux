@@ -12,6 +12,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <linux/reboot.h>
+#include <sys/times.h>
 
 #define loslib_c
 #define LUA_LIB
@@ -67,6 +68,12 @@ static int os_tmpname (lua_State *L) {
 }
 
 
+static int os_getpid (lua_State *L) {
+  lua_pushinteger(L, getpid());
+  return 1;
+}
+
+
 static int os_getenv (lua_State *L) {
   lua_pushstring(L, getenv(luaL_checkstring(L, 1)));  /* if NULL push nil */
   return 1;
@@ -74,10 +81,17 @@ static int os_getenv (lua_State *L) {
 
 
 static int os_clock (lua_State *L) {
-	struct timeval t;
-	if( gettimeofday(&t, 0) )
-		return luaL_error(L, "unable to get time");
-	lua_pushnumber(L, (lua_Number)t.tv_sec + (((lua_Number)t.tv_usec) / 1000000));
+  size_t CLK_TCK = sysconf(_SC_CLK_TCK);
+  lua_pushnumber(L, ((lua_Number)(size_t)times(0)) / CLK_TCK);
+  return 1;
+}
+
+
+static int os_diffclock(lua_State *L) {
+  size_t CLK_TCK = sysconf(_SC_CLK_TCK);
+  size_t t1 = (size_t)(luaL_checknumber(L, 1) * CLK_TCK);
+  size_t t2 = (size_t)(luaL_checknumber(L, 2) * CLK_TCK);
+  lua_pushnumber(L, ((lua_Number)((size_t)(t1 - t2))) / CLK_TCK);
   return 1;
 }
 
@@ -240,6 +254,7 @@ static int os_symlink(lua_State *L) {
 
 static const luaL_Reg syslib[] = {
   {"clock",     os_clock},
+  {"diffclock", os_diffclock},
   {"date",      os_date},
   {"difftime",  os_difftime},
   {"execute",   os_execute},
@@ -249,10 +264,11 @@ static const luaL_Reg syslib[] = {
   {"remove",    os_remove},
   {"rename",    os_rename},
   {"setlocale", os_setlocale},
-	{"symlink",   os_symlink},
+  {"symlink",   os_symlink},
   {"sync",      os_sync},
   {"time",      os_time},
   {"tmpname",   os_tmpname},
+	{"getpid",    os_getpid},
   {NULL, NULL}
 };
 
