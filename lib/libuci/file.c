@@ -773,7 +773,6 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
 			UCI_THROW(ctx, UCI_ERR_IO);
 		free(tmpfile);
 		tmpfile = 0;
-		sync();
 	}
 
 	UCI_TRAP_RESTORE(ctx);
