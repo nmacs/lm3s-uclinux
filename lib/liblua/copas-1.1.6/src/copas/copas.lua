@@ -277,7 +277,7 @@ local function _doTick (co, skt, ...)
 
    if ok and res and new_q then
        if res.timeout then
-          res.timeout = os.clock() + res.timeout / 1000
+          res.timestamp = os.clock()
        end
        new_q:insert (res, co)
        new_q:push (res, co)
@@ -486,12 +486,12 @@ local function _get_timeout(set, timeout)
 	end
 	for i, v in pairs(set) do
 		if v.timeout ~= nil then
-		    local diff = v.timeout - os.clock()
-		    if diff < 0 then
+		    local diff = os.diffclock(os.clock(), v.timestamp)
+		    if diff >= v.timeout then
 		    	return 0
 		    end
-		    if timeout == nil or diff < timeout then
-		        timeout = diff
+		    if timeout == nil or (v.timeout - diff) < timeout then
+		        timeout = v.timeout - diff
 		    end
 		end
 	end
@@ -504,7 +504,7 @@ local function _handle_timeout(set, events, err)
 			v.status = 0
 			events[#events + 1] = v
 			events[v] = #events
-		elseif events[v] == nil and v.timeout ~= nil and os.clock() > v.timeout then
+		elseif events[v] == nil and v.timeout ~= nil and os.diffclock(os.clock(), v.timestamp) > v.timeout then
 			v.status = 0
 			events[#events + 1] = v
 			events[v] = #events
