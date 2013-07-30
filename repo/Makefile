@@ -68,6 +68,7 @@ firmware: distribution
 	cp $(IMAGEDIR)/distribution.cramfs $(FIRMWAREDIR)/opt/distribution.cramfs
 	cp $(IMAGEDIR)/distribution.cramfs.sig $(FIRMWAREDIR)/opt/distribution.cramfs.sig
 	$(UBIFS) -r $(FIRMWAREDIR) -o $(IMAGEDIR)/firmware.ubifs
+	$(ROOTDIR)/user/elster/scripts/make_firmware_mtd.py -o $(IMAGEDIR)/firmware.mtd $(IMAGEDIR)/linux.bin:kernel $(IMAGEDIR)/distribution.cramfs:distr $(IMAGEDIR)/distribution.cramfs.sig:distrsig
 
 .PHONY: clean
 clean:
