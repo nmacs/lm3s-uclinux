@@ -439,6 +439,20 @@ static int f_write (lua_State *L) {
 }
 
 
+static int f_writesub (lua_State *L) {
+  int status = 1;
+  size_t l;
+  FILE *f = tofile(L);
+  const char *s = luaL_checklstring(L, 2, &l);
+  int offset = luaL_checkinteger(L, 3);
+  int size = luaL_checkinteger(L, 4);
+  if (l < offset + size)
+    return pushresult(L, 0, "Invalid arguments");
+  status = fwrite(s + offset, sizeof(char), size, f) == size;
+  return pushresult(L, status, NULL);
+}
+
+
 static int f_seek (lua_State *L) {
   static const int mode[] = {SEEK_SET, SEEK_CUR, SEEK_END};
   static const char *const modenames[] = {"set", "cur", "end", NULL};
@@ -483,7 +497,7 @@ static int f_sync(lua_State *L) {
 
 static int f_getfd(lua_State *L) {
   FILE *f = tofile(L);
-	lua_pushinteger(L, fileno(f));
+  lua_pushinteger(L, fileno(f));
   return 1;
 }
 
@@ -512,6 +526,7 @@ static const luaL_Reg flib[] = {
   {"sync", f_sync},
   {"setvbuf", f_setvbuf},
   {"write", f_write},
+	{"writesub", f_writesub},
   {"getfd", f_getfd},
   {"__gc", io_gc},
   {"__tostring", io_tostring},
