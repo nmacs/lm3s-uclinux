@@ -250,7 +250,7 @@ image:
 
 .PHONY: firmware
 firmware:
-	$(MAKE) -C repo firmware
+	$(MAKE) -C $(PRODUCTDIR) firmware
 
 .PHONY: uboot
 uboot:

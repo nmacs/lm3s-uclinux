@@ -22,6 +22,9 @@ LINUXIMG            = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG            = $(IMAGEDIR)/$(UBIFSFILE)
 EXT2IMG             = $(IMAGEDIR)/$(EXT2FILE)
 
+DISTRIBUTION_PACKAGES := sys init clock syslog busybox lua ppp mgate watchdog
+DISTRIBUTION_PACKAGES += devtools
+
 UBIFS      := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0
 
 clean:
@@ -45,6 +48,37 @@ uboot:
 	$(MAKE) -C $(ROOTDIR)/uboot atlas_config
 	$(MAKE) -j 4 -C $(ROOTDIR)/uboot ARCH=arm u-boot.bin
 	cp $(ROOTDIR)/uboot/u-boot.bin $(UBOOT_IMG)
+
+.PHONY: distribution
+distribution:
+	rm -rf $(IMAGEDIR)/distribution
+	mkdir -p $(IMAGEDIR)/distribution
+	for p in $(DISTRIBUTION_PACKAGES); do \
+		$(MAKE) -C $(REPODIR)/$$p content; \
+		cp -rd $(REPODIR)/$$p/.content/* $(IMAGEDIR)/distribution; \
+	done
+	mkfs.cramfs $(IMAGEDIR)/distribution $(IMAGEDIR)/distribution.cramfs
+	openssl dgst -sha1 -sign $(PRIV_KEY) -out $(IMAGEDIR)/distribution.cramfs.sig $(IMAGEDIR)/distribution.cramfs
+
+.PHONY: firmware
+firmware: distribution
+	rm -rf $(FIRMWAREDIR)
+	rm -f $(IMAGEDIR)/firmware.mtd
+	rm -f $(IMAGEDIR)/firmware.ubifs
+	mkdir -p $(FIRMWAREDIR)
+	mkdir $(FIRMWAREDIR)/boot
+	mkdir $(FIRMWAREDIR)/opt
+	mkdir $(FIRMWAREDIR)/etc
+	mkdir $(FIRMWAREDIR)/etc/config
+	mkdir $(FIRMWAREDIR)/var
+	mkdir $(FIRMWAREDIR)/var/log
+	cp $(IMAGEDIR)/linux.bin $(FIRMWAREDIR)/boot/linux.bin
+	cp $(IMAGEDIR)/distribution.cramfs $(FIRMWAREDIR)/opt/distribution.cramfs
+	cp $(IMAGEDIR)/distribution.cramfs.sig $(FIRMWAREDIR)/opt/distribution.cramfs.sig
+	$(UBIFS) -r $(FIRMWAREDIR) -o $(IMAGEDIR)/firmware.ubifs
+	if [ -f $(ROOTDIR)/user/elster/scripts/make_firmware_mtd.py ]; then \
+		$(ROOTDIR)/user/elster/scripts/make_firmware_mtd.py -o $(IMAGEDIR)/firmware.mtd $(IMAGEDIR)/linux.bin:kernel $(IMAGEDIR)/distribution.cramfs:distr $(IMAGEDIR)/distribution.cramfs.sig:distrsig; \
+	fi
 
 .PHONY: flash_mcu
 flash_mcu: uboot romdisk
