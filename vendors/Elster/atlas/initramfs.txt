@@ -11,6 +11,7 @@ nod /dev/ubi0 644 0 0 c 254 0
 nod /dev/ubi0_0 644 0 0 c 254 1
 nod /dev/watchdog 640 0 0 c 10 130
 nod /dev/mtdblock0 640 0 0 b 31 0
+nod /dev/crypto 640 0 0 c 10 240
 slink /bin/sh busybox 777 0 0
 slink /bin/mount busybox 777 0 0
 slink /bin/umount busybox 777 0 0
