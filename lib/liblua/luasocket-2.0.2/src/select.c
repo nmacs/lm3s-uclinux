@@ -54,7 +54,6 @@ static int global_select(lua_State *L) {
     t_socket max_fd;
     fd_set rset, wset;
     t_timeout tm;
-    int interruptible;
     double t = luaL_optnumber(L, 3, -1);
     FD_ZERO(&rset); FD_ZERO(&wset);
     lua_settop(L, 3);
@@ -67,8 +66,7 @@ static int global_select(lua_State *L) {
     timeout_init(&tm, t, -1);
     timeout_markstart(&tm);
     max_fd = collect_fd(L, 2, max_fd, itab, &wset);
-    interruptible = lua_toboolean(L, 4);
-    ret = socket_select(max_fd+1, &rset, &wset, NULL, &tm, interruptible);
+    ret = socket_select(max_fd+1, &rset, &wset, NULL, &tm);
     if (ret > 0 || ndirty > 0) {
         return_fd(L, &rset, max_fd+1, itab, rtab, ndirty);
         return_fd(L, &wset, max_fd+1, itab, wtab, 0);

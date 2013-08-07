@@ -17,8 +17,8 @@ if package.loaded["socket.http"] then
   error("you must require copas before require'ing socket.http")
 end
 
-local socket = require "socket"
-local syslog = require "syslog"
+local socket  = require "socket"
+local syslog  = require "syslog"
 
 local WATCH_DOG_TIMEOUT = 120
 
@@ -368,12 +368,11 @@ end
 -- Copas wait functions
 -------------------------------------------------------------------------------
 
-local function do_wait(set, fd, timeout, interruptible)
+local function do_wait(set, fd, timeout)
 	return coroutine.yield(
 		{
 			getfd = function () return fd end, 
-			timeout = timeout, 
-			interruptible = interruptible
+			timeout = timeout
 		}, set)
 end
 
@@ -385,8 +384,8 @@ function wait_read(fd, timeout)
 	return do_wait(_reading, fd, timeout)
 end
 
-function wait(timeout, interruptible)
-	return do_wait(_waiting, nil, timeout, interruptible)
+function wait(timeout)
+	return do_wait(_waiting, nil, timeout)
 end
 
 -------------------------------------------------------------------------------
@@ -500,11 +499,7 @@ end
 
 local function _handle_timeout(set, events, err)
 	for i, v in pairs(set) do
-		if events[v] == nil and err == "signal" and v.interruptible then
-			v.status = 0
-			events[#events + 1] = v
-			events[v] = #events
-		elseif events[v] == nil and v.timeout ~= nil and os.diffclock(os.clock(), v.timestamp) > v.timeout then
+		if events[v] == nil and v.timeout ~= nil and os.diffclock(os.clock(), v.timestamp) > v.timeout then
 			v.status = 0
 			events[#events + 1] = v
 			events[v] = #events
@@ -525,7 +520,7 @@ local function _select (timeout)
 	timeout = _get_timeout(_writing, timeout)
 	timeout = _get_timeout(_waiting, timeout)
 
-	_readable_t._evs, _writable_t._evs, err = socket.select(_reading, _writing, timeout, true)
+	_readable_t._evs, _writable_t._evs, err = socket.select(_reading, _writing, timeout)
 	local r_evs, w_evs = _readable_t._evs, _writable_t._evs
 	_waitdone_t._evs = {}
 
@@ -571,7 +566,6 @@ end
 function step(timeout)
 	local err = _select (timeout)
 	if err == "timeout" then return err end
-	if err == "signal"  then return err end
 
 	if err then
 		error(err)
