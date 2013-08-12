@@ -2,6 +2,7 @@
 //usage:#define rsacheck_full_usage ""
 
 #define LTM_DESC
+#define HAS_CRYPTODEV
 
 #include <libbb.h>
 #include <sys/types.h>
@@ -9,6 +10,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <tomcrypt.h>
+#ifdef HAS_CRYPTODEV
+#  include <linux/cryptodev.h>
+#endif
 
 #define SIG_SIZE 128
 #define HASH_SIZE 20
@@ -69,35 +73,97 @@ int rsacheck_main(int argc, char **argv)
 static int get_hash(unsigned char *hash, const char* file)
 {
 	int fd;
-	unsigned char buffer[512];
+	unsigned char buffer[1024];
 	int res;
+#ifdef HAS_CRYPTODEV
+	int cfd;
+	struct crypt_op cryp;
+	struct session_op sess;
+#else
 	hash_state h;
+#endif
 	
 	fd = open(file, O_RDONLY, 0);
 	
 	if( fd < 0 )
 		return 1;
 	
-	sha1_init(&h);
+#ifdef HAS_CRYPTODEV
+	cfd = open("/dev/crypto", O_RDWR, 0);
+	if (cfd < 0) {
+		perror("open(/dev/crypto)");
+		return 1;
+	}
+
+	/* Set close-on-exec (not really neede here) */
+	if (fcntl(cfd, F_SETFD, 1) == -1) {
+		return 1;
+	}
 	
-	while(1)
-	{
+	memset(&sess, 0, sizeof(sess));
+	memset(&cryp, 0, sizeof(cryp));
+	
+	sess.mac = CRYPTO_SHA1;
+	if (ioctl(cfd, CIOCGSESSION, &sess)) {
+		perror("ioctl(CIOCGSESSION)");
+		return 1;
+	}
+#else
+	sha1_init(&h);
+#endif
+	
+	while(1) {
 		res = read(fd, buffer, sizeof(buffer));
-		if( res > 0 )
+		if( res > 0 ) {
+#ifdef HAS_CRYPTODEV
+			cryp.ses = sess.ses;
+			cryp.mac = hash;
+			cryp.src = buffer;
+			cryp.len = res;
+			cryp.flags = COP_FLAG_UPDATE;
+			if (ioctl(cfd, CIOCCRYPT, &cryp)) {
+				perror("ioctl(CIOCCRYPT) update");
+				return 1;
+			}
+#else
 			sha1_process(&h, buffer, res);
-		else if( res == 0 )
-		{
+#endif
+		}
+		else if( res == 0 ) {
+#ifdef HAS_CRYPTODEV
+			cryp.ses = sess.ses;
+			cryp.mac = hash;
+			cryp.src = 0;
+			cryp.len = 0;
+			cryp.flags = COP_FLAG_FINAL;
+			if (ioctl(cfd, CIOCCRYPT, &cryp)) {
+				perror("ioctl(CIOCCRYPT) final");
+				return 1;
+			}
+			if (ioctl(cfd, CIOCFSESSION, &sess.ses)) {
+				perror("ioctl(CIOCFSESSION)");
+			}
+			close(cfd);
+#else
 			sha1_done(&h, hash);
+#endif
 			close(fd);
 			return 0;
 		}
-		else
-		{
+		else {
+#ifdef HAS_CRYPTODEV
+			if (ioctl(cfd, CIOCFSESSION, &sess.ses)) {
+				perror("ioctl(CIOCFSESSION)");
+			}
+			close(cfd);
+#endif
 			close(fd);
 			return 2;
 		}
 	}
-	
+#ifdef HAS_CRYPTODEV
+	close(cfd);
+#endif
 	close(fd);
 	return 0;
 }
