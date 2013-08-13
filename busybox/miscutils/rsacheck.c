@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <tomcrypt.h>
 #ifdef HAS_CRYPTODEV
-#  include <linux/cryptodev.h>
+#  include <crypto/cryptodev.h>
 #endif
 
 #define SIG_SIZE 128
