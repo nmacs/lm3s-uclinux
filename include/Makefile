@@ -27,6 +27,7 @@ else
 LINUXAUTOCONF = $(ROOTDIR)/$(LINUXDIR)/include/generated/autoconf.h
 LINKHDRS = \
 	$(ROOTDIR)/$(LINUXDIR)/include/linux,. \
+	$(ROOTDIR)/$(LINUXDIR)/include/crypto,. \
 	$(LINUXAUTOCONF),linux \
 	$(ROOTDIR)/$(LINUXDIR)/arch/$(ARCH)/include/asm-*,. \
 	$(ROOTDIR)/$(LINUXDIR)/include/asm-*,. \
