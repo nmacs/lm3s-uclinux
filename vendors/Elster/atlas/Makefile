@@ -22,7 +22,7 @@ LINUXIMG            = $(IMAGEDIR)/$(LINUXFILE)
 UBIFSIMG            = $(IMAGEDIR)/$(UBIFSFILE)
 EXT2IMG             = $(IMAGEDIR)/$(EXT2FILE)
 
-DISTRIBUTION_PACKAGES := sys init clock syslog busybox lua ppp mgate watchdog
+DISTRIBUTION_PACKAGES := sys init clock syslog busybox lua ppp mgate
 DISTRIBUTION_PACKAGES += devtools
 
 UBIFS      := mkfs.ubifs --verbose --min-io-size 1 -e 65408 -c 60 -x favor_lzo --reserved=0

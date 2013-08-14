@@ -8,7 +8,6 @@ mount -t cramfs /dev/mtdblock0 /romdisk
 read -t 5 -p "Upgrade firmware [y/N]: " answer
 
 if [ "$answer" == "y" ]; then
-	start-stop-daemon -x watchdogd -p /tmp/watchdogd.pid -m -b -S -- -f
 	ifconfig eth0 10.65.100.205 netmask 255.255.255.0
 
 	default_url="http://10.65.100.176"
@@ -25,10 +24,15 @@ if [ "$answer" == "y" ]; then
 	rm -f /mnt/opt/distribution.cramfs.sig
 
 	echo "Downloading firmware from '$url'..."
+	echo 1 > /dev/watchdog
 	wget -O /mnt/boot/linux.bin -T 10 "$url/linux.bin"
+	echo 1 > /dev/watchdog
 	wget -O /mnt/opt/distribution.cramfs -T 10 "$url/distribution.cramfs"
+	echo 1 > /dev/watchdog
 	wget -O /mnt/opt/distribution.cramfs.sig -T 10 "$url/distribution.cramfs.sig"
+	echo 1 > /dev/watchdog
 	sync
+	echo 1 > /dev/watchdog
 
 	rm -f /tmp/firmware
 	umount /mnt
@@ -71,10 +75,6 @@ echo 3 > /proc/sys/vm/drop_caches
 
 umount /proc
 umount /romdisk
-
-if [ -f /tmp/watchdogd.pid ]; then
-	start-stop-daemon -p /tmp/watchdogd.pid -m -b -K
-fi
 
 echo "Switching to the new root..."
 exec switch_root /newroot /bin/init

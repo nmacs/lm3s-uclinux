@@ -291,8 +291,6 @@ linux_initramfs:
 	mkdir $(LINUXDIR)/initramfs
 	cp $(PRODUCTDIR)/initramfs/init.sh $(LINUXDIR)/initramfs/init.sh
 	$(MAKEARCH) -C $(ROOTDIR)/user romfs
-	cp $(ROMFSDIR)/bin/ubiupdatevol $(LINUXDIR)/initramfs/ubiupdatevol
-	cp $(ROMFSDIR)/bin/watchdogd $(LINUXDIR)/initramfs/watchdogd
 	$(MAKEARCH) -C user/initramfs_bb
 	cp user/initramfs_bb/build/busybox $(LINUXDIR)/initramfs/busybox
 
