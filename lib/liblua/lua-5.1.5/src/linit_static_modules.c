@@ -48,6 +48,10 @@ int luaopen_syslog(lua_State *L);
 int luaopen_signals(lua_State *L);
 #endif
 
+#ifdef CONFIG_LIB_LUA_LWATCHDOG
+int luaopen_watchdog(lua_State *L);
+#endif
+
 static const luaL_Reg modules[] = {
 #ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
   {"lfs", luaopen_lfs},
@@ -70,6 +74,9 @@ static const luaL_Reg modules[] = {
 #endif
 #ifdef CONFIG_LIB_LUA_LSIGNALS
 	{"signals", luaopen_signals},
+#endif
+#ifdef CONFIG_LIB_LUA_LWATCHDOG
+	{"watchdog", luaopen_watchdog},
 #endif
 	{NULL, NULL}
 };

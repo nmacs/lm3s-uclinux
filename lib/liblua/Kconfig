@@ -77,3 +77,7 @@ config LIB_LUA_LSYSLOG
 config LIB_LUA_LSIGNALS
 	bool "Lua wrapper for signals API"
 	depends on LIB_LUA
+
+config LIB_LUA_LWATCHDOG
+	bool "Lua interface for /dev/watchdog"
+	depends on LIB_LUA

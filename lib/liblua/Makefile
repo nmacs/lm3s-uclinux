@@ -12,6 +12,7 @@ UCILUA_DIR        := libuci
 BITSTRING_DIR     := bitstring-1.0
 LSYSLOG_DIR       := lsyslog
 LSIGNALS_DIR      := lsignals
+LWATCHDOG_DIR     := lwatchdog
 
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
@@ -51,6 +52,11 @@ endif
 ifdef CONFIG_LIB_LUA_LSIGNALS
 	CFLAGS          += -Wl,-llsignals -L$(CURDIR)/$(LSIGNALS_DIR)
 	lua_libs        += lsignals
+endif
+
+ifdef CONFIG_LIB_LUA_LWATCHDOG
+	CFLAGS          += -Wl,-llwatchdog -L$(CURDIR)/$(LWATCHDOG_DIR)
+	lua_libs        += lwatchdog
 endif
 
 .PHONY: all lua repo romfs
@@ -101,6 +107,10 @@ lsyslog: $(LSYSLOG_DIR)/Makefile
 lsignals: $(LSIGNALS_DIR)/Makefile
 	$(MAKE) -C $(LSIGNALS_DIR)
 
+.PHONY: lwatchdog
+lwatchdog: $(LWATCHDOG_DIR)/Makefile
+	$(MAKE) -C $(LWATCHDOG_DIR)
+
 ############################################################################
 
 clean:
@@ -113,6 +123,7 @@ clean:
 	-rm -f $(BITSTRING_DIR)/Makefile
 	$(MAKE) -C $(LSYSLOG_DIR) clean
 	$(MAKE) -C $(LSIGNALS_DIR) clean
+	$(MAKE) -C $(LWATCHDOG_DIR) clean
 	-rm -rf $(LUA_DIR)-x86
 
 romfs:
