@@ -887,7 +887,9 @@ static int builtin_rm(char **argv) FAST_FUNC;
 static int builtin_mount(char **argv) FAST_FUNC;
 static int builtin_mkdir(char **argv) FAST_FUNC;
 static int builtin_ln(char **argv) FAST_FUNC;
+#if ENABLE_CP
 static int builtin_cp(char **argv) FAST_FUNC;
+#endif
 static int builtin_date(char **argv) FAST_FUNC;
 #if ENABLE_KILL
 static int builtin_kill(char **argv) FAST_FUNC;
@@ -990,7 +992,9 @@ static const struct built_in_command bltins2[] = {
 	BLTIN("mount"    , builtin_mount   , NULL),
 	BLTIN("mkdir"    , builtin_mkdir   , NULL),
 	BLTIN("ln"       , builtin_ln      , NULL),
+#if ENABLE_CP
 	BLTIN("cp"       , builtin_cp      , NULL),
+#endif
 #if ENABLE_DATE
 	BLTIN("date"     , builtin_date    , NULL),
 #endif
@@ -8265,10 +8269,12 @@ static int builtin_ln(char **argv)
 	return run_applet_main(argv, ln_main);
 }
 
+#if ENABLE_CP
 static int builtin_cp(char **argv)
 {
 	return run_applet_main(argv, cp_main);
 }
+#endif
 
 #if ENABLE_DATE
 static int builtin_date(char **argv)
