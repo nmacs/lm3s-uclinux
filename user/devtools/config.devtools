@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.2
-# Sun Apr  7 20:09:53 2013
+# Wed Aug 14 12:58:04 2013
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -48,7 +48,7 @@ CONFIG_FEATURE_DEVPTS=y
 # CONFIG_SELINUX is not set
 # CONFIG_FEATURE_PREFER_APPLETS is not set
 CONFIG_BUSYBOX_EXEC_PATH="/proc/self/exe"
-CONFIG_FEATURE_SYSLOG=y
+# CONFIG_FEATURE_SYSLOG is not set
 # CONFIG_FEATURE_HAVE_RPC is not set
 
 #
@@ -173,9 +173,9 @@ CONFIG_GZIP_FAST=0
 # Coreutils
 #
 # CONFIG_BASENAME is not set
-# CONFIG_CAT is not set
-# CONFIG_DATE is not set
-# CONFIG_FEATURE_DATE_ISOFMT is not set
+CONFIG_CAT=y
+CONFIG_DATE=y
+CONFIG_FEATURE_DATE_ISOFMT=y
 # CONFIG_FEATURE_DATE_NANO is not set
 # CONFIG_FEATURE_DATE_COMPAT is not set
 # CONFIG_HOSTID is not set
@@ -630,7 +630,7 @@ CONFIG_FEATURE_LESS_MAXLINES=9999999
 # CONFIG_FEATURE_LESS_LINENUMS is not set
 # CONFIG_NANDWRITE is not set
 # CONFIG_NANDDUMP is not set
-CONFIG_SETSERIAL=y
+# CONFIG_SETSERIAL is not set
 # CONFIG_UBIATTACH is not set
 # CONFIG_UBIDETACH is not set
 # CONFIG_UBIMKVOL is not set
