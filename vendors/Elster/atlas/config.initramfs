@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.2
-# Wed May 22 08:45:00 2013
+# Wed Aug 14 12:58:11 2013
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -200,7 +200,7 @@ CONFIG_GZIP_FAST=0
 # CONFIG_CHROOT is not set
 # CONFIG_CKSUM is not set
 # CONFIG_COMM is not set
-CONFIG_CP=y
+# CONFIG_CP is not set
 # CONFIG_FEATURE_CP_LONG_OPTIONS is not set
 # CONFIG_CUT is not set
 # CONFIG_DD is not set
@@ -298,7 +298,15 @@ CONFIG_SYNC=y
 # Common options for cp and mv
 #
 # CONFIG_FEATURE_PRESERVE_HARDLINKS is not set
+
+#
+# Common options for ls, more and telnet
+#
 # CONFIG_FEATURE_AUTOWIDTH is not set
+
+#
+# Common options for df, du, ls
+#
 # CONFIG_FEATURE_HUMAN_READABLE is not set
 # CONFIG_FEATURE_MD5_SHA1_SUM_CHECK is not set
 
@@ -336,7 +344,7 @@ CONFIG_DEFAULT_SETFONT_DIR=""
 # CONFIG_RUN_PARTS is not set
 # CONFIG_FEATURE_RUN_PARTS_LONG_OPTIONS is not set
 # CONFIG_FEATURE_RUN_PARTS_FANCY is not set
-CONFIG_START_STOP_DAEMON=y
+# CONFIG_START_STOP_DAEMON is not set
 # CONFIG_FEATURE_START_STOP_DAEMON_FANCY is not set
 # CONFIG_FEATURE_START_STOP_DAEMON_LONG_OPTIONS is not set
 # CONFIG_WHICH is not set
@@ -615,7 +623,7 @@ CONFIG_FEATURE_MOUNT_LOOP_CREATE=y
 #
 # CONFIG_CONSPY is not set
 # CONFIG_LESS is not set
-CONFIG_FEATURE_LESS_MAXLINES=0
+# CONFIG_FEATURE_LESS_MAXLINES is not set
 # CONFIG_FEATURE_LESS_BRACKETS is not set
 # CONFIG_FEATURE_LESS_FLAGS is not set
 # CONFIG_FEATURE_LESS_MARKS is not set
