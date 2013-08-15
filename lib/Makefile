@@ -42,6 +42,7 @@ lib_liblua_$(CONFIG_LIB_LUA_BITSTRING) += bitstring-1.0/src/bitstring/.libs/libb
 lib_liblua_$(CONFIG_LIB_LUA_LSYSLOG) += lsyslog/liblsyslog.a
 lib_liblua_$(CONFIG_LIB_LUA_LSIGNALS) += lsignals/liblsignals.a
 lib_liblua_$(CONFIG_LIB_LUA_LWATCHDOG) += lwatchdog/liblwatchdog.a
+lib_liblua_$(CONFIG_LIB_LUA_LAIO) += laio/liblaio.a
 
 lib_liblua = $(lib_liblua_y)
 
