@@ -88,6 +88,10 @@ LUALIB_API const char *(luaL_gsub) (lua_State *L, const char *s, const char *p,
 LUALIB_API const char *(luaL_findtable) (lua_State *L, int idx,
                                          const char *fname, int szhint);
 
+LUALIB_API int (luaL_wait) (lua_State *L, int fd, int write, int timeout);
+LUALIB_API int (luaL_addfd) (lua_State *L, int fd);
+LUALIB_API int (luaL_delfd) (lua_State *L, int fd);
+
 #ifdef LUA_STATIC_MODULES
 LUALIB_API void luaL_preload_static_modules (lua_State *L);
 #endif

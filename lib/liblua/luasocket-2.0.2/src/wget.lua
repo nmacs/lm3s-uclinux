@@ -1,5 +1,4 @@
-local copas = require("copas")
-local cosocket = require("copas.cosocket")
+local cosocket = require("socket.cosocket")
 local http = require("socket.http")
 local ltn12 = require("ltn12")
 local io = require("io")
@@ -160,7 +159,8 @@ local function do_download(skt, args)
 end
 
 function download(args)
-	copas.addthread(do_download, args)
+	cancel = false
+	do_download(args)
 end
 
 function cancel_downloads()

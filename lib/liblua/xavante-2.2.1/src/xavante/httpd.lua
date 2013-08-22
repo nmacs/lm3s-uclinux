@@ -38,13 +38,11 @@ local function do_connection (skt)
 	skt:setoption ("tcp-nodelay", true)
 	local srv, port = skt:getsockname ()
 	local req = {
-		rawskt = skt,
 		srv = srv,
 		port = port,
-		copasskt = copas.wrap (skt),
+		socket = skt,
+		serversoftware = _serversoftware
 	}
-	req.socket = req.copasskt
-	req.serversoftware = _serversoftware
 
 	while read_method (req) do
 		local res
@@ -381,11 +379,6 @@ function newserver (host, port, serversoftware)
 	local _ip, _port = _server:getsockname()
 	_serverports[_port] = true
 	return _server
-end
-
-function register (host, port, serversoftware)
-	local _server = newserver(host, port, serversoftware)
-	copas.addserver(_server, connection)
 end
 
 function get_ports()

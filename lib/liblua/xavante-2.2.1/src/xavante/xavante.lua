@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Xavante main module
 --
--- Handles HTTP 1.1 requests and responses with Copas.
+-- Handles HTTP 1.1 requests and responses.
 -- Uses CGILua as native template engine.
 --
 -- See xavante/config.lua for configuration details.
@@ -13,7 +13,6 @@
 -------------------------------------------------------------------------------
 module ("xavante", package.seeall)
 
-require "copas"
 require "xavante.httpd"
 require "string"
 require "xavante.patternhandler"
@@ -21,7 +20,7 @@ require "xavante.vhostshandler"
 
 -- Meta information is public even begining with an "_"
 _COPYRIGHT   = "Copyright (C) 2004-2010 Kepler Project"
-_DESCRIPTION = "A Copas based Lua Web server with WSAPI support"
+_DESCRIPTION = "A Lua Web server with WSAPI support"
 _VERSION     = "Xavante 2.2.0"
 
 local _startmessage = function (ports)
@@ -83,17 +82,6 @@ function HTTP(config)
 
     xavante.httpd.handle_request = xavante.vhostshandler(vhosts_table)
     xavante.httpd.register(config.server.host, config.server.port, _VERSION)
-end
-
--------------------------------------------------------------------------------
--- Starts the server
--------------------------------------------------------------------------------
-function start(isFinished, timeout)
-    _startmessage(xavante.httpd.get_ports())
-    while true do
-      if isFinished and isFinished() then break end
-      copas.step(timeout)
-    end
 end
 
 -------------------------------------------------------------------------------
