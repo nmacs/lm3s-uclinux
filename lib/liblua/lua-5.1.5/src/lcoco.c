@@ -36,6 +36,8 @@
 #include "ldo.h"
 #include "lvm.h"
 #include "lgc.h"
+#include <sys/mman.h>
+#include <errno.h>
 
 
 /*
@@ -571,21 +573,34 @@ typedef void (*coco_MainFunc)(void);
 #define ALIGNED_END(p, s, t) \
   ((t *)(((char *)0) + ((((char *)(p)-(char *)0)+(s)-sizeof(t)) & -16)))
 
-/* TODO: use mmap. */
+#ifdef __linux__
+#define COCO_ALLOC_MEM(L, size) \
+({ \
+  void *ptr = mmap(NULL, (size), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0); \
+  if (ptr == NULL) \
+    luaL_error((L), "mmap error:%i", errno); \
+  ptr; \
+})
+#define COCO_FREE_MEM(L, ptr, size) munmap((ptr), (size))
+#else
+#define COCO_ALLOC_MEM(L, size) luaM_malloc((L), size)
+#define COCO_FREE_MEM(L, ptr, size) luaM_freemem((L), L2COCO(L)->allocptr, L2COCO(L)->allocsize)
+#endif
+
 #define COCO_NEW(OL, NL, cstacksize, mainfunc) \
 { \
-  void *ptr = luaM_malloc(OL, cstacksize); \
+  void *ptr = COCO_ALLOC_MEM(OL, cstacksize); \
   coco_State *coco = ALIGNED_END(ptr, cstacksize, coco_State); \
   STACK_REG(coco, ptr, cstacksize) \
   coco->allocptr = ptr; \
   coco->allocsize = cstacksize; \
   COCO_FILL(coco, NL, mainfunc) \
   L2COCO(NL) = coco; \
-}
+};
 
 #define COCO_FREE(L) \
   STACK_DEREG(L2COCO(L)) \
-  luaM_freemem(L, L2COCO(L)->allocptr, L2COCO(L)->allocsize); \
+  COCO_FREE_MEM(L, L2COCO(L)->allocptr, L2COCO(L)->allocsize); \
   L2COCO(L) = NULL;
 
 #define COCO_JUMPIN(coco)	COCO_SWITCH(coco->back, coco->ctx)
