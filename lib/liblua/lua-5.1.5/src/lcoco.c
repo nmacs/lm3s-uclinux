@@ -561,6 +561,7 @@ struct coco_State {
   void *allocptr;		/* Pointer to allocated memory. */
   int allocsize;		/* Size of allocated memory. */
   int nargs;			/* Number of arguments to pass. */
+  unsigned long tls;
   STACK_VGID			/* Optional valgrind stack id. See above. */
 };
 
@@ -704,6 +705,24 @@ int luaCOCO_cstacksize(int cstacksize)
     defaultcstacksize = cstacksize;
   }
   return oldsz;
+}
+
+LUA_API int luaCOCO_gettls(lua_State *L, unsigned long *value)
+{
+	coco_State *coco = L2COCO(L);
+	if (coco == NULL)
+		return -1;
+	*value = coco->tls;
+	return 0;
+}
+
+LUA_API int luaCOCO_settls(lua_State *L, unsigned long value)
+{
+	coco_State *coco = L2COCO(L);
+	if (coco == NULL)
+		return -1;
+	coco->tls = value;
+	return 0;
 }
 
 #endif
