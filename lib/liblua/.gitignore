@@ -15,3 +15,4 @@ bitstring-1.0/win32/Makefile
 bitstring-1.0/win32/bitstring/Makefile
 bitstring-1.0/win32/bitstring/bitstring/Makefile
 lua-5.1.5-x86
+lua-5.1.5-native

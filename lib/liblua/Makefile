@@ -78,6 +78,14 @@ lua_x86:
 		SRC_DIR=$(CURDIR)/$(LUA_DIR)/src MYCFLAGS="-DLUA_USE_POSIX -m32" \
 		CC=gcc RANLIB=ranlib AR=ar all
 
+.PHONY: lua_native
+lua_native:
+	mkdir -p $(LUA_DIR)-native
+	$(MAKE) -C $(LUA_DIR)-native -f $(CURDIR)/$(LUA_DIR)/src/Makefile \
+		SRC_DIR=$(CURDIR)/$(LUA_DIR)/src \
+		MYCFLAGS="-DLUA_USE_POSIX -DUSE_VALGRIND=1 -DCOCO_MIN_CSTACKSIZE=1024 -fstack-protector-all" \
+		CC=gcc RANLIB=ranlib AR=ar all
+
 $(LUA_DIR)/src/autoconf.h:
 	ln -sf $(ROOTDIR)/config/autoconf.h $(LUA_DIR)/src/autoconf.h
 
@@ -135,6 +143,7 @@ clean:
 	-$(MAKE) -C $(LWATCHDOG_DIR) clean
 	-$(MAKE) -C $(LAIO_DIR) clean
 	-rm -rf $(LUA_DIR)-x86
+	-rm -rf $(LUA_DIR)-native
 
 romfs:
 	$(ROMFSINST) -e CONFIG_LIB_LUA_SHELL -d $(LUA_DIR)/src/lua /bin/lua
