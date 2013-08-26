@@ -109,3 +109,7 @@ image:
 	genext2fs -b 5120 -D $(PRODUCTDIR)/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
 #	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
 	$(UBIFS) -r $(ROMFSDIR) -o $(UBIFSIMG)
+
+.PHONY: host-test
+host-test:
+	$(MAKE) -C $(ROOTDIR)/user/elster host-test

@@ -264,6 +264,10 @@ romdisk:
 flash_mcu:
 	$(MAKE) -C $(PRODUCTDIR) flash_mcu
 
+.PHONY: host-test
+host-test:
+	$(MAKE) -C $(PRODUCTDIR) host-test
+
 .PHONY: release
 release:
 	$(MAKE) -C release release
@@ -449,7 +453,7 @@ config_error:
 	@echo "*************************************************"
 	@echo "You have not run make config."
 	@echo "The build sequence for this source tree is:"
-	@echo "1. 'make config_elster_uwic'"
+	@echo "1. 'make config_elster_atlas'"
 	@echo "2. 'make'"
 	@echo "*************************************************"
 	@exit 1
