@@ -500,7 +500,11 @@ static inline void coco_switch(coco_ctx from, coco_ctx to)
 #ifdef COCO_MAKECTX
 
 #ifndef COCO_STACKADJUST
+#if defined(__amd64__) && (defined(FreeBSD) || defined(linux))
+#define COCO_STACKADJUST	2
+#else
 #define COCO_STACKADJUST	1
+#endif
 #endif
 
 #define COCO_FILL(coco, NL, mainfunc) \
