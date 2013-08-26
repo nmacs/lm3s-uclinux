@@ -69,7 +69,7 @@ endif
 all: lua
 
 lua: $(LUA_DIR)/src/autoconf.h $(lua_libs)
-	$(MAKE) -C $(LUA_DIR) generic
+	$(MAKE) -C $(LUA_DIR)/src MYCFLAGS="-DCOCO_MIN_CSTACKSIZE=1024" all
 
 .PHONY: lua_x86
 lua_x86:
