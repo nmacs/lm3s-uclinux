@@ -801,7 +801,6 @@ LUA_API int lua_pcall (lua_State *L, int nargs, int nresults, int errfunc) {
   struct CallS c;
   int status;
   ptrdiff_t func;
-	lua_setthis(L);
   lua_lock(L);
   api_checknelems(L, nargs+1);
   checkresults(L, nargs, nresults);
