@@ -56,7 +56,6 @@ local function do_connection (skt)
 
 		send_response (req, res)
 
-		req.socket:flush ()
 		if not res.keep_alive then
 			break
 		end
