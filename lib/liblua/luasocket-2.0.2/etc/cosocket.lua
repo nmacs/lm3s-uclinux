@@ -29,7 +29,7 @@ function cowrap(tcp, error)
     -- we ignore settimeout to preserve our 0 timeout, but record whether
     -- the user wants to do his own non-blocking I/O
     function wrap:settimeout(value, mode)
-        timeout = velue
+        timeout = value * 1000 -- convert seconds to milliseconds
         return 1
     end
     -- send in non-blocking mode and yield on timeout
@@ -37,16 +37,19 @@ function cowrap(tcp, error)
         first = (first or 1) - 1
         local result, error
         while true do
-            -- return control to scheduler and tell it we want to send
-            local ret, err = scheduler.wait(tcp:getfd(), "write", timeout)
-            if not ret then
-                return nil, err
-            end
             -- try sending
             result, error, first = tcp:send(data, first+1, last)
             -- if we are done, or there was an unexpected error,
             -- break away from loop
-            if error ~= "timeout" then return result, error, first end
+            if error ~= "timeout" then 
+                return result, error, first 
+              else
+                -- return control to scheduler and tell it we want to send
+                local ret, err = scheduler.wait(tcp:getfd(), "write", timeout)
+                if not ret then
+                    return nil, err
+                end
+            end
         end
     end
     -- receive in non-blocking mode and yield on timeout
@@ -55,11 +58,6 @@ function cowrap(tcp, error)
         local error = "timeout"
         local value
         while true do
-            -- return control to dispatcher and tell it we want to receive
-            local ret, err = scheduler.wait(tcp:getfd(), "read", timeout)
-            if not ret then
-                return nil, err
-            end
             -- try receiving
             value, error, partial = tcp:receive(pattern, partial)
             -- if we are done, or there was an unexpected error,
@@ -67,6 +65,12 @@ function cowrap(tcp, error)
             -- zero timeout, return all we got
             if (error ~= "timeout") or timeout == 0 then
                 return value, error, partial
+            else
+                -- return control to dispatcher and tell it we want to receive
+                local ret, err = scheduler.wait(tcp:getfd(), "read", timeout)
+                if not ret then
+                    return nil, err
+                end
             end
         end
     end
