@@ -106,7 +106,7 @@ export LINUX_CONFIG CONFIG_CONFIG MODULES_CONFIG ARCH_CONFIG
 -include $(CONFIG_CONFIG)
 -include $(MODULES_CONFIG)
 
-HOSTCC ?= cc
+HOSTCC ?= gcc
 export HOSTCC
 
 ifndef HOSTBUILD
@@ -115,8 +115,8 @@ endif
 
 ifdef HOSTBUILD
 RANLIB ?= ranlib
-HOSTCC += -g -DHOSTBUILD=1
-CFLAGS := -g -O -DHOSTBUILD=1 -D_FORTIFY_SOURCE=0 -DEMBED -I$(STAGEDIR)/include
+HOSTCC += -DHOSTBUILD=1
+CFLAGS := -O2 -fno-omit-frame-pointer -DHOSTBUILD=1 -I$(STAGEDIR)/include -L$(STAGEDIR)/lib
 
 -include $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/config.version
 

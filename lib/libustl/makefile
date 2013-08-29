@@ -1,8 +1,13 @@
-IN_LIBUSTL := true
-export IN_LIBUSTL
+OUTPUT       := "$(CURDIR)/output"
+CONFIG_OPTS  := --prefix=$(OUTPUT) --without-shared --with-static --without-bounds --without-demangler
 
-OUTPUT       := "$(ROOTDIR)/lib/libustl/output"
-CONFIG_OPTS  := --prefix=$(OUTPUT) --oldincludedir="$(ROOTDIR)/toolchain/output/arm-uclinuxeabi/libc/usr/include" --without-shared --with-static --without-bounds --without-demangler --without-libstdc++
+ifndef HOSTBUILD
+IN_LIBUSTL  := true
+export IN_LIBUSTL
+CONFIG_OPTS += --without-libstdc++ --oldincludedir="$(ROOTDIR)/toolchain/output/arm-uclinuxeabi/libc/usr/include"
+EXTERNCONFIG := $(CURDIR)/config.sed
+export EXTERNCONFIG
+endif
 
 SRC_DIR := ustl-1.6
 
@@ -20,9 +25,10 @@ $(SRC_DIR)/config.h: makefile
 ############################################################################
 
 clean:
-	$(MAKE) -C $(SRC_DIR) clean
+	-$(MAKE) -C $(SRC_DIR) clean
 	-rm -rf $(OUTPUT)
 	-rm -f $(SRC_DIR)/config.h
+	-rm -f $(SRC_DIR)/config.sed
 
 romfs:
 

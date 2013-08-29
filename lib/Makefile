@@ -315,6 +315,7 @@ $(dir_extra): $(dir_y)
 .PHONY: $(DIRS_y)
 $(DIRS_y):
 	mkdir -p $(STAGEDIR)/lib
+	mkdir -p $(STAGEDIR)/include
 	i=$(call DIRPATH,$@); [ ! -d $$i ] || ( touch $$i/.sgbuilt_lib && $(MAKE) $(SUBDIR_SMP_BUILD) -C $$i ) || exit $$?
 	@set -f; \
 	for p in $(lib_$@); do \

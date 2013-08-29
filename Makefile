@@ -266,6 +266,8 @@ flash_mcu:
 
 .PHONY: host-test
 host-test:
+	$(MAKE) -C $(ROOTDIR) HOSTBUILD=1 subdirs
+	fakeroot $(MAKE) -C $(ROOTDIR) HOSTBUILD=1 romfs
 	$(MAKE) -C $(PRODUCTDIR) host-test
 
 .PHONY: release

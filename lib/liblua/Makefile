@@ -1,4 +1,7 @@
+ifndef HOSTBUILD
 LUA_STACK_SIZE    := 65536
+CFLAGS            += -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
+endif
 
 LUA_DIR           := lua-5.1.5
 LUAFILESYSTEM_DIR := luafilesystem-1.5.0
@@ -14,8 +17,11 @@ LSIGNALS_DIR      := lsignals
 LWATCHDOG_DIR     := lwatchdog
 LAIO_DIR          := laio
 
-CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
+CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -DCOCO_MIN_CSTACKSIZE=1024
+ifdef HOSTBUILD
+CFLAGS            += -DUSE_VALGRIND=1
+endif
 
 lua_libs =
 
@@ -76,14 +82,6 @@ lua_x86:
 	mkdir -p $(LUA_DIR)-x86
 	$(MAKE) -C $(LUA_DIR)-x86 -f $(CURDIR)/$(LUA_DIR)/src/Makefile \
 		SRC_DIR=$(CURDIR)/$(LUA_DIR)/src MYCFLAGS="-DLUA_USE_POSIX -m32" \
-		CC=gcc RANLIB=ranlib AR=ar all
-
-.PHONY: lua_native
-lua_native:
-	mkdir -p $(LUA_DIR)-native
-	$(MAKE) -C $(LUA_DIR)-native -f $(CURDIR)/$(LUA_DIR)/src/Makefile \
-		SRC_DIR=$(CURDIR)/$(LUA_DIR)/src \
-		MYCFLAGS="-DLUA_USE_POSIX -DUSE_VALGRIND=1 -DCOCO_MIN_CSTACKSIZE=1024 -fstack-protector-all" \
 		CC=gcc RANLIB=ranlib AR=ar all
 
 $(LUA_DIR)/src/autoconf.h:

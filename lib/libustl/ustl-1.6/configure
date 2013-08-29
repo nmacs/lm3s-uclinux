@@ -245,11 +245,14 @@ int main (void)
     return (0);
 }
 SRC
-#$CC -o config.cpu config.cpu.c
-#[ ! -x config.cpu ] && echo "Configurator build failed" && die
-#./config.cpu > config.sed
 
-cp ../config.sed ./
+if [ -n "$EXTERNCONFIG" ]; then
+cp $EXTERNCONFIG ./config.sed
+else
+$CC -o config.cpu config.cpu.c
+[ ! -x config.cpu ] && echo "Configurator build failed" && die
+./config.cpu > config.sed
+fi
 
 #### Set host-dependent options ######################################
 

@@ -61,12 +61,7 @@ OBJA =
 
 TEST_OBJS = example.o minigzip.o
 
-ifdef CONFIG_UCLINUX
 TARGETLIB = $(LIBS)
-else
-TARGETLIB = $(SHAREDLIBV)
-endif
-
 
 all: $(TARGETLIB)
 

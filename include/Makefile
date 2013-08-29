@@ -55,7 +55,7 @@ AUTOCONF=$(INCDIR)/vendor/autoconf.h $(INCDIR)/config/autoconf.h $(INCDIR)/modul
 
 TARGETS=
 ifdef HOSTBUILD
-TARGETS+=$(AUTOCONF)
+#TARGETS+=$(AUTOCONF)
 else
 TARGETS+=link
 ifndef CONFIG_DEFAULTS_LIBC_NONE
