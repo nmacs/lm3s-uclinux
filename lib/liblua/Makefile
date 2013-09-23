@@ -16,11 +16,12 @@ LSYSLOG_DIR       := lsyslog
 LSIGNALS_DIR      := lsignals
 LWATCHDOG_DIR     := lwatchdog
 LAIO_DIR          := laio
+LNTP_DIR          := lntp
 
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -DCOCO_MIN_CSTACKSIZE=1024
 ifdef HOSTBUILD
-CFLAGS            += -DUSE_VALGRIND=1
+CFLAGS            += -DUSE_VALGRIND=1 -g
 endif
 
 lua_libs =
@@ -68,6 +69,11 @@ endif
 ifdef CONFIG_LIB_LUA_LAIO
 	CFLAGS          += -Wl,-llaio -L$(CURDIR)/$(LAIO_DIR)
 	lua_libs        += laio
+endif
+
+ifdef CONFIG_LIB_LUA_LNTP
+	CFLAGS          += -Wl,-llntp -L$(CURDIR)/$(LNTP_DIR)
+	lua_libs        += lntp
 endif
 
 .PHONY: all lua repo romfs
@@ -126,6 +132,10 @@ lwatchdog: $(LWATCHDOG_DIR)/Makefile
 laio: $(LAIO_DIR)/Makefile
 	$(MAKE) -C $(LAIO_DIR)
 
+.PHONY: lntp
+lntp: $(LNTP_DIR)/Makefile
+	$(MAKE) -C $(LNTP_DIR)
+
 ############################################################################
 
 clean:
@@ -140,6 +150,7 @@ clean:
 	-$(MAKE) -C $(LSIGNALS_DIR) clean
 	-$(MAKE) -C $(LWATCHDOG_DIR) clean
 	-$(MAKE) -C $(LAIO_DIR) clean
+	-$(MAKE) -C $(LNTP_DIR) clean
 	-rm -rf $(LUA_DIR)-x86
 	-rm -rf $(LUA_DIR)-native
 

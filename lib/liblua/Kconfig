@@ -67,3 +67,7 @@ config LIB_LUA_LWATCHDOG
 config LIB_LUA_LAIO
 	bool "Lua wrapper for AIO API"
 	depends on LIB_LUA
+
+config LIB_LUA_LNTP
+	bool "Lua NTP library"
+	depends on LIB_LUA

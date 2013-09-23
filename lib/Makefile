@@ -43,6 +43,7 @@ lib_liblua_$(CONFIG_LIB_LUA_LSYSLOG) += lsyslog/liblsyslog.a
 lib_liblua_$(CONFIG_LIB_LUA_LSIGNALS) += lsignals/liblsignals.a
 lib_liblua_$(CONFIG_LIB_LUA_LWATCHDOG) += lwatchdog/liblwatchdog.a
 lib_liblua_$(CONFIG_LIB_LUA_LAIO) += laio/liblaio.a
+lib_liblua_$(CONFIG_LIB_LUA_LNTP) += lntp/liblntp.a
 
 lib_liblua = $(lib_liblua_y)
 

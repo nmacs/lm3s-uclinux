@@ -56,6 +56,10 @@ int luaopen_watchdog(lua_State *L);
 int luaopen_aio(lua_State *L);
 #endif
 
+#ifdef CONFIG_LIB_LUA_LNTP
+int luaopen_ntp(lua_State *L);
+#endif
+
 static const luaL_Reg modules[] = {
 #ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
   {"lfs", luaopen_lfs},
@@ -84,6 +88,9 @@ static const luaL_Reg modules[] = {
 #endif
 #ifdef CONFIG_LIB_LUA_LAIO
 	{"aio", luaopen_aio},
+#endif
+	#ifdef CONFIG_LIB_LUA_LNTP
+	{"ntp", luaopen_ntp},
 #endif
 	{NULL, NULL}
 };
