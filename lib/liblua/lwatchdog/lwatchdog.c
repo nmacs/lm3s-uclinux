@@ -10,7 +10,7 @@
 
 #define WD_DEV_PATH "/dev/watchdog"
 
-static int fd;
+static int fd = -1;
 
 static int wd_set_counter(int count)
 {
@@ -48,6 +48,12 @@ static int l_set_timeout(lua_State *L)
 	int actual_timeout;
 	int ret;
 	
+	if (fd < 0) {
+	        lua_pushnil(L);
+	        lua_pushstring(L, "watchdog: set_timeout: no watchdog available");
+	        return 2;
+	}
+
 	int old_timeout = wd_get_counter();
 	if (old_timeout < 0) {
 		lua_pushnil(L);
@@ -77,7 +83,13 @@ static int l_set_timeout(lua_State *L)
 
 static int l_get_timeout(lua_State *L)
 {
-	int timeout = wd_get_counter();
+        int timeout;
+        if (fd < 0) {
+                lua_pushnil(L);
+                lua_pushstring(L, "watchdog: get_timeout: no watchdog available");
+                return 2;
+        }
+	timeout = wd_get_counter();
 	if (timeout < 0) {
 		lua_pushnil(L);
 		lua_pushfstring(L, "watchdog: get_timeout: error:%i", timeout);
@@ -90,6 +102,11 @@ static int l_get_timeout(lua_State *L)
 static int l_keep_alive(lua_State *L)
 {
 	int ret;
+        if (fd < 0) {
+                lua_pushnil(L);
+                lua_pushstring(L, "watchdog: keep_alive: no watchdog available");
+                return 2;
+        }
 	if ((ret = wd_keep_alive())) {
 		lua_pushnil(L);
 		lua_pushfstring(L, "watchdog: keep_alive: error:%i", ret);
@@ -108,9 +125,7 @@ static const struct luaL_Reg mylib [] = {
 
 int luaopen_watchdog(lua_State *L)
 {
-	if (wd_open())
-		return 0;
-	
+	wd_open();
 	luaL_register(L, "watchdog", mylib);
 	return 1;
 }
