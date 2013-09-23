@@ -887,9 +887,9 @@ static struct uci_package *uci_file_load(struct uci_context *ctx, const char *na
 		break;
 	}
 
+	defaultfilename = uci_default_config(ctx, name);
         UCI_TRAP_SAVE(ctx, skipdefault);
         uci_close_stream(file);
-        defaultfilename = uci_default_config(ctx, name);
         ctx->err = 0;
         file = uci_open_stream(ctx, defaultfilename, SEEK_SET, false, false);
         ctx->err = 0;
@@ -915,8 +915,8 @@ done:
         }
 	if( package == 0 && filename )
 		free(filename);
-	if( defaultfilename )
-		free(defaultfilename);
+        if( defaultfilename )
+                free(defaultfilename);
 	uci_close_stream(file);
 	if (ctx->err)
 		UCI_THROW(ctx, ctx->err);

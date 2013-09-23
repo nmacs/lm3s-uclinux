@@ -364,6 +364,7 @@ uci_lua_get_any(lua_State *L, bool all)
 			err = UCI_ERR_INVAL;
 			goto error;
 	}
+	free(s);
 	if (!err)
 		return 1;
 
