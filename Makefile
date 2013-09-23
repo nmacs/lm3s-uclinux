@@ -223,7 +223,9 @@ linux_image:
 
 .PHONY: romfs
 romfs: romfs.newlog romfs.subdirs modules_install romfs.post
+ifndef HOSTBUILD
 	lua-compile $(ROMFSDIR)
+endif
 
 .PHONY: repo
 repo: opkg
