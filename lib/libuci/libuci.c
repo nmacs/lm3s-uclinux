@@ -123,6 +123,20 @@ int uci_set_confdir(struct uci_context *ctx, const char *dir)
 	return 0;
 }
 
+int uci_set_defconfdir(struct uci_context *ctx, const char *dir)
+{
+	char *cdir;
+
+	UCI_HANDLE_ERR(ctx);
+	UCI_ASSERT(ctx, dir != NULL);
+
+	cdir = uci_strdup(ctx, dir);
+	if (ctx->defconfdir != uci_defconfdir)
+		free(ctx->defconfdir);
+	ctx->defconfdir = cdir;
+	return 0;
+}
+
 __private void uci_cleanup(struct uci_context *ctx)
 {
 	struct uci_parse_context *pctx;

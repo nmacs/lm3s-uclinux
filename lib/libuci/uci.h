@@ -251,6 +251,13 @@ extern int uci_set_savedir(struct uci_context *ctx, const char *dir);
 extern int uci_set_confdir(struct uci_context *ctx, const char *dir);
 
 /**
+ * uci_set_defconfdir: override the default config storage directory
+ * @ctx: uci context
+ * @dir: directory name
+ */
+extern int uci_set_defconfdir(struct uci_context *ctx, const char *dir);
+
+/**
  * uci_add_delta_path: add a directory to the search path for change delta files
  * @ctx: uci context
  * @dir: directory name

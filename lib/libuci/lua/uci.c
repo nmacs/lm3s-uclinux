@@ -844,6 +844,18 @@ uci_lua_set_confdir(lua_State *L)
 }
 
 static int
+uci_lua_set_defconfdir(lua_State *L)
+{
+	struct uci_context *ctx;
+	int offset = 0;
+
+	ctx = find_context(L, &offset);
+	luaL_checkstring(L, 1 + offset);
+	uci_set_defconfdir(ctx, lua_tostring(L, -1));
+	return uci_push_status(L, ctx, false);
+}
+
+static int
 uci_lua_get_savedir(lua_State *L)
 {
 	struct uci_context *ctx = find_context(L, NULL);
@@ -953,6 +965,7 @@ static const luaL_Reg uci[] = {
 #endif
 	{ "get_confdir", uci_lua_get_confdir },
 	{ "set_confdir", uci_lua_set_confdir },
+	{ "set_defconfdir", uci_lua_set_defconfdir },
 	{ "get_savedir", uci_lua_get_savedir },
 	{ "set_savedir", uci_lua_set_savedir },
 	{ NULL, NULL },
