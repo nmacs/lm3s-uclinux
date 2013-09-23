@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <linux/reboot.h>
 #include <sys/times.h>
+#include <sys/timex.h>
 
 #define loslib_c
 #define LUA_LIB
@@ -93,6 +94,24 @@ static int os_diffclock(lua_State *L) {
   size_t t2 = (size_t)(luaL_checknumber(L, 2) * CLK_TCK);
   lua_pushnumber(L, ((lua_Number)((size_t)(t1 - t2))) / CLK_TCK);
   return 1;
+}
+
+static int os_gettimeofday(lua_State *L) {
+  struct timeval tv;
+  double t;
+  gettimeofday(&tv, 0);
+  t = (double)tv.tv_sec + (double)tv.tv_usec/1000000.0;
+  lua_pushnumber(L, t);
+  return 1;
+}
+
+static int os_settimeofday(lua_State *L) {
+  struct timeval tv;
+  double t = luaL_checknumber(L, 1);
+  tv.tv_sec = (time_t)t;
+  tv.tv_usec = (suseconds_t)((t - tv.tv_sec) * 1000000.0);
+  settimeofday(&tv, 0);
+  return 0;
 }
 
 
@@ -267,8 +286,10 @@ static const luaL_Reg syslib[] = {
   {"symlink",   os_symlink},
   {"sync",      os_sync},
   {"time",      os_time},
+  {"gettimeofday", os_gettimeofday},
+  {"settimeofday", os_settimeofday},
   {"tmpname",   os_tmpname},
-	{"getpid",    os_getpid},
+  {"getpid",    os_getpid},
   {NULL, NULL}
 };
 
