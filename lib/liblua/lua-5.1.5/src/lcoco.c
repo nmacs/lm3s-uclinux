@@ -38,6 +38,8 @@
 #include "lgc.h"
 #include <sys/mman.h>
 #include <errno.h>
+#include <syslog.h>
+#include <unistd.h>
 
 
 /*
@@ -674,12 +676,26 @@ void luaCOCO_free(lua_State *L)
   COCO_FREE(L)
 }
 
+#if defined(__UCLIBC__)
+# if __GNUC__ == 4 && __GNUC_MINOR__ == 5 && __GNUC_PATCHLEVEL__ == 2
+#  define RESUME_YEILD_WORKARAUND 1
+# else
+#  error "Untested GCC version"
+# endif
+#endif
+
 /* Resume a coroutine with a C stack. Called from ldo.c. */
-int luaCOCO_resume(lua_State *L, int nargs)
+int __attribute__ ((noinline)) luaCOCO_resume(lua_State *L, int nargs)
 {
   coco_State *coco = L2COCO(L);
-  coco->nargs = nargs;
+  coco->nargs = nargs;;
+#if RESUME_YEILD_WORKARAUND
+	usleep(0);
+#endif
   COCO_JUMPIN(coco)
+#if RESUME_YEILD_WORKARAUND
+	usleep(0);
+#endif
 #ifndef COCO_DISABLE_EARLY_FREE
   if (L->status != LUA_YIELD) {
     COCO_FREE(L)
@@ -689,11 +705,17 @@ int luaCOCO_resume(lua_State *L, int nargs)
 }
 
 /* Yield from a coroutine with a C stack. Called from ldo.c. */
-int luaCOCO_yield(lua_State *L)
+int __attribute__ ((noinline)) luaCOCO_yield(lua_State *L)
 {
   coco_State *coco = L2COCO(L);
   L->status = LUA_YIELD;
+#if RESUME_YEILD_WORKARAUND
+	usleep(0);
+#endif
   COCO_JUMPOUT(coco)
+#if RESUME_YEILD_WORKARAUND
+	usleep(0);
+#endif
   L->status = 0;
   {
     StkId base = L->top - coco->nargs;
