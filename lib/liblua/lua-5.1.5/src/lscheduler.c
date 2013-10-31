@@ -4,11 +4,11 @@
 #include <sys/epoll.h>
 #include <sys/times.h>
 
-#define DEBUG 0
+//#define DEBUG 1
 
 #if DEBUG
 #  include <syslog.h>
-#  define dprint(s, ...) { syslog(LOG_DEBUG, s, ##__VA_ARGS__); usleep(100000); }
+#  define dprint(s, ...) { syslog(LOG_DEBUG, s, ##__VA_ARGS__); /*usleep(10000);*/ }
 //#  define dprint(s, ...) { fprintf(stderr, s, ##__VA_ARGS__); usleep(100000); }
 #else
 #  define dprint(...) while(0) {}
@@ -128,6 +128,7 @@ LUALIB_API int luaL_wait(lua_State *L, int fd, int write, int timeout)
 	int delfd = 0;
 	struct wait_ctx ctx;
 	struct timeout_ctx tctx;
+	struct epoll_event event;
 
 	dprint("luaL_wait: co:%p, ctx:%p, fd:%i, write:%i, timeout:%i\n", L, &ctx, fd, write, timeout);
 
@@ -143,7 +144,6 @@ LUALIB_API int luaL_wait(lua_State *L, int fd, int write, int timeout)
 
 	if (fd >= 0) {
 		int ret;
-		struct epoll_event event;
 		event.events = write ? EPOLLOUT : EPOLLIN;
 		event.data.ptr = &ctx;
 		ctx.event = &event;
@@ -195,7 +195,7 @@ static int auxwait(lua_State *L, int fd, int write, int timeout)
 	if (ret < 0) {
 		lua_pushnil(L);
 		lua_pushstring(L, "error");
-		lua_pushfstring(L, "wait error:%d", -ret);
+		lua_pushfstring(L, "wait error: %d", ret);
 		return 3;
 	}
 	else if (ret == 0) {
@@ -234,16 +234,25 @@ static int do_resume_thread(lua_State *L, lua_State *co, int nargs)
 	dprint("do_resume_thread L:%p, co:%p, nargs:%i\n", L, co, nargs);
 	lua_xmove(L, co, nargs);
 	lua_setthis(co);
+	dprint("do_resume_thread SP:%p\n", &ret);
 	ret = lua_resume(co, nargs);
+	dprint("do_resume_thread resume ret:%i\n", ret);
 	lua_setthis(L);
-	if (ret == LUA_YIELD || ret == 0) {
-		lua_pop(co, lua_gettop(co));
+	dprint("do_resume_thread 1\n");
+	if (ret == LUA_YIELD) {
+		dprint("do_resume_thread 2 top:%i\n", lua_gettop(co));
+		//lua_pop(co, lua_gettop(co));
+		dprint("do_resume_thread 3\n");
 		return 0;
 	}
-	else {
+	else if (ret != 0) {
+		dprint("do_resume_thread 4\n");
 		lua_xmove(co, L, 1);
+		dprint("do_resume_thread 5\n");
 		return -1;
 	}
+	else
+		dprint("----------------- coroutine terminated -------------------\n");
 }
 
 static int resume_thread(lua_State *L, struct wait_ctx *ctx, int status)
@@ -273,6 +282,7 @@ static int l_loop(lua_State *L)
 			return 1;
 		}
 		
+		dprint("loop: gettop:%i\n", lua_gettop(L));
 		timeout = get_timeout();
 		dprint("loop: wait for events timeout:%i\n", timeout);
 		ret = epoll_wait(epoll_fd, events, MAXEVENTS, timeout);
