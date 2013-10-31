@@ -33,7 +33,7 @@
 #define USEC_IN_SEC             1000000
 #define CLOCKADJ_MIN_PERIOD_SEC (900)
 #define PHI                     (15 / PPM_SCALE)
-#define MAX_FREQADJ             PPM2FREQ(1)
+#define MAX_FREQADJ             PPM2FREQ(2)
 #define SGATE                   3
 #define PGATE                   4.0
 #define MINPOLL                 6       /* % minimum poll interval (64 s)*/
@@ -75,6 +75,7 @@ struct p {
 	int      nextf;
 	struct ff ff;
 	double   offset;         /* peer offset */
+	double   effective_offset;
 	double   delay;          /* peer delay */
 	double   disp;           /* peer dispersion */
 	double   jitter;         /* RMS jitter */
@@ -147,8 +148,8 @@ static void peer_clear(struct p *p)
 static int freq_adjust(struct p *p)
 {
 	long freq_adj;
-	double period, offset, threshold, w;
-	double disp = 0, mindisp = MAXDISPERSE;
+	double period, offset, threshold, drift;
+	double disp = 0;
 	int i, j;
 	struct timex tx;
 	dprint("freq_adjust: p->offset:%f\n", p->offset);
@@ -158,38 +159,34 @@ static int freq_adjust(struct p *p)
 		return NTP_OK;
 	}
 
+	p->ff.offset += p->offset;
+
 	j = p->ff.dispi;
 	p->ff.disp[j] = p->disp;
 	j = (j + 1) % NSTAGE;
 	p->ff.dispi = j;
-	
-	for (i = 0; i < NSTAGE; i++) {
+	for (i = 0; i < NSTAGE; i++)
 		disp += p->ff.disp[i];
-		if (mindisp > p->ff.disp[i])
-			mindisp = p->ff.disp[i];
-	}
 	disp /= NSTAGE;
+
+	period = clock.now - p->ff.update;
+        drift = p->ff.offset / period * PPM_SCALE;
 
 	if (disp > MAXDISTANCE)
 		return NTP_OK;
 
-	w = 0;
-	//w = fabs(p->offset) / (fabs(p->offset) + p->disp - mindisp);
-	p->ff.offset += p->offset /** w*/;
 	offset = p->ff.offset;
-	
 	threshold = disp * 1.5;
-	dprint("freq_adjust: ff->offset:%f, offset:%f, threshold:%f, disp:%f, p->disp:%f, mindisp:%f, w:%f, raw_drift:%f\n", 
-				 p->ff.offset, offset, threshold, disp, p->disp, mindisp, w, offset / (clock.now - p->ff.update) * 1000000.);
+
+	dprint("freq_adjust: ff->offset:%f, offset:%f, threshold:%f, disp:%f, p->disp:%f, drift:%f\n",
+	                                 p->ff.offset, offset, threshold, disp, p->disp, drift);
 
 	if (fabs(offset) <= threshold)
 		return NTP_OK;
 
-	period = clock.now - p->ff.update;
-	//offset = offset > 0 ? offset - p->disp : offset + p->disp;
 	dprint("freq_adjust: period:%f, offset:%f\n", period, offset);
 	
-	freq_adj = (long)PPM2FREQ((offset / period) * PPM_SCALE);
+	freq_adj = (long)PPM2FREQ(drift * PPM_SCALE);
 	if (freq_adj > MAX_FREQADJ)
 		freq_adj = MAX_FREQADJ;
 	else if (freq_adj < -MAX_FREQADJ)
@@ -226,6 +223,7 @@ static int clock_adjust(struct p *p)
 	int i;
 	int ret = NTP_OK;
 	double old;
+	double offset;
 	struct timex tx;
 	dprint("clock_adjust: p->offset:%f\n", p->offset);
 	if (p->offset < CLOCK_MAX) {
@@ -233,7 +231,8 @@ static int clock_adjust(struct p *p)
 		tx.modes = ADJ_OFFSET_SINGLESHOT;
 		ret = get_old_offset(&old);
 		if (ret) return ret;
-		tx.offset = (long)((p->offset + old) * USEC_IN_SEC);
+		offset = p->offset + old;
+		tx.offset = (long)(offset * USEC_IN_SEC);
 		if (adjtimex(&tx) < 0) return NTP_ERR_SYS;
 		for (i = 0; i < NSTAGE; i++)
 			if (p->f[i].t > p->t && p->f[i].disp < MAXDISPERSE)
@@ -243,9 +242,12 @@ static int clock_adjust(struct p *p)
 	}
 	else {
 		ret = movetime(p->offset);
+		offset = p->offset;
 		peer_clear(p);
 		if (ret) return ret;
 	}
+
+	p->effective_offset = offset;
 	return ret;
 }
 
@@ -469,7 +471,7 @@ static int l_clock_update(lua_State *L)
 static int l_get_peer(lua_State *L)
 {
 	lua_newtable(L);
-	lua_pushnumber(L, peer.offset); lua_setfield(L, -2, "offset");
+	lua_pushnumber(L, peer.effective_offset); lua_setfield(L, -2, "offset");
 	lua_pushnumber(L, peer.disp);   lua_setfield(L, -2, "disp");
 	lua_pushnumber(L, peer.jitter); lua_setfield(L, -2, "jitter");
 	lua_pushnumber(L, peer.poll);   lua_setfield(L, -2, "poll");
@@ -485,7 +487,7 @@ static int l_set_peer(lua_State *L)
 
 	peer_clear(&peer);
 
-	lua_getfield(L, -2, "poll");
+	lua_getfield(L, 1, "poll");
 	value = luaL_checknumber(L, -1);
 	lua_pop(L, 1);
 	peer.poll = (long)value;
@@ -507,17 +509,23 @@ static int l_set_clock(lua_State *L)
 	double value;
 	luaL_argcheck(L, lua_istable(L, 1), 1, "table expected");
 
-	lua_getfield(L, -2, "now");
+	lua_getfield(L, 1, "now");
 	value = luaL_checknumber(L, -1);
 	lua_pop(L, 1);
 	settime(value);
 
-	lua_getfield(L, -2, "freq");
+	lua_getfield(L, 1, "freq");
 	value = luaL_checknumber(L, -1);
 	lua_pop(L, 1);
 	clock.freq = (long)value;
 
 	return 0;
+}
+
+static int l_clear()
+{
+  ntp_init();
+  return 0;
 }
 
 static const struct luaL_Reg mylib [] = {
@@ -526,6 +534,7 @@ static const struct luaL_Reg mylib [] = {
 	{ "set_peer", l_set_peer },
 	{ "get_clock", l_get_clock },
 	{ "set_clock", l_set_clock },
+	{ "clear", l_clear },
 	{ NULL, NULL }
 };
 
