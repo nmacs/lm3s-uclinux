@@ -80,6 +80,18 @@ static int os_getenv (lua_State *L) {
   return 1;
 }
 
+static int os_setenv (lua_State *L) {
+  const char *name = luaL_checkstring(L, 1);
+  int ret = 0;
+  if (!lua_isnil(L, 2)) {
+      const char *value = luaL_checkstring(L, 2);
+      ret = setenv(name, value, 1);
+  }
+  else
+    ret = unsetenv(name);
+  return os_pushresult(L, ret == 0, name);
+}
+
 
 static int os_clock (lua_State *L) {
   size_t CLK_TCK = sysconf(_SC_CLK_TCK);
@@ -279,6 +291,7 @@ static const luaL_Reg syslib[] = {
   {"execute",   os_execute},
   {"exit",      os_exit},
   {"getenv",    os_getenv},
+  {"setenv",    os_setenv},
   {"reboot",    os_reboot},
   {"remove",    os_remove},
   {"rename",    os_rename},
