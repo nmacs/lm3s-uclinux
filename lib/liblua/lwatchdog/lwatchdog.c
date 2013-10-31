@@ -29,8 +29,7 @@ static int wd_get_counter()
 
 static int wd_keep_alive(void)
 {
-	int dummy;
-	return ioctl(fd, WDIOC_KEEPALIVE, &dummy);
+	return ioctl(fd, WDIOC_KEEPALIVE);
 }
 
 static int wd_open(void)
@@ -49,9 +48,9 @@ static int l_set_timeout(lua_State *L)
 	int ret;
 	
 	if (fd < 0) {
-	        lua_pushnil(L);
-	        lua_pushstring(L, "watchdog: set_timeout: no watchdog available");
-	        return 2;
+		lua_pushnil(L);
+		lua_pushstring(L, "watchdog: set_timeout: no watchdog available");
+		return 2;
 	}
 
 	int old_timeout = wd_get_counter();
@@ -83,12 +82,12 @@ static int l_set_timeout(lua_State *L)
 
 static int l_get_timeout(lua_State *L)
 {
-        int timeout;
-        if (fd < 0) {
-                lua_pushnil(L);
-                lua_pushstring(L, "watchdog: get_timeout: no watchdog available");
-                return 2;
-        }
+	int timeout;
+	if (fd < 0) {
+		lua_pushnil(L);
+		lua_pushstring(L, "watchdog: get_timeout: no watchdog available");
+		return 2;
+	}
 	timeout = wd_get_counter();
 	if (timeout < 0) {
 		lua_pushnil(L);
@@ -102,11 +101,11 @@ static int l_get_timeout(lua_State *L)
 static int l_keep_alive(lua_State *L)
 {
 	int ret;
-        if (fd < 0) {
-                lua_pushnil(L);
-                lua_pushstring(L, "watchdog: keep_alive: no watchdog available");
-                return 2;
-        }
+	if (fd < 0) {
+		lua_pushnil(L);
+		lua_pushstring(L, "watchdog: keep_alive: no watchdog available");
+		return 2;
+	}
 	if ((ret = wd_keep_alive())) {
 		lua_pushnil(L);
 		lua_pushfstring(L, "watchdog: keep_alive: error:%i", ret);
