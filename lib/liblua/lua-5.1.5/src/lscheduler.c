@@ -453,7 +453,7 @@ static int l_cancel_wait(lua_State *L)
 	}
 
 	suspend_thread(L, co);
-	lua_pushinteger(L, 1);
+	lua_pushinteger(L, -1);
 	do_resume_thread(L, co, 1);
 
 	lua_pushboolean(L, 1);
