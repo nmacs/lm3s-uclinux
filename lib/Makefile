@@ -53,8 +53,6 @@ lib_liblua_$(CONFIG_LIB_LUA_LCRYPTO) += lcrypto/liblcrypto.a
 
 lib_liblua = $(lib_liblua_y)
 
-dir_$(CONFIG_LIB_CYASSL) += cyassl
-
 dir_$(CONFIG_LIB_LIBSODIUM) += libsodium
 lib_libsodium += staging/lib/libsodium.a
 inc_libsodium += staging/include/sodium.h,. \

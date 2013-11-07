@@ -34,10 +34,6 @@ config LIB_USTL
 	bool "Build uSTL"
 	default n
 
-config LIB_CYASSL
-	bool "Build CyaSSL"
-	default n
-
 source ../lib/libtommath/Kconfig
 source ../lib/libtomcrypt/Kconfig
 
