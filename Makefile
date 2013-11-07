@@ -266,11 +266,14 @@ romdisk:
 flash_mcu:
 	$(MAKE) -C $(PRODUCTDIR) flash_mcu
 
-.PHONY: host-test
-host-test:
+.PHONY: host-build
+host-build:
 	$(MAKE) -C $(ROOTDIR) HOSTBUILD=1 subdirs
 	fakeroot $(MAKE) -C $(ROOTDIR) HOSTBUILD=1 romfs
-	$(MAKE) -C $(PRODUCTDIR) host-test
+
+.PHONY: host-%
+host-%: host-build
+	$(MAKE) -C $(PRODUCTDIR) $@
 
 .PHONY: release
 release:

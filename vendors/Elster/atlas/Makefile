@@ -112,6 +112,6 @@ image:
 #	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
 	$(UBIFS) -r $(ROMFSDIR) -o $(UBIFSIMG)
 
-.PHONY: host-test
-host-test:
-	$(MAKE) -C $(ROOTDIR)/user/elster host-test
+.PHONY: host-%
+host-%:
+	$(MAKE) -C $(ROOTDIR)/user/elster $@
