@@ -71,3 +71,15 @@ config LIB_LUA_LAIO
 config LIB_LUA_LNTP
 	bool "Lua NTP library"
 	depends on LIB_LUA
+
+config LIB_LUA_LUASEC
+	bool "OpenSSL binding"
+	depends on LIB_LUA && LIB_LUA_LUASOCKET
+
+config LIB_LUA_LCRYPTO
+	bool "Lua bindings for OpenSSL libcrypto"
+	depends on LIB_LUA
+
+config LIB_LUA_LUATWITTER
+	bool "Lua implementation of Twitter API"
+	depends on LIB_LUA

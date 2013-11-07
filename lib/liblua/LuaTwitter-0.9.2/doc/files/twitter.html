@@ -1,0 +1,3183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../luadoc.css" type="text/css" />
+	<!--meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/-->
+</head>
+
+<body>
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+<div id="main">
+
+<div id="navigation">
+
+
+<h1>LuaDoc</h1>
+<ul>
+	
+	<li><a href="../index.html">Index</a></li>
+	
+</ul>
+
+
+<!-- Module list -->
+
+<h1>Modules</h1>
+<ul>
+
+	<li>
+		<a href="../modules/twitter.html">twitter</a>
+	</li>
+
+</ul>
+
+
+
+<!-- File list -->
+
+<h1>Files</h1>
+<ul>
+
+	<li><strong>twitter.lua</strong></li>
+	
+</ul>
+
+
+
+
+
+
+</div> <!-- id="navigation" -->
+
+<div id="content">
+
+<h1>File <code>twitter.lua</code></h1>
+
+
+<p>Title: LuaTwitter. Description: Lua client for Twitter API (visit http://apiwiki.twitter.com/ for API details). Author: Kamil Kapron (kkapron@gmail.com, kamil@kkapron.com). Version: 0.9.2 (2010-12-12)  Legal: Copyright (C) 2009-2010 Kamil Kapron.  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  Requirements: JSON4Lua (http://json.luaforge.net/), lua-oauth (https://github.com/DracoBlue/lua-oauth) (included, with my few modifications), luacrypto (http://luaforge.net/projects/luacrypto/) (required by lua-oauth), lbase64 (http://www.tecgraf.puc-rio.br/~lhf/ftp/lua/#lbase64) (required by lua-oauth), lua-curl (http://luaforge.net/projects/lua-curl/) (required by lua-oauth). Encoding: UTF-8. </p>
+
+
+
+
+
+
+<h2>Functions</h2>
+<table class="function_list">
+
+	<tr>
+	<td class="name" nowrap><a href="#Client">Client</a>&nbsp;(user, pass)</td>
+	<td class="summary">Creates TwitterClient instance </td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:AddToFavorites">TwitterClient:AddToFavorites</a>&nbsp;(id)</td>
+	<td class="summary">Favorites the status specified in the ID parameter as the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:AddUserToList">TwitterClient:AddUserToList</a>&nbsp;(id, user)</td>
+	<td class="summary">Add a member to a list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:AvailableTrendsLocations">TwitterClient:AvailableTrendsLocations</a>&nbsp;(lat, long)</td>
+	<td class="summary">Returns the locations that Twitter has trending topic information for.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:BlockUser">TwitterClient:BlockUser</a>&nbsp;(args)</td>
+	<td class="summary">Blocks the user specified in the ID parameter as the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:BlockedUsers">TwitterClient:BlockedUsers</a>&nbsp;(page)</td>
+	<td class="summary">Returns an array of user objects that the authenticating user is blocking.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:BlockedUsersIDs">TwitterClient:BlockedUsersIDs</a>&nbsp;(page)</td>
+	<td class="summary">Returns an array of numeric user ids the authenticating user is blocking.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:CheckBlock">TwitterClient:CheckBlock</a>&nbsp;(args)</td>
+	<td class="summary">Returns if the authenticating user is blocking a target user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:CreateList">TwitterClient:CreateList</a>&nbsp;(name, mode, desc)</td>
+	<td class="summary">Creates a new list for the authenticated user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:CreateSavedSearch">TwitterClient:CreateSavedSearch</a>&nbsp;(query)</td>
+	<td class="summary">Creates a saved search for the authenticated user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:CurrentTrends">TwitterClient:CurrentTrends</a>&nbsp;(exclude)</td>
+	<td class="summary">Returns the current top 10 trending topics on Twitter.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:DailyTrends">TwitterClient:DailyTrends</a>&nbsp;(start_date, exclude)</td>
+	<td class="summary">Returns the top 20 trending topics for each hour in a given day.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:DeleteList">TwitterClient:DeleteList</a>&nbsp;(id)</td>
+	<td class="summary">Deletes the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:DestroyDirectMessage">TwitterClient:DestroyDirectMessage</a>&nbsp;(id)</td>
+	<td class="summary">Destroys the direct message specified in the required ID parameter.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:DestroySavedSearch">TwitterClient:DestroySavedSearch</a>&nbsp;(id)</td>
+	<td class="summary">Destroys a saved search for the authenticated user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:DestroyStatus">TwitterClient:DestroyStatus</a>&nbsp;(id)</td>
+	<td class="summary">Destroys the status specified by the required ID parameter.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:DisableNotifications">TwitterClient:DisableNotifications</a>&nbsp;(args)</td>
+	<td class="summary">Disables notifications for updates from the specified user to the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:EnableNotifications">TwitterClient:EnableNotifications</a>&nbsp;(args)</td>
+	<td class="summary">Enables device notifications for updates from the specified user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:EndSession">TwitterClient:EndSession</a>&nbsp;()</td>
+	<td class="summary">Ends the session of the authenticating user, returning a null cookie.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:FollowUser">TwitterClient:FollowUser</a>&nbsp;(args)</td>
+	<td class="summary">Allows the authenticating users to follow the user specified in the ID parameter.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:FriendsTimeline">TwitterClient:FriendsTimeline</a>&nbsp;(args)</td>
+	<td class="summary">Returns the 20 most recent statuses posted by the authenticating user and that user's friends.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:FriendshipExists">TwitterClient:FriendshipExists</a>&nbsp;(user_a, user_b)</td>
+	<td class="summary">Tests for the existence of friendship between two users.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:GetList">TwitterClient:GetList</a>&nbsp;(id, user)</td>
+	<td class="summary">Show the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:GetListMemberID">TwitterClient:GetListMemberID</a>&nbsp;(list_id, user, id)</td>
+	<td class="summary">Check if a user is a member of the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:GetListMembers">TwitterClient:GetListMembers</a>&nbsp;(list_id, user, cursor, list_id.)</td>
+	<td class="summary">Returns the members of the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:GetListMemberships">TwitterClient:GetListMemberships</a>&nbsp;(user, cursor)</td>
+	<td class="summary">List the lists the specified user has been added to.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:GetListStatuses">TwitterClient:GetListStatuses</a>&nbsp;(args)</td>
+	<td class="summary">Deletes the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:GetListSubscriberID">TwitterClient:GetListSubscriberID</a>&nbsp;(list_id, user, id)</td>
+	<td class="summary">Check if the specified user is a subscriber of the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:GetListSubscribers">TwitterClient:GetListSubscribers</a>&nbsp;(list_id, user, cursor)</td>
+	<td class="summary">Returns the subscribers of the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:GetListSubscriptions">TwitterClient:GetListSubscriptions</a>&nbsp;(user, cursor)</td>
+	<td class="summary">List the lists the specified user follows.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:GetLists">TwitterClient:GetLists</a>&nbsp;(user, cursor)</td>
+	<td class="summary">List the lists of the specified user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:HomeTimeline">TwitterClient:HomeTimeline</a>&nbsp;(args)</td>
+	<td class="summary">Returns the 20 most recent statuses, including retweets, posted by the authenticating user and that user's friends.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:MakeQuery">TwitterClient:MakeQuery</a>&nbsp;(name, args)</td>
+	<td class="summary">Making Twitter query Don't use it directly.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:Mentions">TwitterClient:Mentions</a>&nbsp;(args)</td>
+	<td class="summary">Returns the 20 most recent mentions (status containing @username) for the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:NewDirectMessage">TwitterClient:NewDirectMessage</a>&nbsp;(user, text)</td>
+	<td class="summary">Sends a new direct message to the specified user from the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:PublicTimeline">TwitterClient:PublicTimeline</a>&nbsp;()</td>
+	<td class="summary">Returns the 20 most recent statuses from non-protected users who have set a custom user icon.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:RateLimitStatus">TwitterClient:RateLimitStatus</a>&nbsp;(forUser)</td>
+	<td class="summary">Returns the remaining number of API requests available to the requesting user before the API limit is reached for the current hour.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:ReceivedDirectMessages">TwitterClient:ReceivedDirectMessages</a>&nbsp;(args)</td>
+	<td class="summary">Returns a list of the 20 most recent direct messages sent to the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:RemoveFromFavorites">TwitterClient:RemoveFromFavorites</a>&nbsp;(id)</td>
+	<td class="summary">Un-favorites the status specified in the ID parameter as the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:RemoveUserFromList">TwitterClient:RemoveUserFromList</a>&nbsp;(id, user)</td>
+	<td class="summary">Removes the specified member from the list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:ReportSpammer">TwitterClient:ReportSpammer</a>&nbsp;(args)</td>
+	<td class="summary">The user specified in the id is blocked by the authenticated user and reported as a spammer.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:Retweet">TwitterClient:Retweet</a>&nbsp;(id, id.)</td>
+	<td class="summary">Retweets a tweet.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:RetweetedBy">TwitterClient:RetweetedBy</a>&nbsp;(id, count, page, trim_user, entities)</td>
+	<td class="summary">Show user objects of up to 100 members who retweeted the status.</td>
+   </tr>
+
+   <tr>
+	<td class="name" nowrap><a href="#TwitterClient:RetweetedByIds">TwitterClient:RetweetedByIds</a>&nbsp;(id, count, page, trim_user, entities)</td>
+	<td class="summary">Show user ids of up to 100 users who retweeted the status.</td>
+   </tr>
+
+   <tr>
+	<td class="name" nowrap><a href="#TwitterClient:RetweetedByMe">TwitterClient:RetweetedByMe</a>&nbsp;(args)</td>
+	<td class="summary">Returns the 20 most recent retweets posted by the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:RetweetedToMe">TwitterClient:RetweetedToMe</a>&nbsp;(args)</td>
+	<td class="summary">Returns the 20 most recent retweets posted by the authenticating user's friends.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:RetweetsOfMe">TwitterClient:RetweetsOfMe</a>&nbsp;(args)</td>
+	<td class="summary">Returns the 20 most recent tweets of the authenticated user that have been retweeted by others.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:SavedSearches">TwitterClient:SavedSearches</a>&nbsp;()</td>
+	<td class="summary">Returns the authenticated user's saved search queries.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:Search">TwitterClient:Search</a>&nbsp;(args)</td>
+	<td class="summary">Returns tweets that match a specified query More information about constructing queries: http://apiwiki.twitter.com/Twitter-Search-API-Method%3A-search </td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:SearchUser">TwitterClient:SearchUser</a>&nbsp;(query, per_page, page)</td>
+	<td class="summary">Run a search for users similar to Find People button on Twitter.com; the same results returned by people search on Twitter.com will be returned by using this API.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:SentDirectMessages">TwitterClient:SentDirectMessages</a>&nbsp;(args)</td>
+	<td class="summary">Returns a list of the 20 most recent direct messages sent by the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:SetUserData">TwitterClient:SetUserData</a>&nbsp;(user, pass, dontCheckCredentials)</td>
+	<td class="summary">Set credentials I suggest not set the third parrameter when you are not sure about given credentials </td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:ShowFriendship">TwitterClient:ShowFriendship</a>&nbsp;(args)</td>
+	<td class="summary">Returns detailed information about the relationship between two users.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:ShowRetweets">TwitterClient:ShowRetweets</a>&nbsp;(id, count, id.)</td>
+	<td class="summary">Returns up to 100 of the first retweets of a given tweet.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:ShowSavedSearch">TwitterClient:ShowSavedSearch</a>&nbsp;(id)</td>
+	<td class="summary">Retrieve the data for a saved search owned by the authenticating user specified by the given id.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:ShowStatus">TwitterClient:ShowStatus</a>&nbsp;(id)</td>
+	<td class="summary">Returns a single status, specified by the id parameter below.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:ShowUser">TwitterClient:ShowUser</a>&nbsp;(args)</td>
+	<td class="summary">Returns extended information of a given user, specified by ID or screen name as per the required id parameter.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:SubscribeList">TwitterClient:SubscribeList</a>&nbsp;(list_id, user)</td>
+	<td class="summary">Make the authenticated user follow the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:Test">TwitterClient:Test</a>&nbsp;()</td>
+	<td class="summary">Returns the string "ok" in the requested format with a 200 OK HTTP status code.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:Trends">TwitterClient:Trends</a>&nbsp;()</td>
+	<td class="summary">Returns the top ten topics that are currently trending on Twitter.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:TrendsForLocation">TwitterClient:TrendsForLocation</a>&nbsp;(woeid)</td>
+	<td class="summary">Returns the top 10 trending topics for a specific location Twitter has trending topic information for.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UnBlockUser">TwitterClient:UnBlockUser</a>&nbsp;(args)</td>
+	<td class="summary">Un-blocks the user specified in the ID parameter for the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UnFollowUser">TwitterClient:UnFollowUser</a>&nbsp;(args)</td>
+	<td class="summary">Allows the authenticating users to unfollow the user specified in the ID parameter.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UnsubscribeList">TwitterClient:UnsubscribeList</a>&nbsp;(list_id, user, id)</td>
+	<td class="summary">Unsubscribes the authenticated user form the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UpdateDeliveryDevice">TwitterClient:UpdateDeliveryDevice</a>&nbsp;(dev, device)</td>
+	<td class="summary">Sets which device Twitter delivers updates to for the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UpdateList">TwitterClient:UpdateList</a>&nbsp;(id, name, mode, desc)</td>
+	<td class="summary">Updates the specified list.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UpdateProfile">TwitterClient:UpdateProfile</a>&nbsp;(args)</td>
+	<td class="summary">Sets values that users are able to set under the "Account" tab of their settings page.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UpdateProfileColors">TwitterClient:UpdateProfileColors</a>&nbsp;(colors, colors.background, colors.text, colors.link, colors.sidebar_fill, colors.sidebar_border)</td>
+	<td class="summary">Sets one or more hex values that control the color scheme of the authenticating user's profile page on twitter.com.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UpdateStatus">TwitterClient:UpdateStatus</a>&nbsp;(status, in_reply_to_status_id, lat, long)</td>
+	<td class="summary">Updates the authenticating user's status.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UserFavorites">TwitterClient:UserFavorites</a>&nbsp;(id, page)</td>
+	<td class="summary">Returns the 20 most recent favorite statuses for the authenticating user or user specified by the ID parameter in the requested format.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UserFollowers">TwitterClient:UserFollowers</a>&nbsp;(args)</td>
+	<td class="summary">Returns the authenticating user's followers, each with current status inline.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UserFollowersIDs">TwitterClient:UserFollowersIDs</a>&nbsp;(args)</td>
+	<td class="summary">Returns an array of numeric IDs for every user following the specified user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UserFriends">TwitterClient:UserFriends</a>&nbsp;(args)</td>
+	<td class="summary">Returns a user's friends, each with current status inline.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UserFriendsIDs">TwitterClient:UserFriendsIDs</a>&nbsp;(args)</td>
+	<td class="summary">Returns an array of numeric IDs for every user the specified user is following.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:UserTimeline">TwitterClient:UserTimeline</a>&nbsp;(args)</td>
+	<td class="summary">Returns the 20 most recent statuses posted from the authenticating user.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:VerifyCredentials">TwitterClient:VerifyCredentials</a>&nbsp;()</td>
+	<td class="summary">Returns an HTTP 200 OK response code and a representation of the requesting user if authentication was successful; returns a 401 status code and an error message if not.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:Version">TwitterClient:Version</a>&nbsp;()</td>
+	<td class="summary">TwitterClient version information </td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#TwitterClient:WeeklyTrends">TwitterClient:WeeklyTrends</a>&nbsp;(start_date, exclude)</td>
+	<td class="summary">Returns the top 30 trending topics for each day in a given week.</td>
+	</tr>
+
+</table>
+
+
+
+
+
+
+<br/>
+<br/>
+
+
+
+
+<h2><a name="functions"></a>Functions</h2>
+<dl class="function">
+
+
+
+<dt><a name="Client"></a><strong>Client</strong>&nbsp;(user, pass)</dt>
+<dd>
+Creates TwitterClient instance
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  user: User's name on Twitter
+	</li>
+	
+	<li>
+	  pass: User's password on Twitter
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table TwitterClient object
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:AddToFavorites"></a><strong>TwitterClient:AddToFavorites</strong>&nbsp;(id)</dt>
+<dd>
+Favorites the status specified in the ID parameter as the authenticating user. Returns the favorite status when successful.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The ID of the status to favorite.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:AddUserToList"></a><strong>TwitterClient:AddUserToList</strong>&nbsp;(id, user)</dt>
+<dd>
+Add a member to a list. The authenticated user must own the list to be able to add members to it. Lists are limited to having 500 members.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The id or slug of the list
+	</li>
+	
+	<li>
+	  user: Required. The id or screen name of the user to add as a member of the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:AvailableTrendsLocations"></a><strong>TwitterClient:AvailableTrendsLocations</strong>&nbsp;(lat, long)</dt>
+<dd>
+Returns the locations that Twitter has trending topic information for. The response is an array of "locations" that encode the location's WOEID (a Yahoo! Where On Earth ID) and some other human-readable information such as a canonical name and country the location belongs in. The WOEID that is returned in the location object is to be used when querying for a specific trend.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  lat: Optional. If passed in conjunction with long, then the available trend locations will be sorted by distance to the lat and long passed in. The sort is nearest to furthest.
+	</li>
+	
+	<li>
+	  long: Optional. See lat
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:BlockUser"></a><strong>TwitterClient:BlockUser</strong>&nbsp;(args)</dt>
+<dd>
+Blocks the user specified in the ID parameter as the authenticating user. Destroys a friendship to the blocked user if it exists. Returns the blocked user in the requested format when successful. One of the following is required:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Optional. The ID or screen_name of the potentially blocked user.
+	</li>
+	
+	<li>
+	  args.user_id: Optional. Specfies the ID of the potentially blocked user. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Optional. Specfies the screen name of the potentially blocked user. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:BlockedUsers"></a><strong>TwitterClient:BlockedUsers</strong>&nbsp;(page)</dt>
+<dd>
+Returns an array of user objects that the authenticating user is blocking.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  page: Optional. Specifies the page number of the results beginning at 1. A single page contains 20 ids.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:BlockedUsersIDs"></a><strong>TwitterClient:BlockedUsersIDs</strong>&nbsp;(page)</dt>
+<dd>
+Returns an array of numeric user ids the authenticating user is blocking.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  page: Optional. Specifies the page number of the results beginning at 1. A single page contains 20 ids.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:CheckBlock"></a><strong>TwitterClient:CheckBlock</strong>&nbsp;(args)</dt>
+<dd>
+Returns if the authenticating user is blocking a target user. Will return the blocked user's object if a block exists, and error with a HTTP 404 response code otherwise.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Optional. The ID or screen_name of the potentially blocked user.
+	</li>
+	
+	<li>
+	  args.user_id: Optional. Specfies the ID of the potentially blocked user. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Optional. Specfies the screen name of the potentially blocked user. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+
+
+<dt><a name="TwitterClient:CreateList"></a><strong>TwitterClient:CreateList</strong>&nbsp;(name, mode, desc)</dt>
+<dd>
+Creates a new list for the authenticated user. Accounts are limited to 20 lists.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  name: Required. The name of the list you are creating.
+	</li>
+	
+	<li>
+	  mode: Optional. Whether your list is public or private. Values can be public or private. Lists are public by default if no mode is specified.
+	</li>
+	
+	<li>
+	  desc: Optional. The description of the list you are creating.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:CreateSavedSearch"></a><strong>TwitterClient:CreateSavedSearch</strong>&nbsp;(query)</dt>
+<dd>
+Creates a saved search for the authenticated user.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  query: Required. The query of the search the user would like to save.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:CurrentTrends"></a><strong>TwitterClient:CurrentTrends</strong>&nbsp;(exclude)</dt>
+<dd>
+Returns the current top 10 trending topics on Twitter. The response includes the time of the request, the name of each trending topic, and query used on Twitter Search results page for that topic.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  exclude: Optional. Setting this equal to "hashtags" will remove all hashtags from the trends list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:DailyTrends"></a><strong>TwitterClient:DailyTrends</strong>&nbsp;(start_date, exclude)</dt>
+<dd>
+Returns the top 20 trending topics for each hour in a given day.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  start_date: Optional. Permits specifying a start date for the report. The date should be formatted YYYY-MM-DD.
+	</li>
+	
+	<li>
+	  exclude: Optional. Setting this equal to hashtags will remove all hashtags from the trends list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:DeleteList"></a><strong>TwitterClient:DeleteList</strong>&nbsp;(id)</dt>
+<dd>
+Deletes the specified list. Must be owned by the authenticated user.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The id or slug of the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:DestroyDirectMessage"></a><strong>TwitterClient:DestroyDirectMessage</strong>&nbsp;(id)</dt>
+<dd>
+Destroys the direct message specified in the required ID parameter. The authenticating user must be the recipient of the specified direct message.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The ID of the direct message to destroy.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:DestroySavedSearch"></a><strong>TwitterClient:DestroySavedSearch</strong>&nbsp;(id)</dt>
+<dd>
+Destroys a saved search for the authenticated user. The search specified by id must be owned by the authenticating user.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The id of the saved search to be deleted.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:DestroyStatus"></a><strong>TwitterClient:DestroyStatus</strong>&nbsp;(id)</dt>
+<dd>
+Destroys the status specified by the required ID parameter. The authenticating user must be the author of the specified status.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The ID of the status to destroy.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:DisableNotifications"></a><strong>TwitterClient:DisableNotifications</strong>&nbsp;(args)</dt>
+<dd>
+Disables notifications for updates from the specified user to the authenticating user. Returns the specified user when successful. One of the following is required:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Required. The ID or screen name of the user to disable device notifications.
+	</li>
+	
+	<li>
+	  args.user_id: Required. Specfies the ID of the user to disable device notifications. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Required. Specfies the screen name of the user of the user to disable device notifications. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:EnableNotifications"></a><strong>TwitterClient:EnableNotifications</strong>&nbsp;(args)</dt>
+<dd>
+Enables device notifications for updates from the specified user. Returns the specified user when successful. One of the following is required:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Required. The ID or screen name of the user to follow with device updates.
+	</li>
+	
+	<li>
+	  args.user_id: Required. Specfies the ID of the user to follow with device updates. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Required. Specfies the screen name of the user to follow with device updates. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:EndSession"></a><strong>TwitterClient:EndSession</strong>&nbsp;()</dt>
+<dd>
+Ends the session of the authenticating user, returning a null cookie. Use this method to sign users out of client-facing applications like widgets
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:FollowUser"></a><strong>TwitterClient:FollowUser</strong>&nbsp;(args)</dt>
+<dd>
+Allows the authenticating users to follow the user specified in the ID parameter. Returns the befriended user in the requested format when successful.  Returns a string describing the failure condition when unsuccessful. If you are already friends with the user an HTTP 403 will be returned. One of the following parameters is required:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Required. The ID or screen name of the user to befriend.
+	</li>
+	
+	<li>
+	  args.user_id: Required. Specfies the ID of the user to befriend. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Required. Specfies the screen name of the user to befriend. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+	<li>
+	  args.follow: Optional. Enable delivery of statuses from this user to the authenticated user's device; tweets sent by the user being followed will be delivered to the caller of this endpoint's phone as SMSes.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:FriendsTimeline"></a><strong>TwitterClient:FriendsTimeline</strong>&nbsp;(args)</dt>
+<dd>
+Returns the 20 most recent statuses posted by the authenticating user and that user's friends. This is the equivalent of /timeline/home on the Web.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.since_id: Optional. Returns only statuses with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id: Optional. Returns only statuses with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.count: Optional. Specifies the number of statuses to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:FriendshipExists"></a><strong>TwitterClient:FriendshipExists</strong>&nbsp;(user_a, user_b)</dt>
+<dd>
+Tests for the existence of friendship between two users. Will return true if user_a follows user_b, otherwise will return false. Tip: Why not try the ShowFriendship method, which gives you even more information with a single call?
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  user_a: Required. The ID or screen_name of the subject user.
+	</li>
+	
+	<li>
+	  user_b: Required. The ID or screen_name of the user to test for following.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+boolean
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:GetList"></a><strong>TwitterClient:GetList</strong>&nbsp;(id, user)</dt>
+<dd>
+Show the specified list. Private lists will only be shown if the authenticated user owns the specified list.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The id or slug of the list.
+	</li>
+	
+	<li>
+	  user: Optional. ID, screen name or user ID of wanted user. Default: authenticated user.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:GetListMemberID"></a><strong>TwitterClient:GetListMemberID</strong>&nbsp;(list_id, user, id)</dt>
+<dd>
+Check if a user is a member of the specified list.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  list_id: Required. The id or slug of the list
+	</li>
+	
+	<li>
+	  user: Required. ID, screen name or user ID of list's owner.
+	</li>
+	
+	<li>
+	  id: Required. The id or screen name of the user who you want to know is a member or not of the specified list. Default: authenticated user.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:GetListMembers"></a><strong>TwitterClient:GetListMembers</strong>&nbsp;(list_id, user, cursor, list_id.)</dt>
+<dd>
+Returns the members of the specified list.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  list_id: 
+	</li>
+	
+	<li>
+	  user: Optional. ID, screen name or user ID of wanted user. Default: authenticated user.
+	</li>
+	
+	<li>
+	  cursor: Optional. Breaks the results into pages. A single page contains 20 lists. Provide a value of -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
+	</li>
+	
+	<li>
+	  list_id.: Required. The id or slug of the list
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:GetListMemberships"></a><strong>TwitterClient:GetListMemberships</strong>&nbsp;(user, cursor)</dt>
+<dd>
+List the lists the specified user has been added to.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  user: Optional. ID, screen name or user ID of wanted user. Default: authenticated user.
+	</li>
+	
+	<li>
+	  cursor: Optional. Breaks the results into pages. A single page contains 20 lists. Provide a value of -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:GetListStatuses"></a><strong>TwitterClient:GetListStatuses</strong>&nbsp;(args)</dt>
+<dd>
+Deletes the specified list. Must be owned by the authenticated user.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Required. The id or slug of the list.
+	</li>
+	
+	<li>
+	  args.user: Optional. ID, screen name or user ID of wanted user. Default: authenticated user.
+	</li>
+	
+	<li>
+	  args.since_id: Optional. Returns only statuses with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id.: Optional. Returns only statuses with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.per_page.: Optional. Specifies the number of statuses to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page.: Optional. Specifies the page of results to retrieve. Note: there are pagination limits.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:GetListSubscriberID"></a><strong>TwitterClient:GetListSubscriberID</strong>&nbsp;(list_id, user, id)</dt>
+<dd>
+Check if the specified user is a subscriber of the specified list.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  list_id: Required. The id or slug of the list
+	</li>
+	
+	<li>
+	  user: Required.  The ID or screen name of the list's owner
+	</li>
+	
+	<li>
+	  id: Required. The id of the user who you want to know is a subcriber or not of the specified list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:GetListSubscribers"></a><strong>TwitterClient:GetListSubscribers</strong>&nbsp;(list_id, user, cursor)</dt>
+<dd>
+Returns the subscribers of the specified list.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  list_id: Required. The id or slug of the list
+	</li>
+	
+	<li>
+	  user: Optional. ID, screen name or user ID of wanted user. Default: authenticated user.
+	</li>
+	
+	<li>
+	  cursor: Optional. Breaks the results into pages. A single page contains 20 lists. Provide a value of -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:GetListSubscriptions"></a><strong>TwitterClient:GetListSubscriptions</strong>&nbsp;(user, cursor)</dt>
+<dd>
+List the lists the specified user follows.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  user: Optional. ID, screen name or user ID of wanted user. Default: authenticated user.
+	</li>
+	
+	<li>
+	  cursor: Optional. Breaks the results into pages. A single page contains 20 lists. Provide a value of -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:GetLists"></a><strong>TwitterClient:GetLists</strong>&nbsp;(user, cursor)</dt>
+<dd>
+List the lists of the specified user. Private lists will be included if the authenticated users is the same as the user who'se lists are being returned.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  user: Optional. ID, screen name or user ID of wanted user. Default: authenticated user.
+	</li>
+	
+	<li>
+	  cursor: Optional. Breaks the results into pages. A single page contains 20 lists. Provide a value of -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:HomeTimeline"></a><strong>TwitterClient:HomeTimeline</strong>&nbsp;(args)</dt>
+<dd>
+Returns the 20 most recent statuses, including retweets, posted by the authenticating user and that user's friends. This is the equivalent of /timeline/home on the Web.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.since_id: Optional. Returns only statuses with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id: Optional. Returns only statuses with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.count: Optional. Specifies the number of statuses to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:MakeQuery"></a><strong>TwitterClient:MakeQuery</strong>&nbsp;(name, args)</dt>
+<dd>
+Making Twitter query Don't use it directly. To call Twitter methods, run proper TwitterClient method.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  name: 
+	</li>
+	
+	
+	
+</ul>
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:Mentions"></a><strong>TwitterClient:Mentions</strong>&nbsp;(args)</dt>
+<dd>
+Returns the 20 most recent mentions (status containing @username) for the authenticating user.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.since_id: Optional. Returns only statuses with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id: Optional. Returns only statuses with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.count: Optional. Specifies the number of statuses to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:NewDirectMessage"></a><strong>TwitterClient:NewDirectMessage</strong>&nbsp;(user, text)</dt>
+<dd>
+Sends a new direct message to the specified user from the authenticating user. Requires both the user and text parameters. Returns the sent message in the requested format when successful.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  user: Required. The ID or screen name of the recipient user. In order to support numeric screen names Twitter will accept either of the following two parameters in place of the user parameter: screen_name (screen name of the recipient user), user_id (user id of the recipient user)
+	</li>
+	
+	<li>
+	  text: Required. The text of your direct message. Keep it under 140 characters.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:PublicTimeline"></a><strong>TwitterClient:PublicTimeline</strong>&nbsp;()</dt>
+<dd>
+Returns the 20 most recent statuses from non-protected users who have set a custom user icon. The public timeline is cached for 60 seconds so requesting it more often than that is a waste of resources.
+
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:RateLimitStatus"></a><strong>TwitterClient:RateLimitStatus</strong>&nbsp;(forUser)</dt>
+<dd>
+Returns the remaining number of API requests available to the requesting user before the API limit is reached for the current hour. Calls to rate_limit_status do not count against the rate limit. If authentication credentials are provided, the rate limit status for the authenticating user is returned. Otherwise, the rate limit status for the requester's IP address is returned.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  forUser: Optional.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:ReceivedDirectMessages"></a><strong>TwitterClient:ReceivedDirectMessages</strong>&nbsp;(args)</dt>
+<dd>
+Returns a list of the 20 most recent direct messages sent to the authenticating user.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.since_id: Optional. Returns only direct messages with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id: Optional. Returns only direct messages with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.count: Optional. Specifies the number of direct messages to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:RemoveFromFavorites"></a><strong>TwitterClient:RemoveFromFavorites</strong>&nbsp;(id)</dt>
+<dd>
+Un-favorites the status specified in the ID parameter as the authenticating user. Returns the un-favorited status in the requested format when successful.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The ID of the status to un-favorite.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:RemoveUserFromList"></a><strong>TwitterClient:RemoveUserFromList</strong>&nbsp;(id, user)</dt>
+<dd>
+Removes the specified member from the list. The authenticated user must be the list's owner to remove members from the list.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The id or slug of the list
+	</li>
+	
+	<li>
+	  user: Required. The id of the member you wish to remove from the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:ReportSpammer"></a><strong>TwitterClient:ReportSpammer</strong>&nbsp;(args)</dt>
+<dd>
+The user specified in the id is blocked by the authenticated user and reported as a spammer.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Optional. The ID or screen_name of the user you want to report as a spammer.
+	</li>
+	
+	<li>
+	  args.user_id: Optional. The ID of the user you want to report as a spammer. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Optional. The ID or screen_name of the user you want to report as a spammer. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:Retweet"></a><strong>TwitterClient:Retweet</strong>&nbsp;(id, id.)</dt>
+<dd>
+Retweets a tweet. Requires the id parameter of the tweet you are retweeting. Returns the original tweet with retweet details embedded.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: 
+	</li>
+	
+	<li>
+	  id.: Required. The numerical ID of the tweet you are retweeting.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:RetweetedByMe"></a><strong>TwitterClient:RetweetedByMe</strong>&nbsp;(args)</dt>
+<dd>
+Returns the 20 most recent retweets posted by the authenticating user.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.since_id: Optional. Returns only statuses with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id: Optional. Returns only statuses with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.count: Optional. Specifies the number of statuses to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:RetweetedToMe"></a><strong>TwitterClient:RetweetedToMe</strong>&nbsp;(args)</dt>
+<dd>
+Returns the 20 most recent retweets posted by the authenticating user's friends.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.since_id: Optional. Returns only statuses with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id: Optional. Returns only statuses with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.count: Optional. Specifies the number of statuses to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:RetweetsOfMe"></a><strong>TwitterClient:RetweetsOfMe</strong>&nbsp;(args)</dt>
+<dd>
+Returns the 20 most recent tweets of the authenticated user that have been retweeted by others.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.since_id: Optional. Returns only statuses with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id: Optional. Returns only statuses with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.count: Optional. Specifies the number of statuses to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:SavedSearches"></a><strong>TwitterClient:SavedSearches</strong>&nbsp;()</dt>
+<dd>
+Returns the authenticated user's saved search queries.
+
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:Search"></a><strong>TwitterClient:Search</strong>&nbsp;(args)</dt>
+<dd>
+Returns tweets that match a specified query More information about constructing queries: http://apiwiki.twitter.com/Twitter-Search-API-Method%3A-search
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.query: Required. What is user looking for. Should be given as a user-friendly string, which will be url-encoded by this method automatically. Don't encode it yourself, to avoid double encoding.
+	</li>
+	
+	<li>
+	  args.callback: Optional. If supplied, the response will use the JSONP format with a callback of the given name. NOT TESTED
+	</li>
+	
+	<li>
+	  args.lang: Optional. Restricts tweets to the given language, given by an ISO 639-1 code
+	</li>
+	
+	<li>
+	  args.rpp: Osptional. The number of tweets to return per page, up to a max of 100
+	</li>
+	
+	<li>
+	  args.page: Optional. The page number (starting at 1) to return, up to a max of roughly 1500 results (based on rpp) page
+	</li>
+	
+	<li>
+	  args.since_id: Optional. Returns tweets with status ids greater than the given id
+	</li>
+	
+	<li>
+	  args.geocode: Optional. Returns tweets by users located within a given radius of the given latitude/longitude, where the user's location is taken from their Twitter profile. The parameter value is specified by "latitide,longitude,radius", where radius units must be specified as either "mi" (miles) or "km" (kilometers), ex. "40.757929,-73.985506,25km"
+	</li>
+	
+	<li>
+	  args.show_user: Optional. When "true" (it's a string value, not boolean), prepends "<user>:" to the beginning of the tweet. This is useful for readers that do not display Atom's author field. The default is "false"
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:SearchUser"></a><strong>TwitterClient:SearchUser</strong>&nbsp;(query, per_page, page)</dt>
+<dd>
+Run a search for users similar to Find People button on Twitter.com; the same results returned by people search on Twitter.com will be returned by using this API. It is only possible to retrieve the first 1000 matches from this API.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  query: Required. The query to run against people search.
+	</li>
+	
+	<li>
+	  per_page: Optional. Specifies the number of statuses to retrieve. May not be greater than 20.
+	</li>
+	
+	<li>
+	  page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:SentDirectMessages"></a><strong>TwitterClient:SentDirectMessages</strong>&nbsp;(args)</dt>
+<dd>
+Returns a list of the 20 most recent direct messages sent by the authenticating user.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.since_id: Optional. Returns only direct messages with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id: Optional. Returns only direct messages with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.count: Optional. Specifies the number of direct messages to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:SetUserData"></a><strong>TwitterClient:SetUserData</strong>&nbsp;(user, pass, dontCheckCredentials)</dt>
+<dd>
+Set credentials I suggest not set the third parrameter when you are not sure about given credentials
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  user: 
+	</li>
+	
+	<li>
+	  pass: 
+	</li>
+	
+	<li>
+	  dontCheckCredentials: 
+	</li>
+	
+</ul>
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:ShowFriendship"></a><strong>TwitterClient:ShowFriendship</strong>&nbsp;(args)</dt>
+<dd>
+Returns detailed information about the relationship between two users. Usage notes: http://apiwiki.twitter.com/Twitter-REST-API-Method:-friendships-show One of the following parameters is required if the request is unauthenticated:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.source_id: The user_id of the subject user
+	</li>
+	
+	<li>
+	  args.source_screen_name: The screen_name of the subject user. One of the following parameters is required:
+	</li>
+	
+	<li>
+	  args.target_id: The user_id of the target user.
+	</li>
+	
+	<li>
+	  args.target_screen_name: The screen_name of the target user.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:ShowRetweets"></a><strong>TwitterClient:ShowRetweets</strong>&nbsp;(id, count, id.)</dt>
+<dd>
+Returns up to 100 of the first retweets of a given tweet.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: 
+	</li>
+	
+	<li>
+	  count: Optional. Specifies the number of retweets to retrieve. May not be greater than 100.
+	</li>
+	
+	<li>
+	  id.: Required. The numerical ID of the tweet you want the retweets of.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:ShowSavedSearch"></a><strong>TwitterClient:ShowSavedSearch</strong>&nbsp;(id)</dt>
+<dd>
+Retrieve the data for a saved search owned by the authenticating user specified by the given id.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The id of the saved search to be retrieved.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:ShowStatus"></a><strong>TwitterClient:ShowStatus</strong>&nbsp;(id)</dt>
+<dd>
+Returns a single status, specified by the id parameter below.  The status's author will be returned inline.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Required. The numerical ID of the status to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:ShowUser"></a><strong>TwitterClient:ShowUser</strong>&nbsp;(args)</dt>
+<dd>
+Returns extended information of a given user, specified by ID or screen name as per the required id parameter. The author's most recent status will be returned inline. One of the following parameters is required:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: The ID or screen name of a user
+	</li>
+	
+	<li>
+	  args.user_id: Specfies the ID of the user to return. Helpful for disambiguating when a valid user ID is also a valid screen name
+	</li>
+	
+	<li>
+	  args.screen_name: Specfies the screen name of the user to return. Helpful for disambiguating when a valid screen name is also a user ID
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:SubscribeList"></a><strong>TwitterClient:SubscribeList</strong>&nbsp;(list_id, user)</dt>
+<dd>
+Make the authenticated user follow the specified list.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  list_id: Required. The id or slug of the list
+	</li>
+	
+	<li>
+	  user: Required. ID, screen name or user ID of list's owner.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:Test"></a><strong>TwitterClient:Test</strong>&nbsp;()</dt>
+<dd>
+Returns the string "ok" in the requested format with a 200 OK HTTP status code.
+
+
+
+
+
+
+
+<h3>Return value:</h3>
+string
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:Trends"></a><strong>TwitterClient:Trends</strong>&nbsp;()</dt>
+<dd>
+Returns the top ten topics that are currently trending on Twitter. The response includes the time of the request, the name of each trend, and the url to the Twitter Search results page for that topic.
+
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:TrendsForLocation"></a><strong>TwitterClient:TrendsForLocation</strong>&nbsp;(woeid)</dt>
+<dd>
+Returns the top 10 trending topics for a specific location Twitter has trending topic information for. The response is an array of "trend" objects that encode the name of the trending topic, the query parameter that can be used to search for the topic on Search, and the direct URL that can be issued against Search. This information is cached for five minutes, and therefore users are discouraged from querying these endpoints faster than once every five minutes. Global trends information is also available from this API by using a WOEID of 1.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  woeid: The WOEID of the location to be querying for
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UnBlockUser"></a><strong>TwitterClient:UnBlockUser</strong>&nbsp;(args)</dt>
+<dd>
+Un-blocks the user specified in the ID parameter for the authenticating user.  Returns the un-blocked user in the requested format when successful. One of the following is required:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Optional. The ID or screen_name of the potentially blocked user.
+	</li>
+	
+	<li>
+	  args.user_id: Optional. Specfies the ID of the potentially blocked user. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Optional. Specfies the screen name of the potentially blocked user. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UnFollowUser"></a><strong>TwitterClient:UnFollowUser</strong>&nbsp;(args)</dt>
+<dd>
+Allows the authenticating users to unfollow the user specified in the ID parameter. Returns the unfollowed user in the requested format when successful.  Returns a string describing the failure condition when unsuccessful. One of the following parameters is required:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Required. The ID or screen name of the user to unfollow.
+	</li>
+	
+	<li>
+	  args.user_id: Required. Specfies the ID of the user to unfollow. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Required. Specfies the screen name of the user to unfollow. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UnsubscribeList"></a><strong>TwitterClient:UnsubscribeList</strong>&nbsp;(list_id, user, id)</dt>
+<dd>
+Unsubscribes the authenticated user form the specified list.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  list_id: Required. The id or slug of the list
+	</li>
+	
+	<li>
+	  user: Required. The ID or screen name of the list's owner
+	</li>
+	
+	<li>
+	  id: Required. The ID or screen name of the user to remove from the list. Default: authenticated user.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UpdateDeliveryDevice"></a><strong>TwitterClient:UpdateDeliveryDevice</strong>&nbsp;(dev, device)</dt>
+<dd>
+Sets which device Twitter delivers updates to for the authenticating user. Sending none as the device parameter will disable IM or SMS updates.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  dev: 
+	</li>
+	
+	<li>
+	  device: Required. Must be one of: sms, none.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UpdateList"></a><strong>TwitterClient:UpdateList</strong>&nbsp;(id, name, mode, desc)</dt>
+<dd>
+Updates the specified list.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: 
+	</li>
+	
+	<li>
+	  name: Optional. What you'd like to change the lists name to.
+	</li>
+	
+	<li>
+	  mode: Optional. Whether your list is public or private. Values can be public or private. Lists are public by default if no mode is specified.
+	</li>
+	
+	<li>
+	  desc: Optional.  What you'd like to change the list description to.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UpdateProfile"></a><strong>TwitterClient:UpdateProfile</strong>&nbsp;(args)</dt>
+<dd>
+Sets values that users are able to set under the "Account" tab of their settings page. Only the parameters specified will be updated. One or more of the following parameters must be present. Each parameter's value should be a string. See the individual parameter descriptions below for further constraints.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.name: Optional. Maximum of 20 characters
+	</li>
+	
+	<li>
+	  args.url: Optional. Maximum of 100 characters. Will be prepended with "http://" if not present
+	</li>
+	
+	<li>
+	  args.location: Optional. Maximum of 30 characters. The contents are not normalized or geocoded in any way
+	</li>
+	
+	<li>
+	  args.description: Optional. Maximum of 160 characters
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UpdateProfileColors"></a><strong>TwitterClient:UpdateProfileColors</strong>&nbsp;(colors, colors.background, colors.text, colors.link, colors.sidebar_fill, colors.sidebar_border)</dt>
+<dd>
+Sets one or more hex values that control the color scheme of the authenticating user's profile page on twitter.com. One or more of the following parameters must be present. Each parameter's value must be a valid hexidecimal value, and may be either three or six characters (ex: fff or ffffff).
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  colors: 
+	</li>
+	
+	<li>
+	  colors.background: Optional
+	</li>
+	
+	<li>
+	  colors.text: Optional
+	</li>
+	
+	<li>
+	  colors.link: Optional
+	</li>
+	
+	<li>
+	  colors.sidebar_fill: Optional
+	</li>
+	
+	<li>
+	  colors.sidebar_border: Optional
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UpdateStatus"></a><strong>TwitterClient:UpdateStatus</strong>&nbsp;(status, in_reply_to_status_id, lat, long)</dt>
+<dd>
+Updates the authenticating user's status. Requires the status parameter specified below. A status update with text identical to the authenticating user's current status will be ignored to prevent duplicates. Details about parameters: http://apiwiki.twitter.com/Twitter-REST-API-Method:-statuses update
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  status: Required The text of your status update. URL encode as necessary. Statuses over 140 characters will be forceably truncated
+	</li>
+	
+	<li>
+	  in_reply_to_status_id: Optional. The ID of an existing status that the update is in reply to
+	</li>
+	
+	<li>
+	  lat: Optional. The location's latitude that this tweet refers to.
+	</li>
+	
+	<li>
+	  long: Optional. The location's longitude that this tweet refers to.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UserFavorites"></a><strong>TwitterClient:UserFavorites</strong>&nbsp;(id, page)</dt>
+<dd>
+Returns the 20 most recent favorite statuses for the authenticating user or user specified by the ID parameter in the requested format.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  id: Optional. The ID or screen name of the user for whom to request a list of favorite statuses.
+	</li>
+	
+	<li>
+	  page: Optional. Specifies the page of favorites to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UserFollowers"></a><strong>TwitterClient:UserFollowers</strong>&nbsp;(args)</dt>
+<dd>
+Returns the authenticating user's followers, each with current status inline. They are ordered by the order in which they followed the user, 100 at a time. (Please note that the result set isn't guaranteed to be 100 every time as suspended users will be filtered out.) Use the cursor option to access earlier followers
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Optional. The ID or screen name of the user for whom to request a list of followers
+	</li>
+	
+	<li>
+	  args.user_id: Optional. Specfies the ID of the user for whom to return the list of followers. Helpful for disambiguating when a valid user ID is also a valid screen name
+	</li>
+	
+	<li>
+	  args.screen_name: Optional. Specfies the screen name of the user for whom to return the list of friends. Helpful for disambiguating when a valid screen name is also a user ID
+	</li>
+	
+	<li>
+	  args.cursor: Optional. Breaks the results into pages. A single page contains 100 users. This is recommended for users who are followed by many other users. Provide a value of  -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UserFollowersIDs"></a><strong>TwitterClient:UserFollowersIDs</strong>&nbsp;(args)</dt>
+<dd>
+Returns an array of numeric IDs for every user following the specified user. One of the three following parameters should be given:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Optional. The ID or screen_name of the user to retrieve the followers ID list for.
+	</li>
+	
+	<li>
+	  args.user_id: Optional. Specfies the ID of the user for whom to return the friends list. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Optional. Specfies the screen name of the user for whom to return the friends list. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+	<li>
+	  args.cursor: Required. Breaks the results into pages. A single page contains 5000 identifiers. This is recommended for all purposes. Provide a value of -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UserFriends"></a><strong>TwitterClient:UserFriends</strong>&nbsp;(args)</dt>
+<dd>
+Returns a user's friends, each with current status inline. They are ordered by the order in which the user followed them, most recently followed first, 100 at a time. (Please note that the result set isn't guaranteed to be 100 every time as suspended users will be filtered out.) Use the cursor option to access older friends. With no user specified, request defaults to the authenticated user's friends. It's also possible to request another user's friends list via the id, screen_name or user_id parameter.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Optional. The ID or screen name of the user for whom to request a list of friends
+	</li>
+	
+	<li>
+	  args.user_id: Optional. Specfies the ID of the user for whom to return the list of friends. Helpful for disambiguating when a valid user ID is also a valid screen name
+	</li>
+	
+	<li>
+	  args.screen_name: Optional. Specfies the screen name of the user for whom to return the list of friends. Helpful for disambiguating when a valid screen name is also a user ID
+	</li>
+	
+	<li>
+	  args.cursor: Optional. Breaks the results into pages. A single page contains 100 users. This is recommended for users who are following many users. Provide a value of  -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UserFriendsIDs"></a><strong>TwitterClient:UserFriendsIDs</strong>&nbsp;(args)</dt>
+<dd>
+Returns an array of numeric IDs for every user the specified user is following. One of the three following parameters should be given:
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Optional. The ID or screen_name of the user to retrieve the friends ID list for.
+	</li>
+	
+	<li>
+	  args.user_id: Optional. Specfies the ID of the user for whom to return the friends list. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Optional. Specfies the screen name of the user for whom to return the friends list. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+	<li>
+	  args.cursor: Required. Breaks the results into pages. A single page contains 5000 identifiers. This is recommended for all purposes. Provide a value of -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:UserTimeline"></a><strong>TwitterClient:UserTimeline</strong>&nbsp;(args)</dt>
+<dd>
+Returns the 20 most recent statuses posted from the authenticating user. It's also possible to request another user's timeline via the id parameter. This is the equivalent of the Web /<user> page for your own user, or the profile page for a third party
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	
+	
+	<li>
+	  args.id: Optional. Specifies the ID or screen name of the user for whom to return the user_timeline.
+	</li>
+	
+	<li>
+	  args.user_id: Optional. Specfies the ID of the user for whom to return the user_timeline. Helpful for disambiguating when a valid user ID is also a valid screen name.
+	</li>
+	
+	<li>
+	  args.screen_name: Optional. Specfies the screen name of the user for whom to return the user_timeline. Helpful for disambiguating when a valid screen name is also a user ID.
+	</li>
+	
+	<li>
+	  args.since_id: Optional. Returns only statuses with an ID greater than (that is, more recent than) the specified ID.
+	</li>
+	
+	<li>
+	  args.max_id: Optional. Returns only statuses with an ID less than (that is, older than) or equal to the specified ID.
+	</li>
+	
+	<li>
+	  args.count: Optional. Specifies the number of statuses to retrieve. May not be greater than 200.
+	</li>
+	
+	<li>
+	  args.page: Optional. Specifies the page of results to retrieve.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:VerifyCredentials"></a><strong>TwitterClient:VerifyCredentials</strong>&nbsp;()</dt>
+<dd>
+Returns an HTTP 200 OK response code and a representation of the requesting user if authentication was successful; returns a 401 status code and an error message if not. Use this method to test if supplied user credentials are valid
+
+
+
+
+
+
+
+<h3>Return value:</h3>
+table extended user information element
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:Version"></a><strong>TwitterClient:Version</strong>&nbsp;()</dt>
+<dd>
+TwitterClient version information
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+
+<dt><a name="TwitterClient:WeeklyTrends"></a><strong>TwitterClient:WeeklyTrends</strong>&nbsp;(start_date, exclude)</dt>
+<dd>
+Returns the top 30 trending topics for each day in a given week.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  start_date: Optional. Permits specifying a start date for the report. The date should be formatted YYYY-MM-DD.
+	</li>
+	
+	<li>
+	  exclude: Optional. Setting this equal to hashtags will remove all hashtags from the trends list.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+table
+
+
+
+</dd>
+
+
+</dl>
+
+
+
+
+
+
+
+</div> <!-- id="content" -->
+
+</div> <!-- id="main" -->
+
+<div id="about">
+	<p><a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" /></a></p>
+</div> <!-- id="about" -->
+
+</div> <!-- id="container" -->	
+</body>
+</html>
+

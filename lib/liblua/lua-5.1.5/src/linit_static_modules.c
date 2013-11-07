@@ -60,6 +60,15 @@ int luaopen_aio(lua_State *L);
 int luaopen_ntp(lua_State *L);
 #endif
 
+#ifdef CONFIG_LIB_LUA_LUASEC
+int luaopen_ssl_context(lua_State *L);
+int luaopen_ssl_core(lua_State *L);
+#endif
+
+#ifdef CONFIG_LIB_LUA_LCRYPTO
+int luaopen_crypto(lua_State *L);
+#endif
+
 static const luaL_Reg modules[] = {
 #ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
   {"lfs", luaopen_lfs},
@@ -89,8 +98,15 @@ static const luaL_Reg modules[] = {
 #ifdef CONFIG_LIB_LUA_LAIO
 	{"aio", luaopen_aio},
 #endif
-	#ifdef CONFIG_LIB_LUA_LNTP
+#ifdef CONFIG_LIB_LUA_LNTP
 	{"ntp", luaopen_ntp},
+#endif
+#ifdef CONFIG_LIB_LUA_LUASEC
+	{"ssl.context", luaopen_ssl_context},
+	{"ssl.core", luaopen_ssl_core},
+#endif
+#ifdef CONFIG_LIB_LUA_LCRYPTO
+	{"crypto", luaopen_crypto},
 #endif
 	{NULL, NULL}
 };

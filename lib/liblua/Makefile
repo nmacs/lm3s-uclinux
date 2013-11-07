@@ -3,6 +3,13 @@ LUA_STACK_SIZE    := 65536
 CFLAGS            += -Wl,-elf2flt="-s$(LUA_STACK_SIZE)"
 endif
 
+ifdef CONFIG_LIB_CYASSL
+CAYSSL            := $(ROOTDIR)/lib/cyassl/output
+SSL_CFLAGS        := -Wl,-lcyassl -L$(CAYSSL)/lib -I$(CAYSSL)/include
+else
+SSL_CFLAGS        := -Wl,-lssl -Wl,-lcrypto
+endif
+
 LUA_DIR           := lua-5.1.5
 LUAFILESYSTEM_DIR := luafilesystem-1.5.0
 LUASOCKET_DIR     := luasocket-2.0.2
@@ -17,6 +24,11 @@ LSIGNALS_DIR      := lsignals
 LWATCHDOG_DIR     := lwatchdog
 LAIO_DIR          := laio
 LNTP_DIR          := lntp
+LUASEC_DIR        := luasec
+LCRYPTO_DIR       := lcrypto
+LUATWITTER_DIR    := LuaTwitter-0.9.2
+
+USE_SCHEDULER     := 1
 
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -DCOCO_MIN_CSTACKSIZE=1024
@@ -32,6 +44,9 @@ ifdef CONFIG_LIB_LUA_LUAFILESYSTEM
 endif
 
 ifdef CONFIG_LIB_LUA_LUASOCKET
+	ifdef USE_SCHEDULER
+		CFLAGS  += -DSOCKET_SCHEDULER=1
+	endif
 	CFLAGS          += -Wl,-lsocket -Wl,-lmime -L$(CURDIR)/$(LUASOCKET_DIR)/src
 	lua_libs        += luasocket
 endif
@@ -74,6 +89,19 @@ endif
 ifdef CONFIG_LIB_LUA_LNTP
 	CFLAGS          += -Wl,-llntp -L$(CURDIR)/$(LNTP_DIR)
 	lua_libs        += lntp
+endif
+
+ifdef CONFIG_LIB_LUA_LUASEC
+	ifdef USE_SCHEDULER
+		CFLAGS  += -DSOCKET_SCHEDULER=1
+	endif
+	CFLAGS          += -Wl,-lluasec -L$(CURDIR)/$(LUASEC_DIR) -I$(CURDIR)/$(LUASOCKET_DIR)/src $(SSL_CFLAGS)
+	lua_libs        += luasec
+endif
+
+ifdef CONFIG_LIB_LUA_LCRYPTO
+	CFLAGS          += -Wl,-llcrypto -L$(CURDIR)/$(LCRYPTO_DIR) -I$(CURDIR)/$(LCRYPTO_DIR)/src $(SSL_CFLAGS)
+	lua_libs        += lcrypto
 endif
 
 .PHONY: all lua repo romfs
@@ -136,6 +164,14 @@ laio: $(LAIO_DIR)/Makefile
 lntp: $(LNTP_DIR)/Makefile
 	$(MAKE) -C $(LNTP_DIR)
 
+.PHONY: luasec
+luasec: $(LUASEC_DIR)/Makefile
+	$(MAKE) -C $(LUASEC_DIR)
+
+.PHONY: lcrypto
+lcrypto: $(LCRYPTO_DIR)/Makefile
+	$(MAKE) -C $(LCRYPTO_DIR)
+
 ############################################################################
 
 clean:
@@ -151,6 +187,8 @@ clean:
 	-$(MAKE) -C $(LWATCHDOG_DIR) clean
 	-$(MAKE) -C $(LAIO_DIR) clean
 	-$(MAKE) -C $(LNTP_DIR) clean
+	-$(MAKE) -C $(LUASEC_DIR) clean
+	-$(MAKE) -C $(LCRYPTO_DIR) clean
 	-rm -rf $(LUA_DIR)-x86
 	-rm -rf $(LUA_DIR)-native
 
@@ -163,10 +201,16 @@ romfs:
 	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/ltn12.lua /usr/local/share/lua/5.1/ltn12.lua
 	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/mime.lua /usr/local/share/lua/5.1/mime.lua
 	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/etc/cosocket.lua /usr/local/share/lua/5.1/socket/cosocket.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/smtp.lua /usr/local/share/lua/5.1/socket/smtp.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASOCKET -d $(LUASOCKET_DIR)/src/tp.lua /usr/local/share/lua/5.1/socket/tp.lua
 	$(ROMFSINST) -e CONFIG_LIB_LUA_LUAXAVANTE -d $(LUAXAVANTE_DIR)/src/xavante/xavante.lua /usr/local/share/lua/5.1/xavante.lua
 	$(ROMFSINST) -e CONFIG_LIB_LUA_LUAXAVANTE -d $(LUAXAVANTE_DIR)/src/xavante /usr/local/share/lua/5.1/xavante
 	$(ROMFSINST) -e CONFIG_LIB_LUA_JSON -d $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
 	$(ROMFSINST) -e CONFIG_LIB_LUA_JSON -d $(JSON_DIR)/json/jsonrpc.lua /usr/local/share/lua/5.1/jsonrpc.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASEC -d $(LUASEC_DIR)/ssl.lua /usr/local/share/lua/5.1/ssl.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASEC -d $(LUASEC_DIR)/https.lua /usr/local/share/lua/5.1/ssl/https.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUATWITTER -d $(LUATWITTER_DIR)/twitter.lua /usr/local/share/lua/5.1/twitter.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_LUATWITTER -d $(LUATWITTER_DIR)/oauth.lua /usr/local/share/lua/5.1/oauth.lua
 
 repo:
 	$(REPOINST) -e CONFIG_LIB_LUA_SHELL $(LUA_DIR)/src/lua /bin/lua
@@ -177,10 +221,16 @@ repo:
 	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/ltn12.lua /usr/local/share/lua/5.1/ltn12.lua
 	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/mime.lua /usr/local/share/lua/5.1/mime.lua
 	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/etc/cosocket.lua /usr/local/share/lua/5.1/socket/cosocket.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/smtp.lua /usr/local/share/lua/5.1/socket/smtp.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASOCKET $(LUASOCKET_DIR)/src/tp.lua /usr/local/share/lua/5.1/socket/tp.lua
 	$(REPOINST) -e CONFIG_LIB_LUA_LUAXAVANTE $(LUAXAVANTE_DIR)/src/xavante/xavante.lua /usr/local/share/lua/5.1/xavante.lua
 	$(REPOINST) -e CONFIG_LIB_LUA_LUAXAVANTE $(LUAXAVANTE_DIR)/src/xavante /usr/local/share/lua/5.1/xavante
 	$(REPOINST) -e CONFIG_LIB_LUA_JSON $(JSON_DIR)/json/json.lua /usr/local/share/lua/5.1/json.lua
 	$(REPOINST) -e CONFIG_LIB_LUA_JSON $(JSON_DIR)/json/jsonrpc.lua /usr/local/share/lua/5.1/jsonrpc.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASEC $(LUASEC_DIR)/ssl.lua /usr/local/share/lua/5.1/ssl.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUASEC $(LUASEC_DIR)/https.lua /usr/local/share/lua/5.1/ssl/https.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUATWITTER $(LUATWITTER_DIR)/twitter.lua /usr/local/share/lua/5.1/twitter.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_LUATWITTER $(LUATWITTER_DIR)/oauth.lua /usr/local/share/lua/5.1/oauth.lua
 	lua-compile $(CONTENT)
 
 romfs_user:
