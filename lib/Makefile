@@ -26,6 +26,10 @@ dir_$(CONFIG_LIB_UCI) += libuci
 lib_libuci = bin/libuci.a
 inc_libuci = uci.h,. uci_config.h,.
 
+dir_$(CONFIG_LIB_LIBSSL)+= libssl
+lib_libssl = build/*.so* build/*.a
+inc_libssl = build/include/*,.
+
 dir_$(CONFIG_LIB_LUA) += liblua
 lib_liblua_y += lua-5.1.5/src/liblua.a
 inc_liblua = lua-5.1.5/src/lua.h,. \
@@ -73,10 +77,6 @@ lib_adns = src/libadns.a
 dir_$(CONFIG_LIB_FLEX) += flex
 lib_flex = build/*.a
 inc_flex = build/FlexLexer.h,.
-
-dir_$(CONFIG_LIB_LIBSSL)+= libssl
-lib_libssl = build/*.so* build/*.a
-inc_libssl = build/include/*,.
 
 dir_$(CONFIG_LIB_LIBGMP) += libgmp
 lib_libgmp = build/install/lib/*.a
