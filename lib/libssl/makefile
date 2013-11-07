@@ -9,6 +9,13 @@
 IN_LIBSSL := true
 export IN_LIBSSL
 
+CFLAGS += -D_FILE_OFFSET_BITS=32
+
+ifdef HOSTBUILD
+CC=gcc
+AR=ar
+endif
+
 #
 # we need to do different things for 64 bit systems
 #
@@ -43,17 +50,17 @@ CONFIG_OPTS += no-idea
 #CONFIG_OPTS += no-md5
 #CONFIG_OPTS += no-sha
 #CONFIG_OPTS += no-hmac
-#CONFIG_OPTS += no-des
+CONFIG_OPTS += no-des
 #CONFIG_OPTS += no-aes
 #CONFIG_OPTS += no-bn
 CONFIG_OPTS += no-ec
 #CONFIG_OPTS += no-rsa
-#CONFIG_OPTS += no-dsa
+CONFIG_OPTS += no-dsa
 CONFIG_OPTS += no-ecdsa
 #CONFIG_OPTS += no-dh
 CONFIG_OPTS += no-ecdh
 CONFIG_OPTS += no-dso
-#CONFIG_OPTS += no-engine
+CONFIG_OPTS += no-engine
 #CONFIG_OPTS += no-buffer
 #CONFIG_OPTS += no-bio
 #CONFIG_OPTS += no-stack
@@ -64,22 +71,32 @@ CONFIG_OPTS += no-err
 #CONFIG_OPTS += no-asn1
 #CONFIG_OPTS += no-x509
 #CONFIG_OPTS += no-x509v3
-#CONFIG_OPTS += no-txt_db
 #CONFIG_OPTS += no-pkcs7
 #CONFIG_OPTS += no-pkcs12
-#CONFIG_OPTS += no-comp
+CONFIG_OPTS += no-comp
 #CONFIG_OPTS += no-ocsp
-#CONFIG_OPTS += no-ui
-#CONFIG_OPTS += no-store
-#CONFIG_OPTS += no-pqueue
+CONFIG_OPTS += no-ui
+CONFIG_OPTS += no-store
+CONFIG_OPTS += no-srtp
 #CONFIG_OPTS += no-tlsext
-#CONFIG_OPTS += no-ssl2
-#CONFIG_OPTS += no-ssl3
+CONFIG_OPTS += no-ssl2
+CONFIG_OPTS += no-ssl3
+CONFIG_OPTS += no-dtls1
+CONFIG_OPTS += no-jpake
+CONFIG_OPTS += no-camellia
+CONFIG_OPTS += no-gost
+
+ifndef HOSTBUILD
+CONFIG_OPTS += no-pqueue
+CONFIG_OPTS += no-txt_db
+endif
 
 # REVISIT: It would be better to have OPENSSL config options
 # which turn on this support as needed
 ifeq ($(CONFIG_USER_NESSUS_NASL)$(CONFIG_USER_SSH_SSH)$(CONFIG_USER_SSH_SSHD),)
 CONFIG_OPTS += no-ripemd
+CONFIG_OPTS += no-ripemd160
+CONFIG_OPTS += no-rmd160
 CONFIG_OPTS += no-cast
 CONFIG_OPTS += no-rc4
 endif
@@ -126,35 +143,36 @@ all: build/configured
 
 ifeq ($(wildcard Configure),)
 
-openssl-0.9.8i-url := http://www.openssl.org/source/openssl-0.9.8i.tar.gz
-openssl-0.9.8k-url := http://www.openssl.org/source/openssl-0.9.8k.tar.gz
-openssl-0.9.8n-url := http://www.openssl.org/source/openssl-0.9.8n.tar.gz
-openssl-0.9.8r-url := http://www.openssl.org/source/openssl-0.9.8r.tar.gz
+#openssl-0.9.8i-url := http://www.openssl.org/source/openssl-0.9.8i.tar.gz
+#openssl-0.9.8k-url := http://www.openssl.org/source/openssl-0.9.8k.tar.gz
+#openssl-0.9.8n-url := http://www.openssl.org/source/openssl-0.9.8n.tar.gz
+#openssl-0.9.8r-url := http://www.openssl.org/source/openssl-0.9.8r.tar.gz
 
-SRC_DIR := openssl-0.9.8r
+#SRC_DIR := openssl-0.9.8r
+SRC_DIR := openssl-1.0.1e
 
 WGET ?= wget
 
-%.tar.bz2 %.tar.gz:
-	@echo "Downloading $* ..."
-	@[ -d "$$HOME/.downloads" ] || mkdir ~/.downloads
-	@if [ ! -f "$$HOME/.downloads/$@" ]; then \
-		(cd ~/.downloads; $(WGET) "$($*-url)"); \
-	fi
-	@if [ -f "$$HOME/.downloads/$@" ]; then \
-			ln -fs "$$HOME/.downloads/$@" $@; \
-	fi
-	if [ ! -f "$@" ]; then \
-		echo "Cannot find download for $@" >&2 ; \
-		exit 1; \
-	fi
+# %.tar.bz2 %.tar.gz:
+# 	@echo "Downloading $* ..."
+# 	@[ -d "$$HOME/.downloads" ] || mkdir ~/.downloads
+# 	@if [ ! -f "$$HOME/.downloads/$@" ]; then \
+# 		(cd ~/.downloads; $(WGET) "$($*-url)"); \
+# 	fi
+# 	@if [ -f "$$HOME/.downloads/$@" ]; then \
+# 			ln -fs "$$HOME/.downloads/$@" $@; \
+# 	fi
+# 	if [ ! -f "$@" ]; then \
+# 		echo "Cannot find download for $@" >&2 ; \
+# 		exit 1; \
+# 	fi
 
-$(SRC_DIR)/Configure $(SRC_DIR)/config: makefile $(SRC_DIR).tar.gz \
-		patches/$(SRC_DIR).patch
-	rm -rf $(SRC_DIR) build
-	gunzip < $(SRC_DIR).tar.gz | tar xf -
-	patch -p0 < patches/$(SRC_DIR).patch
-	touch $(SRC_DIR)/Configure $(SRC_DIR)/config
+# $(SRC_DIR)/Configure $(SRC_DIR)/config: makefile $(SRC_DIR).tar.gz \
+# 		patches/$(SRC_DIR).patch
+# 	rm -rf $(SRC_DIR) build
+# 	gunzip < $(SRC_DIR).tar.gz | tar xf -
+# 	patch -p0 < patches/$(SRC_DIR).patch
+# 	touch $(SRC_DIR)/Configure $(SRC_DIR)/config
 
 else
 
@@ -172,7 +190,11 @@ build/configured: makefile $(SRC_DIR)/config $(SRC_DIR)/Configure
 	while read t; do ln -s `pwd`/$(SRC_DIR)/$$t build/$$t; done < .files
 	rm -f .dirs .files
 	chmod +x build/config
+ifdef HOSTBUILD
+	cd build; CROSS_COMPILE= MACHINE=$(MACHINE) CC="$(CC)" AR="$(AR)" ./config $(CONFIG_OPTS)
+else
 	cd build; CROSS_COMPILE= MACHINE=$(MACHINE) ./config $(CONFIG_OPTS)
+endif
 	$(MAKE) -C build depend
 	$(MAKE) -C build links
 	touch build/configured
