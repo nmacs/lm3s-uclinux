@@ -16,7 +16,21 @@
 /*-------------------------------------------------------------------------*\
 * Wait for readable/writable/connected socket with timeout
 \*-------------------------------------------------------------------------*/
-#ifdef SOCKET_POLL
+#if defined(SOCKET_SCHEDULER)
+#define WAITFD_R        0
+#define WAITFD_W        1
+#define WAITFD_C        2
+int socket_waitfd(p_socket ps, int sw, p_timeout tm) {
+    int ret;
+    lua_State *L = lua_this();
+    int t = (int)(timeout_getretry(tm)*1e3);
+    if (timeout_iszero(tm)) return IO_TIMEOUT;  /* optimize timeout == 0 case */
+    ret = luaL_wait(L, *ps, (sw == WAITFD_W || sw == WAITFD_C) ? 1 : 0, t);
+    if (ret == -1 && sw == WAITFD_C) return IO_CLOSED;
+    if (ret == 0) return IO_TIMEOUT;
+    return IO_DONE;
+}
+#elif defined(SOCKET_POLL)
 #include <sys/poll.h>
 
 #define WAITFD_R        POLLIN
