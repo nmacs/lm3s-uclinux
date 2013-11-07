@@ -274,7 +274,6 @@ __private struct uci_element *
 uci_lookup_list(struct uci_list *list, const char *name)
 {
 	struct uci_element *e;
-
 	uci_foreach_element(list, e) {
 		if (!strcmp(e->name, name))
 			return e;
@@ -652,17 +651,24 @@ int uci_set(struct uci_context *ctx, struct uci_ptr *ptr)
 		ptr->o = uci_alloc_option(ptr->s, ptr->option, ptr->value);
 		ptr->last = &ptr->o->e;
 	} else if (ptr->s && ptr->section) { /* update section */
-		char *s = uci_strdup(ctx, ptr->value);
-
-		if (ptr->s->type == uci_dataptr(ptr->s)) {
-			ptr->last = NULL;
-			ptr->last = uci_realloc(ctx, ptr->s, sizeof(struct uci_section));
-			ptr->s = uci_to_section(ptr->last);
-			uci_list_fixup(&ptr->s->e.list);
-		} else {
-			free(ptr->s->type);
-		}
-		ptr->s->type = s;
+	        if (!(ctx && ctx->pctx && ctx->pctx->merge)) {
+                        char *s = uci_strdup(ctx, ptr->value);
+                        if (ptr->s->type == uci_dataptr(ptr->s)) {
+                                ptr->last = NULL;
+                                ptr->last = uci_realloc(ctx, ptr->s, sizeof(struct uci_section));
+                                ptr->s = uci_to_section(ptr->last);
+                                uci_list_fixup(&ptr->s->e.list);
+                        } else {
+                                free(ptr->s->type);
+                        }
+                        ptr->s->type = s;
+	        } else {
+	                if (ptr->s->type != uci_dataptr(ptr->s)) {
+	                        free(ptr->s->type);
+	                        ptr->s->type = uci_strdup(ctx, ptr->value);
+	                }
+	                ptr->last = &ptr->s->e;
+	        }
 	} else {
 		UCI_THROW(ctx, UCI_ERR_INVAL);
 	}
