@@ -712,6 +712,7 @@ CONFIG_RSACHECK=y
 # CONFIG_VOLNAME is not set
 # CONFIG_WALL is not set
 # CONFIG_WATCHDOG is not set
+# CONFIG_CFG is not set
 
 #
 # Networking Utilities
