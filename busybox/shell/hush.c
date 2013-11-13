@@ -913,6 +913,11 @@ static int builtin_uci(char **argv) FAST_FUNC;
 int uci_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 #endif
 
+#ifdef CONFIG_CFG
+static int builtin_cfg(char **argv) FAST_FUNC;
+int cfg_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+#endif
+
 /* Table of built-in functions.  They can be forked or not, depending on
  * context: within pipes, they fork.  As simple commands, they do not.
  * When used in non-forking context, they can change global variables
@@ -1005,6 +1010,7 @@ static const struct built_in_command bltins2[] = {
 	BLTIN("reboot"   , builtin_reboot  , NULL),
 #endif
 	IF_UCI(BLTIN("uci"      , builtin_uci     , NULL),)
+	IF_CFG(BLTIN("cfg"      , builtin_cfg     , NULL),)
 };
 
 
@@ -8301,6 +8307,13 @@ static int builtin_reboot(char **argv) FAST_FUNC
 static int builtin_uci(char **argv) FAST_FUNC
 {
 	return run_applet_main(argv, uci_main);
+}
+#endif
+
+#ifdef CONFIG_CFG
+static int builtin_cfg(char **argv) FAST_FUNC
+{
+	return run_applet_main(argv, cfg_main);
 }
 #endif
 

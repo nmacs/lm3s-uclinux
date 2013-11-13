@@ -50,3 +50,4 @@ lib-$(CONFIG_WALL)        += wall.o
 lib-$(CONFIG_WATCHDOG)    += watchdog.o
 lib-$(CONFIG_UCI)         += uci.o
 lib-$(CONFIG_RSACHECK)    += rsacheck.o
+lib-$(CONFIG_CFG)         += cfg.o js0n.o j0g.o

@@ -59,6 +59,12 @@ config FEATURE_BEEP_LENGTH_MS
 	help
 	  Length in ms for default beep.
 
+config CFG
+	bool "cfg"
+	default n
+	help
+	  Prints config files to stdout.
+
 config CHAT
 	bool "chat"
 	default y
