@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -z "$network" ]; then
-	uci -D_ -e show network > /tmp/network_conf
+	cfg network > /tmp/network_conf
 	. /tmp/network_conf
 	rm /tmp/network_conf
 fi
@@ -20,17 +20,16 @@ if [ -n "$network_lan" ]; then
 		ifconfig $network_lan_ifname hw ether $network_lan_macaddr
 		ifconfig $network_lan_ifname up
 		ifconfig $network_lan_ifname $network_lan_ipaddr netmask $network_lan_netmask
+		if [ -n "$network_lan_gateway" -a "$network_lan_gateway" != "0.0.0.0" ]; then
+			route add default gw $network_lan_gateway metric 100 dev $network_lan_ifname
+		fi
 	fi
+fi
 
-	if [ -n "$network_lan_dns" ]; then
-		echo "nameserver $network_lan_dns" >> /etc/resolv.conf
-	fi
+if [ -n "$network_dns_nameserver" -a "$network_dns_nameserver" != "0.0.0.0" ]; then
+	echo "nameserver $network_dns_nameserver" >> /etc/resolv.conf
 fi
 
 if [ -n "$network_wan" ]; then
 	start-stop-daemon -p /var/run/pppd0.pid -x pppd -b -S -- call gprs
-else
-	if [ -n "$network_route" ]; then
-		route add $network_route_target gw $network_route_gateway metric $network_route_metric dev $network_route_ifname
-	fi
 fi

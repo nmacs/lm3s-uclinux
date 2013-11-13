@@ -9,7 +9,7 @@ mount -t ecryptfs /media/flash/etc/config /etc/config -o rw,ecryptfs_sig=0000000
 
 rm -rf /var/tmp/*
 
-uci -D_ -e show system > /tmp/conf
+cfg system > /tmp/conf
 . /tmp/conf
 rm /tmp/conf
 

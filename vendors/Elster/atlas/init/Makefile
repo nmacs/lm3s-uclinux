@@ -6,8 +6,6 @@ romfs:
 	$(ROMFSINST) -d -p 544 etc/init.d/network         /etc/init.d/network
 	$(ROMFSINST) -d -p 544 etc/init.d/nfs             /etc/init.d/nfs
 	$(ROMFSINST) -d -s /etc/init.d/network            /etc/rc.d/S10network
-	$(ROMFSINST) -d -p 444 etc/default_config/network /etc/default_config/network
-	$(ROMFSINST) -d -p 444 etc/default_config/system  /etc/default_config/system
 
 repo:
 	$(REPOINST) $(ROOTDIR)/user/init/init /bin/init
@@ -17,5 +15,3 @@ repo:
 	$(REPOINST) -p 544 etc/init.d/network         /etc/init.d/network
 	$(REPOINST) -p 544 etc/init.d/nfs             /etc/init.d/nfs
 	$(REPOINST) -s /etc/init.d/network            /etc/rc.d/S10network
-	$(REPOINST) -p 444 etc/default_config/network /etc/default_config/network
-	$(REPOINST) -p 444 etc/default_config/system  /etc/default_config/system
