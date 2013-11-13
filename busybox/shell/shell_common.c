@@ -18,6 +18,7 @@
  */
 #include "libbb.h"
 #include "shell_common.h"
+#include <sys/resource.h>
 
 const char defifsvar[] ALIGN1 = "IFS= \t\n";
 
