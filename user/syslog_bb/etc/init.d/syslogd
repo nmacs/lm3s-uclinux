@@ -1,18 +1,18 @@
 #!/bin/sh
 
-if [ -z "$system_syslog" ]; then
-	uci -D_ -e show system.syslog > /tmp/syslog_conf
+if [ -z "$system_syslogd" ]; then
+	cfg system > /tmp/syslog_conf
 	. /tmp/syslog_conf
 	rm /tmp/syslog_conf
 fi
 
 ARGS="-n -S"
 
-if [ -n "$system_syslog_remote" ]; then
+if [ -n "$system_syslogd_remote" -a "$system_syslogd_remote" != "0.0.0.0" ]; then
 	ARGS="$ARGS -R $system_syslog_remote -L"
 fi
 
-if [ -n "$system_syslog_level" ]; then
+if [ -n "$system_syslogd_level" ]; then
 	ARGS="$ARGS -l $system_syslog_level"
 fi
 
