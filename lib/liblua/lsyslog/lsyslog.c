@@ -83,6 +83,29 @@ static int l_openlog(lua_State *L)
 	return 0;
 }
 
+static const int cprio[] = {
+                LOG_EMERG,
+                LOG_ALERT,
+                LOG_CRIT,
+                LOG_ERR,
+                LOG_WARNING,
+                LOG_NOTICE,
+                LOG_INFO,
+                LOG_DEBUG
+};
+
+static const char *lprio[] = {
+        "LOG_EMERG",
+        "LOG_ALERT",
+        "LOG_CRIT",
+        "LOG_ERR",
+        "LOG_WARNING",
+        "LOG_NOTICE",
+        "LOG_INFO",
+        "LOG_DEBUG",
+        NULL
+};
+
 /* syslog(priority, message)
  *	priority:	string, one of "LOG_..."
  *	message:	string
@@ -90,29 +113,6 @@ static int l_openlog(lua_State *L)
  */
 static int l_syslog(lua_State *L)
 {
-	static const int cprio[] = {
-		LOG_EMERG,
-		LOG_ALERT,
-		LOG_CRIT,
-		LOG_ERR,
-		LOG_WARNING,
-		LOG_NOTICE,
-		LOG_INFO,
-		LOG_DEBUG
-	};
-
-	static const char *lprio[] = {
-		"LOG_EMERG",
-		"LOG_ALERT",
-		"LOG_CRIT",
-		"LOG_ERR",
-		"LOG_WARNING",
-		"LOG_NOTICE",
-		"LOG_INFO",
-		"LOG_DEBUG",
-		NULL
-	};
-
 	int priority = cprio[luaL_checkoption(L, 1, NULL, lprio)];
 	const char *msg = luaL_checkstring(L, 2);
 
@@ -133,10 +133,21 @@ static int l_closelog(lua_State *L)
 	return 0;
 }
 
+/* setlogmask()
+ *
+ */
+static int l_setlogmask(lua_State *L)
+{
+        int priority = cprio[luaL_checkoption(L, 1, "LOG_INFO", lprio)];
+        setlogmask(LOG_UPTO(priority));
+        return 0;
+}
+
 static const struct luaL_Reg mylib [] = {
 	{ "openlog", l_openlog },
 	{ "syslog", l_syslog },
 	{ "closelog", l_closelog },
+	{ "setlogmask", l_setlogmask },
 	{ NULL, NULL }
 };
 
