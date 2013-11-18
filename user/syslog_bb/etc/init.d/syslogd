@@ -9,11 +9,11 @@ fi
 ARGS="-n -S"
 
 if [ -n "$system_syslogd_remote" -a "$system_syslogd_remote" != "0.0.0.0" ]; then
-	ARGS="$ARGS -R $system_syslog_remote -L"
+	ARGS="$ARGS -R $system_syslogd_remote -L"
 fi
 
 if [ -n "$system_syslogd_level" ]; then
-	ARGS="$ARGS -l $system_syslog_level"
+	ARGS="$ARGS -l $system_syslogd_level"
 fi
 
 start-stop-daemon -p /tmp/run/syslogd.pid -x syslogd -b -m -S -- $ARGS
