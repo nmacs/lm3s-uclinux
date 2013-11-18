@@ -14,6 +14,12 @@
 #include <linux/reboot.h>
 #include <sys/times.h>
 #include <sys/timex.h>
+#include <sys/ioctl.h>
+
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <netdb.h>
 
 #define loslib_c
 #define LUA_LIB
@@ -22,7 +28,6 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-
 
 static int os_pushresult (lua_State *L, int i, const char *filename) {
   int en = errno;  /* calls to Lua API may change this value */
@@ -283,6 +288,28 @@ static int os_symlink(lua_State *L) {
   return os_pushresult(L, symlink(fromname, toname) == 0, toname);
 }
 
+static int os_getifaddr(lua_State *L) {
+  int fd;
+  struct ifreq ifr;
+  const char* if_name = luaL_checkstring(L, 1);
+
+  fd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (fd < 0)
+    return os_pushresult(L, 0, "getifaddr");
+
+  ifr.ifr_addr.sa_family = AF_INET;
+  strncpy(ifr.ifr_name, if_name, IFNAMSIZ-1);
+  if (ioctl(fd, SIOCGIFADDR, &ifr)) {
+      printf("failt ioctl: errno:%i, if_name:%s\n", errno, if_name);
+      close(fd);
+      return os_pushresult(L, 0, "getifaddr");
+  }
+  close(fd);
+
+  lua_pushstring(L, inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+  return 1;
+}
+
 static const luaL_Reg syslib[] = {
   {"clock",     os_clock},
   {"diffclock", os_diffclock},
@@ -303,6 +330,7 @@ static const luaL_Reg syslib[] = {
   {"settimeofday", os_settimeofday},
   {"tmpname",   os_tmpname},
   {"getpid",    os_getpid},
+  {"getifaddr", os_getifaddr},
   {NULL, NULL}
 };
 
