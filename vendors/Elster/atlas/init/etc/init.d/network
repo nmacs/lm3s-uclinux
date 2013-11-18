@@ -9,19 +9,19 @@ fi
 touch /etc/resolv.conf
 touch /etc/hosts
 
-if [ -n "$network_lo" ]; then
-	ifconfig $network_lo_ifname $network_lo_ipaddr netmask $network_lo_netmask
+if [ "$network_lo_enable" == "yes" ]; then
+	ifconfig lo $network_lo_ipaddr netmask $network_lo_netmask
 	echo "$network_lo_ipaddr localhost" >> /etc/hosts
 fi
 
-if [ -n "$network_lan" ]; then
-	if [ "$network_lan_proto" = "static" ]; then
-		ifconfig $network_lan_ifname down
-		ifconfig $network_lan_ifname hw ether $network_lan_macaddr
-		ifconfig $network_lan_ifname up
-		ifconfig $network_lan_ifname $network_lan_ipaddr netmask $network_lan_netmask
-		if [ -n "$network_lan_gateway" -a "$network_lan_gateway" != "0.0.0.0" ]; then
-			route add default gw $network_lan_gateway metric 100 dev $network_lan_ifname
+if [ "$network_eth0_enable" == "yes" ]; then
+	if [ "$network_eth0_proto" = "static" ]; then
+		ifconfig eth0 down
+		ifconfig eth0 hw ether $network_eth0_macaddr
+		ifconfig eth0 up
+		ifconfig eth0 $network_eth0_ipaddr netmask $network_eth0_netmask
+		if [ -n "$network_eth0_gateway" -a "$network_eth0_gateway" != "0.0.0.0" ]; then
+			route add default gw $network_eth0_gateway metric 100 dev eth0
 		fi
 	fi
 fi
@@ -30,6 +30,6 @@ if [ -n "$network_dns_nameserver" -a "$network_dns_nameserver" != "0.0.0.0" ]; t
 	echo "nameserver $network_dns_nameserver" >> /etc/resolv.conf
 fi
 
-if [ -n "$network_wan" ]; then
+if [ "$network_ppp0_enable" == "yes" ]; then
 	start-stop-daemon -p /var/run/pppd0.pid -x pppd -b -S -- call gprs
 fi
