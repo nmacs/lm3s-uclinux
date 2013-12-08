@@ -7,9 +7,9 @@
 -- $Id: indexhandler.lua,v 1.4 2007/11/27 15:57:05 carregal Exp $
 -----------------------------------------------------------------------------
 
-local function indexhandler (req, res, indexname)
+local function indexhandler (req, res, indexname, proto)
 	local indexUrl = string.gsub (req.cmd_url, "/[^/]*$", indexname)
-	indexUrl = string.format ("http://%s%s", req.headers.host or "", indexUrl)
+	indexUrl = string.format ("%s://%s%s", proto, req.headers.host or "", indexUrl)
 	
 	res:add_header ("Location", indexUrl)
 	res.statusline = "HTTP/1.1 302 Found"
@@ -19,8 +19,8 @@ local function indexhandler (req, res, indexname)
 	return res
 end
 
-function xavante.indexhandler (indexname)
+function xavante.indexhandler (indexname, proto)
 	return function (req, res)
-		return indexhandler (req, res, indexname)
+		return indexhandler (req, res, indexname, proto or "http")
 	end
 end

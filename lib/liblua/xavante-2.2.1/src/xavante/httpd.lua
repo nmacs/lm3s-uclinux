@@ -7,12 +7,17 @@
 -- $Id: httpd.lua,v 1.45 2009/08/10 20:00:59 mascarenhas Exp $
 -----------------------------------------------------------------------------
 
-local url = require "socket.url"
+local url    = require "socket.url"
 local syslog = require "syslog"
+local socket = require("socket")
+local ssl    = require("ssl")
+
+local try    = socket.try
 
 module ("xavante.httpd", package.seeall)
 
 local _serversoftware = ""
+local _authenticate = nil
 
 local _serverports = {}
 
@@ -52,6 +57,12 @@ local function do_connection (skt)
 			req.params = nil
 			parse_url (req)
 			res = make_response (req)
+			if _authenticate then
+			   if req.headers["authorization"] == nil or not _authenticate(req) then
+		          err_401(req, res)
+		          break
+		       end
+		    end
 		until handle_request (req, res) ~= "reparse"
 
 		send_response (req, res)
@@ -81,10 +92,79 @@ function connection (skt)
 	if not res then
 		local res, msg = pcall(errorhandler, msg, skt)
 		if not res then
-			syslog.syslog("LOG_ERR", "Fail to report error: "..tostring(err))
+			syslog.syslog("LOG_ERR", "Fail to report error: "..tostring(msg))
 		end
 	end
 	skt:close()
+end
+
+local ssl_cfg = {
+  protocol = "tlsv1",
+  options  = "all",
+  verify   = "none",
+}
+
+-- Forward calls to the real connection object.
+local function reg(conn)
+   local mt = getmetatable(conn.raw_sock).__index
+   for name, method in pairs(mt) do
+      if type(method) == "function" then
+         conn[name] = function (self, ...)
+                         return method(self.raw_sock, ...)
+                      end
+      end
+   end
+   local mt = getmetatable(conn.ssl_sock).__index
+   for name, method in pairs(mt) do
+      if type(method) == "function" then
+         conn[name] = function (self, ...)
+                         return method(self.ssl_sock, ...)
+                      end
+      end
+   end
+end
+
+local function ssl_wrap(skt, params)
+   params = params or {}
+   -- Default settings
+   for k, v in pairs(ssl_cfg) do
+      params[k] = params[k] or v
+   end
+   -- Force server mode
+   params.mode = "server"
+   local conn = {}
+   conn.raw_sock = skt
+   conn.ssl_sock = try(ssl.wrap(conn.raw_sock, params))
+   try(conn.ssl_sock:dohandshake())
+   -- Forward ssl and socket functions
+   setmetatable(conn, {__index = function (self, name)
+                                    local method = self.ssl_sock[name]
+                                    if type(method) == "function" then
+                                    	return function (self, ...)
+                                    	          return method(self.ssl_sock, ...)
+                                    	       end
+                                   	end
+                                   	method = self.raw_sock[name]
+                                   	if type(method) == "function" then
+                                    	return function (self, ...)
+                                    	          return method(self.raw_sock, ...)
+                                    	       end
+                                   	end
+                                 end})
+   --reg(conn)
+   return conn
+end
+
+function https_connection (skt, params)
+   local ssl_skt, msg = socket.protect(ssl_wrap)(skt, params)
+   if not ssl_skt then
+      local res, msg2 = pcall(errorhandler, msg, skt)
+      if not res then
+         syslog.syslog("LOG_ERR", "Fail to report error: "..tostring(msg2).." Original message: "..tostring(msg))
+      end
+   else
+      connection(ssl_skt)
+   end
 end
 
 -- gets and parses the request line
@@ -325,6 +405,21 @@ function getparams (req)
 	return params
 end
 
+function err_401 (req, res)
+	res.statusline = "HTTP/1.1 401 Not Authorized"
+	res.headers ["Content-Type"] = "text/html"
+	res.headers ["WWW-Authenticate"] = 'Basic realm="http"'
+	res.content = string.format ([[
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<HTML><HEAD>
+<TITLE>401 Not Authorized</TITLE>
+</HEAD><BODY>
+<H1>Not Authorized</H1>
+Authorization required.<P>
+</BODY></HTML>]], req.built_url);
+	return res
+end
+
 function err_404 (req, res)
 	res.statusline = "HTTP/1.1 404 Not Found"
 	res.headers ["Content-Type"] = "text/html"
@@ -372,9 +467,10 @@ function redirect (res, d)
 	res.content = "redirect"
 end
 
-function newserver (host, port, serversoftware)
+function newserver (host, port, serversoftware, authenticate)
 	local _server = assert(socket.bind(host, port))
 	_serversoftware = serversoftware
+	_authenticate = authenticate
 	local _ip, _port = _server:getsockname()
 	_serverports[_port] = true
 	return _server
