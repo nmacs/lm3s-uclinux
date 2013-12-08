@@ -1,6 +1,5 @@
 #!/bin/sh
 
-mount -t ramfs ramfs /tmp || exit 1
 mount -t proc proc /proc || exit 1
 
 mount -t cramfs /dev/mtdblock0 /etc/romdisk || exit 1
