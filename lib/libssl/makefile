@@ -66,7 +66,6 @@ CONFIG_OPTS += no-engine
 #CONFIG_OPTS += no-stack
 #CONFIG_OPTS += no-lhash
 #CONFIG_OPTS += no-rand
-CONFIG_OPTS += no-err
 #CONFIG_OPTS += no-evp
 #CONFIG_OPTS += no-asn1
 #CONFIG_OPTS += no-x509
@@ -75,7 +74,6 @@ CONFIG_OPTS += no-err
 #CONFIG_OPTS += no-pkcs12
 CONFIG_OPTS += no-comp
 #CONFIG_OPTS += no-ocsp
-CONFIG_OPTS += no-ui
 CONFIG_OPTS += no-store
 CONFIG_OPTS += no-srtp
 #CONFIG_OPTS += no-tlsext
@@ -89,6 +87,8 @@ CONFIG_OPTS += no-gost
 ifndef HOSTBUILD
 CONFIG_OPTS += no-pqueue
 CONFIG_OPTS += no-txt_db
+CONFIG_OPTS += no-err
+CONFIG_OPTS += no-ui
 endif
 
 # REVISIT: It would be better to have OPENSSL config options
