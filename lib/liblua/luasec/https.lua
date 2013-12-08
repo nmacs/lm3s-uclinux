@@ -31,7 +31,7 @@ PORT = 443
 local cfg = {
   protocol = "tlsv1",
   options  = "all",
-  verify   = "none",
+  verify   = "peer",
 }
 
 --------------------------------------------------------------------
