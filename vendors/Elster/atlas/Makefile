@@ -43,6 +43,9 @@ romdisk:
 	rm -rf $(ROMDISK); mkdir -p $(ROMDISK)
 	$(ROMFSINST) -r $(ROMDISK) $(KEY)     /key
 	$(ROMFSINST) -r $(ROMDISK) $(PUB_KEY) /pub_key
+	$(ROMFSINST) -r $(ROMDISK) $(CURDIR)/security/ca.pem /ca.pem
+	$(ROMFSINST) -r $(ROMDISK) $(CURDIR)/security/rex00001.pem /rex00001.pem
+	$(ROMFSINST) -r $(ROMDISK) $(CURDIR)/security/rex00001.key /rex00001.key
 	mkfs.cramfs $(ROMDISK) $(ROMDISK_IMG)
 
 uboot:
