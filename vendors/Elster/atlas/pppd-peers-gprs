@@ -11,6 +11,7 @@ defaultroute
 #debug
 nodetach
 persist
+idle 21600
 lcp-echo-failure 10
 lcp-echo-interval 10
 maxfail 0
