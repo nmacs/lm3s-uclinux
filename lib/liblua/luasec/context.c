@@ -127,6 +127,7 @@ static int create(lua_State *L)
   }
   ctx->mode = MD_CTX_INVALID;
   /* No session support */
+  SSL_CTX_set_max_send_fragment(ctx->context, 4*1024);
   SSL_CTX_set_session_cache_mode(ctx->context, SSL_SESS_CACHE_OFF);
   luaL_getmetatable(L, "SSL:Context");
   lua_setmetatable(L, -2);
