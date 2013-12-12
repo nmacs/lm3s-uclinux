@@ -100,8 +100,7 @@ end
 
 local ssl_cfg = {
   protocol = "tlsv1",
-  options  = "all",
-  verify   = "none",
+  verify   = "none"
 }
 
 -- Forward calls to the real connection object.
