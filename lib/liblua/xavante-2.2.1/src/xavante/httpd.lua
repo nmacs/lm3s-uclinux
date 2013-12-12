@@ -41,6 +41,7 @@ end
 
 local function do_connection (skt)
 	skt:setoption ("tcp-nodelay", true)
+	skt:settimeout(30)
 	local srv, port = skt:getsockname ()
 	local req = {
 		srv = srv,
@@ -356,9 +357,10 @@ function send_response (req, res)
         res:add_header ("Transfer-Encoding", "chunked")
     end
 
-	if res.chunked or ((res.headers ["Content-Length"]) and req.headers ["connection"] == "Keep-Alive")
+	if res.chunked or ((res.headers ["Content-Length"]))
 	then
-		res.headers ["Connection"] = "Keep-Alive"
+		--and req.headers ["connection"] == "Keep-Alive"
+		--res.headers ["Connection"] = "Keep-Alive"
 		res.keep_alive = true
 	else
 		res.keep_alive = nil

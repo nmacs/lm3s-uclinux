@@ -14,6 +14,7 @@ local function indexhandler (req, res, indexname, proto)
 	res:add_header ("Location", indexUrl)
 	res.statusline = "HTTP/1.1 302 Found"
 	res.content = "redirect"
+	res:add_header ("Content-Length", #res.content)
 
 	res:send_headers()
 	return res
