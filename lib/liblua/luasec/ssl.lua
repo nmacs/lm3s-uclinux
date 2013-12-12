@@ -69,6 +69,10 @@ function newcontext(cfg)
       succ, msg = context.setdepth(ctx, cfg.depth)
       if not succ then return nil, msg end
    end
+   if cfg.cipher then
+      succ, msg = context.setcipher(ctx, cfg.cipher)
+      if not succ then return nil, msg end
+   end
    return ctx
 end
 
