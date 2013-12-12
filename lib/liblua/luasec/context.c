@@ -46,6 +46,8 @@ static SSL_METHOD* str2method(const char *method)
 {
   if (!strcmp(method, "sslv3"))  return SSLv3_method();
   if (!strcmp(method, "tlsv1"))  return TLSv1_method();
+  if (!strcmp(method, "tlsv11")) return TLSv1_1_method();
+  if (!strcmp(method, "tlsv12")) return TLSv1_2_method();
   if (!strcmp(method, "sslv23")) return SSLv23_method();
   return NULL;
 }
@@ -116,7 +118,7 @@ static int create(lua_State *L)
     lua_pushnil(L);
     lua_pushstring(L, "error creating context");
     return 2;
-  }  
+  }
   ctx->context = SSL_CTX_new(method);
   if (!ctx->context) {
     lua_pushnil(L);
