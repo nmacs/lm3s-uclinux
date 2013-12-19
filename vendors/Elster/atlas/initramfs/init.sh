@@ -19,6 +19,11 @@ if [ "$answer" == "y" ]; then
 	echo "Mounting ubifs to /mnt..."
 	mount -t ubifs /dev/ubi0_0 /mnt
 
+	mkdir -p /mnt/boot
+	mkdir -p /mnt/opt
+	mkdir -p /mnt/etc/config
+	mkdir -p /mnt/var/log
+
 	rm -f /mnt/boot/linux.bin
 	rm -f /mnt/opt/distribution.cramfs
 	rm -f /mnt/opt/distribution.cramfs.sig
