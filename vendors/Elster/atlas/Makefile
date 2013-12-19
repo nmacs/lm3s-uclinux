@@ -6,7 +6,6 @@ include $(LINUX_CONFIG)
 include $(CONFIG_CONFIG)
 include $(ARCH_CONFIG)
 
-
 LINUXFILE           = linux.bin
 LINUXCOMPRESSEDFILE = Image.lzo
 LINUXUBOOTFILE      = Image.uboot
@@ -48,11 +47,23 @@ romdisk:
 	$(ROMFSINST) -r $(ROMDISK) $(CURDIR)/security/rex00001.key /rex00001.key
 	mkfs.cramfs $(ROMDISK) $(ROMDISK_IMG)
 
-uboot:
+uboot: romdisk
 	-$(MAKE) -C $(ROOTDIR)/uboot mrproper
+	-rm -f "$(UBOOT_IMG).full"
 	$(MAKE) -C $(ROOTDIR)/uboot atlas_config
 	$(MAKE) -j 4 -C $(ROOTDIR)/uboot ARCH=arm u-boot.bin
 	cp $(ROOTDIR)/uboot/u-boot.bin $(UBOOT_IMG)
+	image_size=$$((1024 * 1024)); \
+	rom_disk_offset=327680; \
+	bl_size=$$(stat -c%s "$(UBOOT_IMG)"); \
+	rd_size=$$(stat -c%s "$(ROMDISK_IMG)"); \
+	gap1=$$(($$rom_disk_offset - $$bl_size)); \
+	gap2=$$(($$image_size - $$rom_disk_offset)); \
+	gap2=$$(($$gap2 - $$rd_size)); \
+	cat "$(UBOOT_IMG)" > "$(UBOOT_IMG).full"; \
+	tr "\000" "\377" < /dev/zero | dd ibs=1 count=$$gap1 >> "$(UBOOT_IMG).full"; \
+	cat "$(ROMDISK_IMG)" >> "$(UBOOT_IMG).full"; \
+	tr "\000" "\377" < /dev/zero | dd ibs=1 count=$$gap2 >> "$(UBOOT_IMG).full"
 
 .PHONY: distribution
 distribution:
