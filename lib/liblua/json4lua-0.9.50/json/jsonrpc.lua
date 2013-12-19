@@ -79,6 +79,7 @@ local function send_response(data, id, response)
 end
 
 function handle_http(request, response, cap)
+	response.headers ["Cache-Control"] = "no-cache, no-store, must-revalidate"
 	if request.cmd_mth ~= "POST" then
 		send_error_response("Reques must use POST method.", ERR_INVALID_REQUEST, nil, response)
 		return

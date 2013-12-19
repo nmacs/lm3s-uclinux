@@ -97,7 +97,7 @@ local function in_base(path)
 end
 
 -- main handler
-local function filehandler (req, res, baseDir)
+local function filehandler (req, res, baseDir, cacheControl)
 
 	if req.cmd_mth ~= "GET" and req.cmd_mth ~= "HEAD" then
 		return xavante.httpd.err_405 (req, res)
@@ -111,6 +111,7 @@ local function filehandler (req, res, baseDir)
 	
 	res.headers ["Content-Type"] = mimefrompath (path)
 	res.headers ["Content-Encoding"] = encodingfrompath (path)
+	res.headers ["Cache-Control"] = cacheControl
     
 	local attr = lfs.attributes (path)
 	if not attr then
@@ -133,22 +134,23 @@ local function filehandler (req, res, baseDir)
 		return xavante.httpd.err_404 (req, res)
 	end
 	
-	res.headers["last-modified"] = os.date ("!%a, %d %b %Y %H:%M:%S GMT",
-					attr.modification)
-
-	local lms = req.headers["if-modified-since"] or 0
-	local lm = res.headers["last-modified"] or 1
-	if lms == lm then
-		res.headers["Content-Length"] = 0
-		res.statusline = "HTTP/1.1 304 Not Modified"
-		res.content = ""
-        res.chunked = false
-        res:send_headers()
-        f:close()
-		return res
+	if not cacheControl then
+		res.headers["last-modified"] = os.date ("!%a, %d %b %Y %H:%M:%S GMT",
+						attr.modification)
+	
+		local lms = req.headers["if-modified-since"] or 0
+		local lm = res.headers["last-modified"] or 1
+		if lms == lm then
+			res.headers["Content-Length"] = 0
+			res.statusline = "HTTP/1.1 304 Not Modified"
+			res.content = ""
+	        res.chunked = false
+	        res:send_headers()
+	        f:close()
+			return res
+		end
 	end
 
-	
 	if req.cmd_mth == "GET" then
 		local range_len = getrange (req, f)
 		if range_len then
@@ -166,9 +168,9 @@ local function filehandler (req, res, baseDir)
 end
 
 
-function xavante.filehandler (baseDir)
+function xavante.filehandler (baseDir, cacheControl)
 	if type(baseDir) == "table" then baseDir = baseDir.baseDir end
 	return function (req, res)
-		return filehandler (req, res, baseDir)
+		return filehandler (req, res, baseDir, cacheControl)
 	end
 end
