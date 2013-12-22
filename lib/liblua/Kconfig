@@ -83,3 +83,7 @@ config LIB_LUA_LCRYPTO
 config LIB_LUA_LUATWITTER
 	bool "Lua implementation of Twitter API"
 	depends on LIB_LUA
+
+config LIB_LUA_SMSPDU
+	bool "Lua SMS PDU encoder/decoder"
+	depends on LIB_LUA

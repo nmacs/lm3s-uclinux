@@ -27,6 +27,7 @@ LNTP_DIR          := lntp
 LUASEC_DIR        := luasec
 LCRYPTO_DIR       := lcrypto
 LUATWITTER_DIR    := LuaTwitter-0.9.2
+SMSPDU_DIR        := smspdu
 
 USE_SCHEDULER     := 1
 
@@ -104,6 +105,11 @@ ifdef CONFIG_LIB_LUA_LCRYPTO
 	lua_libs        += lcrypto
 endif
 
+ifdef CONFIG_LIB_LUA_SMSPDU
+	CFLAGS          += -Wl,-lsmspdu -L$(CURDIR)/$(SMSPDU_DIR)
+	lua_libs        += smspdu
+endif
+
 .PHONY: all lua repo romfs
 
 all: lua
@@ -171,6 +177,10 @@ luasec: $(LUASEC_DIR)/Makefile
 .PHONY: lcrypto
 lcrypto: $(LCRYPTO_DIR)/Makefile
 	$(MAKE) -C $(LCRYPTO_DIR)
+
+.PHONY: smspdu
+smspdu: $(SMSPDU_DIR)/Makefile
+	$(MAKE) -C $(SMSPDU_DIR)
 
 ############################################################################
 

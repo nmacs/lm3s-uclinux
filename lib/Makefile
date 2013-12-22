@@ -50,6 +50,7 @@ lib_liblua_$(CONFIG_LIB_LUA_LAIO) += laio/liblaio.a
 lib_liblua_$(CONFIG_LIB_LUA_LNTP) += lntp/liblntp.a
 lib_liblua_$(CONFIG_LIB_LUA_LUASEC) += luasec/libluasec.a
 lib_liblua_$(CONFIG_LIB_LUA_LCRYPTO) += lcrypto/liblcrypto.a
+lib_liblua_$(CONFIG_LIB_LUA_SMSPDU) += smspdu/libsmspdu.a
 
 lib_liblua = $(lib_liblua_y)
 
