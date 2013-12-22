@@ -49,37 +49,11 @@ static const char *ssl_ioerror(void *ctx, int err)
   return socket_strerror(err);
 }
 
-static void shutdown_ssl(p_ssl ssl)
-{
-  int err;
-  p_timeout tm = timeout_markstart(&ssl->tm);
-  for ( ; ; ) {
-    ERR_clear_error();
-    err = SSL_shutdown(ssl->ssl);
-    ssl->error = SSL_get_error(ssl->ssl, err);
-    switch(ssl->error) {
-    case SSL_ERROR_WANT_READ:
-      err = socket_waitfd(&ssl->sock, WAITFD_R, tm);
-      if (err == IO_TIMEOUT || err != IO_DONE) return;
-      break;
-    case SSL_ERROR_WANT_WRITE:
-      err = socket_waitfd(&ssl->sock, WAITFD_W, tm);
-      if (err == IO_TIMEOUT || err != IO_DONE) return;
-      break;
-    default:
-      return;
-    }
-  }
-}
-
-/**
- * Close the connection before the GC collect the object.
- */
-static int meth_destroy(lua_State *L)
+static int meth_terminate(lua_State *L)
 {
   p_ssl ssl = (p_ssl) lua_touserdata(L, 1);
-  if (ssl->ssl) {
-    shutdown_ssl(ssl);
+  if (ssl->ssl && ssl->state != ST_SSL_CLOSED) {
+    ssl->state = ST_SSL_CLOSED;
     socket_destroy(&ssl->sock);
     SSL_free(ssl->ssl);
     ssl->ssl = NULL;
@@ -332,8 +306,31 @@ static int meth_handshake(lua_State *L)
 static int meth_close(lua_State *L)
 {
   p_ssl ssl = (p_ssl) luaL_checkudata(L, 1, "SSL:Connection");
-  meth_destroy(L);
-  ssl->state = ST_SSL_CLOSED;
+  if (ssl->ssl && ssl->state != ST_SSL_CLOSED) {
+    int err;
+    p_timeout tm = timeout_markstart(&ssl->tm);
+    ssl->state = ST_SSL_CLOSED;
+    for ( ; ; ) {
+      ERR_clear_error();
+      err = SSL_shutdown(ssl->ssl);
+      ssl->error = SSL_get_error(ssl->ssl, err);
+      switch(ssl->error) {
+      if (ssl->error == SSL_ERROR_WANT_READ) {
+        err = socket_waitfd(&ssl->sock, WAITFD_R, tm);
+        if (err == IO_TIMEOUT || err != IO_DONE) break;
+      }
+      else if (ssl->error == SSL_ERROR_WANT_WRITE) {
+        err = socket_waitfd(&ssl->sock, WAITFD_W, tm);
+        if (err == IO_TIMEOUT || err != IO_DONE) break;
+      }
+      else
+        break;
+      }
+    }
+    socket_destroy(&ssl->sock);
+    SSL_free(ssl->ssl);
+    ssl->ssl = NULL;
+  }
   return 0;
 }
 
@@ -433,7 +430,7 @@ LUASEC_API int luaopen_ssl_core(lua_State *L)
   lua_newtable(L);
   luaL_register(L, NULL, meta);
   lua_setfield(L, -2, "__index");
-  lua_pushcfunction(L, meth_destroy);
+  lua_pushcfunction(L, meth_terminate);
   lua_setfield(L, -2, "__gc");
 
   luaL_register(L, "ssl.core", funcs);
