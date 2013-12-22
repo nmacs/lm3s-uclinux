@@ -314,7 +314,6 @@ static int meth_close(lua_State *L)
       ERR_clear_error();
       err = SSL_shutdown(ssl->ssl);
       ssl->error = SSL_get_error(ssl->ssl, err);
-      switch(ssl->error) {
       if (ssl->error == SSL_ERROR_WANT_READ) {
         err = socket_waitfd(&ssl->sock, WAITFD_R, tm);
         if (err == IO_TIMEOUT || err != IO_DONE) break;
@@ -325,7 +324,6 @@ static int meth_close(lua_State *L)
       }
       else
         break;
-      }
     }
     socket_destroy(&ssl->sock);
     SSL_free(ssl->ssl);
