@@ -31,5 +31,14 @@ if [ -n "$network_dns_nameserver" -a "$network_dns_nameserver" != "0.0.0.0" ]; t
 fi
 
 if [ "$network_ppp0_enable" == "yes" ]; then
-	start-stop-daemon -p /var/run/pppd0.pid -x pppd -b -S -- call gprs
+  echo "ABORT   'BUSY'"        > /etc/ppp/chat/gprs
+  echo "ABORT   'NO CARRIER'" >> /etc/ppp/chat/gprs
+  echo "ABORT   'ERROR'"      >> /etc/ppp/chat/gprs
+  echo "''      AT"           >> /etc/ppp/chat/gprs
+  echo "OK      AT#PORTCFG=3" >> /etc/ppp/chat/gprs
+  echo "OK      AT+CGDCONT=1,\"$network_ppp0_proto\",\"$network_ppp0_apn\",\"$network_ppp0_addr\",$network_ppp0_d_comp,$network_ppp0_h_comp" >> /etc/ppp/chat/gprs
+  echo "OK      ATD$network_ppp0_dial"  >> /etc/ppp/chat/gprs
+  echo "CONNECT"              >> /etc/ppp/chat/gprs
+
+	start-stop-daemon -p /tmp/run/pppd.pid -x pppd -b -m -S -- call gprs
 fi

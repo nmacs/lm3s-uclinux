@@ -1,9 +1,0 @@
-ABORT   'BUSY'
-ABORT   'NO CARRIER'
-ABORT   'ERROR'
-''      AT
-#OK      AT#GPIO=1,1,1
-OK      AT#PORTCFG=2
-OK      AT+CGDCONT=1,"IP","internet","0.0.0.0",0,0
-OK      ATD*99***1#
-CONNECT

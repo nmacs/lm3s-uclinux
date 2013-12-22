@@ -12,5 +12,5 @@ content:
 	$(REPOINST) -s /tmp/ppp0.resolv /etc/ppp/ppp0.resolv
 	$(REPOINST) $(ROMFSDIR)/bin/pppd /bin/pppd
 	$(REPOINST) $(ROMFSDIR)/bin/chat /bin/chat
-	$(REPOINST) $(PRODUCTDIR)/pppd-chat-gprs /etc/ppp/chat/gprs
+	$(REPOINST) -s /tmp/pppd-chat-gprs /etc/ppp/chat/gprs
 	$(REPOINST) $(PRODUCTDIR)/pppd-peers-gprs /etc/ppp/peers/gprs
