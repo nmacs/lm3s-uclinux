@@ -148,13 +148,15 @@ LUALIB_API int luaL_wait(lua_State *L, int fd, int write, int timeout)
 		if (ret) {
 			if (errno == ENOENT) {
 				if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event)) {
-					del_timer(ctx.timer);
+				        if (ctx.timer)
+				                del_timer(ctx.timer);
 					return -errno;
 				}
 				delfd = 1;
 			}
 			else {
-				del_timer(ctx.timer);
+			        if (ctx.timer)
+			                del_timer(ctx.timer);
 				return -errno;
 			}
 		}
