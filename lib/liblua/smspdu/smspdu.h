@@ -43,7 +43,7 @@ typedef struct
 
 int decode_smspdu(const char* pdu, SMS** sms);
 void free_sms(SMS* sms);
-int encode_smspdu(const char* message, int length, const char* address, PDU** pdu);
+int encode_smspdu(const char* message, int length, const char* address, PDU** pdu, int format);
 void free_pdu(void* pdu);
 SMS_API int luaopen_smspdu(lua_State *L);
 

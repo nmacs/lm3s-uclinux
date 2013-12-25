@@ -455,6 +455,8 @@ uint8_t lookup_ascii7to8[]={
 
 };
 
+#define FORMAT_7BIT 0
+#define FORMAT_8BIT 1
 
 static inline int readbyte(const char* buf, int pos)
 {
@@ -825,13 +827,14 @@ void free_sms(SMS* sms)
  */
 #define SMS_BUFFER_SIZE ((140+10+20+1)*2) // payload + header + phone number, *2 because it is written in hex semi-octet
 #define min(a, b) ((a)<(b) ? (a) : (b))
-int encode_smspdu(const char* message, int length, const char* address,  PDU** pdu_)
+int encode_smspdu(const char* message, int length, const char* address,  PDU** pdu_, int format)
 {
-  int max_sms_length = 140;
+  int max_sms_length = (format == FORMAT_7BIT) ? 160 : 140;
   int nb_of_sms = 1;
   int n;
   int concat_ref_lb=0, concat_ref_hb=0;
   int smsc_size = 0;
+  char text7bit[160];
 
   // Maximum size of a concatenated SMS
   if (length > 255*133)
@@ -870,8 +873,7 @@ int encode_smspdu(const char* message, int length, const char* address,  PDU** p
   if (address_len%2)
     number[address_len] = 'F';
 
-  int tp_dcs = 4; // 8-bit chars only !
-
+  int tp_dcs = (format == FORMAT_7BIT) ? 0 : 4;
 
   // allocate the memory needed for all sms'
   char* buffer = malloc(nb_of_sms*(SMS_BUFFER_SIZE + sizeof(PDU))); // + the array of pointers
@@ -881,6 +883,7 @@ int encode_smspdu(const char* message, int length, const char* address,  PDU** p
 
   for (n=0; n<nb_of_sms; n++)
   {
+    int len;
     int pos = 0;
     p[n].buffer = buffer + (SMS_BUFFER_SIZE * n) + sizeof(PDU)*nb_of_sms ;
     char* pdu = p[n].buffer ;
@@ -939,8 +942,15 @@ int encode_smspdu(const char* message, int length, const char* address,  PDU** p
     }
 
     // Write User data
-    bintohex(message, message_len, pdu, pos);
-    pos += message_len;
+    if (format == FORMAT_7BIT) {
+      len = convert_ascii_to_7bit(message, 0, message_len, pdu+2*pos);
+      len = (len * 7 + 7) / 8;
+    }
+    else {
+        len = message_len;
+        bintohex(message, len, pdu, pos);
+    }
+    pos += len;
     message += message_len;
     length -= max_sms_length;
 
@@ -958,9 +968,10 @@ void free_pdu(void* pdu)
 }
 
 #ifdef FOR_LUA
+static char* formats[] = {"7bit", "8bit", 0};
 /*
  * lua interface:
- *  encodePdu(phoneNumber, message)
+ *  encodePdu(phoneNumber, message, format)
  *  returns a table t with one or more PDU data. (several PDU data are returned when the SMS need to be concatenated)
  *  t[k].size: size of the pdu that needs to be given to the at command
  *  t[k].buffer: ascii hex encoded pdu to give to the at command
@@ -969,14 +980,16 @@ static int l_encodePdu(lua_State *L)
 {
   const char* number;
   const char* message;
+  int format;
   size_t message_len;
   PDU* pdu;
   int nb, i;
 
   number = luaL_checkstring(L, 1);
   message = luaL_checklstring(L, 2, &message_len);
+  format = luaL_checkoption(L, 3, "7bit", formats);
 
-  nb = encode_smspdu(message, message_len, number, &pdu);
+  nb = encode_smspdu(message, message_len, number, &pdu, format);
   if (nb < 0)
   {
     lua_pushnil(L);
