@@ -23,6 +23,7 @@ if [ "$answer" == "y" ]; then
 	mkdir -p /mnt/opt
 	mkdir -p /mnt/etc/config
 	mkdir -p /mnt/var/log
+	mkdir -p /mnt/var/upgrade
 
 	rm -f /mnt/boot/linux.bin
 	rm -f /mnt/opt/distribution.cramfs
