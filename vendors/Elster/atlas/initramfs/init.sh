@@ -10,10 +10,10 @@ read -t 5 -p "Upgrade firmware [y/N]: " answer
 if [ "$answer" == "y" ]; then
 	ifconfig eth0 10.65.100.205 netmask 255.255.255.0
 
-	default_url="http://10.65.100.176"
-	read -p "Enter firmware URL [$default_url]: " url
-	if [ "$url" == "" ]; then
-		url=$default_url
+	default_host="10.65.100.176"
+	read -p "Enter tftp host [$default_host]: " host
+	if [ "$host" == "" ]; then
+		host=$default_host
 	fi
 
 	echo "Mounting ubifs to /mnt..."
@@ -25,22 +25,28 @@ if [ "$answer" == "y" ]; then
 	mkdir -p /mnt/var/log
 	mkdir -p /mnt/var/upgrade
 
-	rm -f /mnt/boot/linux.bin
-	rm -f /mnt/opt/distribution.cramfs
-	rm -f /mnt/opt/distribution.cramfs.sig
-
-	echo "Downloading firmware from '$url'..."
+	echo "Downloading firmware from '$host'..."
 	echo 1 > /dev/watchdog
-	wget -O /mnt/boot/linux.bin -T 10 "$url/linux.bin"
+	echo "Loading /linux.bin ..."
+	tftp -g -l /mnt/var/upgrade/kernel -r /linux.bin "$host"
+	sync
 	echo 1 > /dev/watchdog
-	wget -O /mnt/opt/distribution.cramfs -T 10 "$url/distribution.cramfs"
+	echo "Loading /distribution.cramfs ..."
+	tftp -g -l /mnt/var/upgrade/distr -r /distribution.cramfs "$host"
+	sync
 	echo 1 > /dev/watchdog
-	wget -O /mnt/opt/distribution.cramfs.sig -T 10 "$url/distribution.cramfs.sig"
-	echo 1 > /dev/watchdog
+	echo "Loading /distribution.cramfs.sig ..."
+	tftp -g -l /mnt/var/upgrade/distrsig -r /distribution.cramfs.sig "$host"
 	sync
 	echo 1 > /dev/watchdog
 
-	rm -f /tmp/firmware
+	mv /mnt/var/upgrade/kernel   /mnt/boot/linux.bin
+	mv /mnt/var/upgrade/distr    /mnt/opt/distribution.cramfs
+	mv /mnt/var/upgrade/distrsig /mnt/opt/distribution.cramfs.sig
+
+	sync
+	echo 1 > /dev/watchdog
+
 	umount /mnt
 	echo "Done"
 fi

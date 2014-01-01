@@ -18,8 +18,9 @@ slink /bin/umount busybox 777 0 0
 slink /bin/switch_root busybox 777 0 0
 slink /bin/mkdir busybox 777 0 0
 slink /bin/ln busybox 777 0 0
+slink /bin/mv busybox 777 0 0
 slink /bin/rsacheck busybox 777 0 0
-slink /bin/wget busybox 777 0 0
+slink /bin/tftp busybox 777 0 0
 slink /bin/sync busybox 777 0 0
 slink /bin/ifconfig busybox 777 0 0
 file /bin/busybox initramfs/busybox 755 0 0
