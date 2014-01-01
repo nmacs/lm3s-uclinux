@@ -199,6 +199,7 @@ clean:
 	-$(MAKE) -C $(LNTP_DIR) clean
 	-$(MAKE) -C $(LUASEC_DIR) clean
 	-$(MAKE) -C $(LCRYPTO_DIR) clean
+	-$(MAKE) -C $(SMSPDU_DIR) clean
 	-rm -rf $(LUA_DIR)-x86
 	-rm -rf $(LUA_DIR)-native
 
