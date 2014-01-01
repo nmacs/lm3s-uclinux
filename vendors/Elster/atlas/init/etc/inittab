@@ -1,1 +1,2 @@
 ttyS1::respawn:/bin/sh
+null::respawn:/bin/mgate
