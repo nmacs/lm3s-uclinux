@@ -38,12 +38,14 @@ if [ "$answer" == "y" ]; then
 	echo "Loading /distribution.cramfs.sig ..."
 	tftp -g -l /mnt/var/upgrade/distrsig -r /distribution.cramfs.sig "$host"
 	sync
+	sync
 	echo 1 > /dev/watchdog
 
+	echo "Moving files..."
 	mv /mnt/var/upgrade/kernel   /mnt/boot/linux.bin
 	mv /mnt/var/upgrade/distr    /mnt/opt/distribution.cramfs
 	mv /mnt/var/upgrade/distrsig /mnt/opt/distribution.cramfs.sig
-
+	sync
 	sync
 	echo 1 > /dev/watchdog
 
