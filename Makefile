@@ -307,6 +307,7 @@ linux_initramfs:
 
 .PHONY: linux
 linux linux%_only:
+	cmp -s $(PRODUCTDIR)/config.$(CONFIG_LINUXDIR) $(LINUXDIR)/.config || cp $(PRODUCTDIR)/config.$(CONFIG_LINUXDIR) $(LINUXDIR)/.config
 	. $(LINUXDIR)/.config; if [ "$$CONFIG_INITRAMFS_SOURCE" != "" ]; then \
 		if [ -f $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio ]; then \
 			touch $$ROOTDIR/$$LINUXDIR/usr/gen_init_cpio || exit 1; \
