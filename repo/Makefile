@@ -2,13 +2,12 @@
 
 include $(ROOTDIR)/vendors/config/common/config.arch
 
-CALL_OPKG   := $(OPKG) --tmp-dir /tmp -o /tmp -f /tmp/opkg.conf
 PUBLISH_DEB := publish_package.sh
 LOAD_DEB    := load_package.sh
 
 APTREPODIR  := $(REPODIR)/apt
 
-PACKAGES := sys init clock kernel mtdutils syslog busybox devtools lua mgate opkg watchdog
+PACKAGES := sys init clock kernel mtdutils syslog busybox devtools lua mgate watchdog
 
 .PHONY: repo
 repo:

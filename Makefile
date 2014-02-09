@@ -61,11 +61,6 @@ tools/cksum: tools/sg-cksum/*.c
 	$(MAKE) -C tools/sg-cksum
 	ln -sf $(ROOTDIR)/tools/sg-cksum/cksum tools/cksum
 
-.PHONY: opkg
-opkg:
-	$(MAKE) HOST_ARCH=native -C $(ROOTDIR)/user/opkg
-	ln -sf $(ROOTDIR)/user/opkg/build-native/src/opkg-cl tools/opkg-cl
-
 .PHONY: openocd
 openocd: tools/openocd
 tools/openocd: tools/openocd-0.7.0/Makefile
@@ -228,7 +223,7 @@ ifndef HOSTBUILD
 endif
 
 .PHONY: repo
-repo: opkg
+repo:
 	$(MAKEARCH) -C $(REPODIR) clean
 	fakeroot $(MAKEARCH) -C $(REPODIR) repo
 
@@ -382,8 +377,6 @@ distclean: mrproper
 	-rm -f tools/ucfront-gcc tools/ucfront-g++ tools/ucfront-ld tools/jlibtool
 	-$(MAKE) -C tools/sg-cksum clean
 	-rm -f tools/cksum
-	-$(MAKE) -C $(ROOTDIR)/user/opkg clean
-	-rm -f tools/opkg-cl
 	-$(MAKE) -C tools/lzop-1.03 distclean
 	-$(MAKE) -C $(ROOTDIR)/uboot ARCH=arm distclean
 	-rm -f tools/mkimage
