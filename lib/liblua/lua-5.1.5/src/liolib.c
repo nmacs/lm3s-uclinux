@@ -452,6 +452,12 @@ static int f_writesub (lua_State *L) {
   return pushresult(L, status, NULL);
 }
 
+static int f_makeunbuffered (lua_State *L) {
+  FILE *f = tofile(L);
+  setvbuf(f, NULL, _IONBF, 0);
+  return pushresult(L, 1, NULL);
+}
+
 
 static int f_seek (lua_State *L) {
   static const int mode[] = {SEEK_SET, SEEK_CUR, SEEK_END};
@@ -526,7 +532,8 @@ static const luaL_Reg flib[] = {
   {"sync", f_sync},
   {"setvbuf", f_setvbuf},
   {"write", f_write},
-	{"writesub", f_writesub},
+  {"writesub", f_writesub},
+  {"makeunbuffered", f_makeunbuffered},
   {"getfd", f_getfd},
   {"__gc", io_gc},
   {"__tostring", io_tostring},
