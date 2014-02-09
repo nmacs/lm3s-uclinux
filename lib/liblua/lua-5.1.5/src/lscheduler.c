@@ -128,6 +128,14 @@ LUALIB_API int luaL_wait(lua_State *L, int fd, int write, int timeout)
 	struct epoll_event event;
 
 	dprint("luaL_wait: co:%p, ctx:%p, fd:%i, write:%i, timeout:%i\n", L, &ctx, fd, write, timeout);
+#if 0
+        status = lua_pushthread(L);
+        lua_pop(L, 1);
+        if (status == 1) {
+                errno = EINVAL;
+                return -1;
+        }
+#endif
 
 	if (timeout >= 0) {
 		set_timeout(&timer, timeout, &ctx);
