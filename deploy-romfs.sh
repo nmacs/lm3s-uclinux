@@ -8,8 +8,7 @@ cp -r $ROOT/romfs/* /nfsroot/
 
 cp -r $ROOT/images /nfsroot/
 cp $ROOT/romfs/boot/linux.bin /tftpboot/
-cp $ROOT/images/distribution.cramfs /tftpboot/
-cp $ROOT/images/distribution.cramfs.sig /tftpboot/
+cp $ROOT/images/initrd.bin /tftpboot/
 
 mkdir -p /tmp/uwic-image
 mount $ROOT/images/Image.ext2 /tmp/uwic-image

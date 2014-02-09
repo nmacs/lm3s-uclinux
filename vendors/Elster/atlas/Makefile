@@ -65,19 +65,23 @@ uboot: romdisk
 	cat "$(ROMDISK_IMG)" >> "$(UBOOT_IMG).full"; \
 	tr "\000" "\377" < /dev/zero | dd ibs=1 count=$$gap2 >> "$(UBOOT_IMG).full"
 
-.PHONY: distribution
-distribution:
-	rm -rf $(IMAGEDIR)/distribution
-	mkdir -p $(IMAGEDIR)/distribution
+.PHONY: initramfs
+initramfs:
+	rm -rf $(IMAGEDIR)/initramfs
+	mkdir -p $(IMAGEDIR)/initramfs
 	for p in $(DISTRIBUTION_PACKAGES); do \
 		$(MAKE) -C $(REPODIR)/$$p content; \
-		cp -rd $(REPODIR)/$$p/.content/* $(IMAGEDIR)/distribution; \
+		cp -rd $(REPODIR)/$$p/.content/* $(IMAGEDIR)/initramfs; \
 	done
-	mkfs.cramfs $(IMAGEDIR)/distribution $(IMAGEDIR)/distribution.cramfs
-	openssl dgst -sha1 -sign $(PRIV_KEY) -out $(IMAGEDIR)/distribution.cramfs.sig $(IMAGEDIR)/distribution.cramfs
+	cp upgrade.sh $(IMAGEDIR)/initramfs/bin/upgrade
+	cd $(IMAGEDIR)/initramfs; ln -s bin/init init
+	mkinitramfs $(IMAGEDIR)/initramfs $(IMAGEDIR)/initramfs.cpio.lzo
+	mkimage -A arm -O linux -T ramdisk -C lzo -n "initramfs image" -d $(IMAGEDIR)/initramfs.cpio.lzo $(IMAGEDIR)/initramfs.cpio.lzo.uboot
+	openssl dgst -sha1 -sign $(PRIV_KEY) -out $(IMAGEDIR)/initramfs.cpio.lzo.uboot.sig $(IMAGEDIR)/initramfs.cpio.lzo.uboot
+	cat $(IMAGEDIR)/initramfs.cpio.lzo.uboot.sig $(IMAGEDIR)/initramfs.cpio.lzo.uboot > $(IMAGEDIR)/initrd.bin
 
 .PHONY: firmware
-firmware: distribution
+firmware: initramfs
 	rm -rf $(FIRMWAREDIR)
 	rm -f $(IMAGEDIR)/firmware.mtd
 	rm -f $(IMAGEDIR)/firmware.ubifs
@@ -89,11 +93,10 @@ firmware: distribution
 	mkdir $(FIRMWAREDIR)/var
 	mkdir $(FIRMWAREDIR)/var/log
 	cp $(IMAGEDIR)/linux.bin $(FIRMWAREDIR)/boot/linux.bin
-	cp $(IMAGEDIR)/distribution.cramfs $(FIRMWAREDIR)/opt/distribution.cramfs
-	cp $(IMAGEDIR)/distribution.cramfs.sig $(FIRMWAREDIR)/opt/distribution.cramfs.sig
+	cp $(IMAGEDIR)/initrd.bin $(FIRMWAREDIR)/boot/initrd.bin
 	$(UBIFS) -r $(FIRMWAREDIR) -o $(IMAGEDIR)/firmware.ubifs
 	if [ -f $(ROOTDIR)/user/elster/scripts/make_firmware_mtd.py ]; then \
-		$(ROOTDIR)/user/elster/scripts/make_firmware_mtd.py -o $(IMAGEDIR)/firmware.mtd $(IMAGEDIR)/linux.bin:kernel $(IMAGEDIR)/distribution.cramfs:distr $(IMAGEDIR)/distribution.cramfs.sig:distrsig; \
+		$(ROOTDIR)/user/elster/scripts/make_firmware_mtd.py -o $(IMAGEDIR)/firmware.mtd $(IMAGEDIR)/linux.bin:kernel $(IMAGEDIR)/initrd.bin:initrd; \
 	fi
 
 .PHONY: flash_mcu
@@ -116,7 +119,7 @@ $(LINUXIMG): $(LINUXBOOTDIR)/Image
 #	cat $(LINUXBOOTDIR)/Image | lzma -c -z -e - > $(LINUXCOMPRESSEDIMG)
 	cat $(LINUXBOOTDIR)/Image | lzop -9 -f -o $(LINUXCOMPRESSEDIMG) -
 #	gzip --fast --force --stdout $(LINUXBOOTDIR)/Image > $(LINUXCOMPRESSEDIMG)
-	mkimage -A arm -O linux -T kernel -C lzo -a 0x60008000 -e 0x60008000 -n "Linux kernel image" -d $(LINUXCOMPRESSEDIMG) $(LINUXUBOOTIMG)
+	mkimage -A arm -O linux -T kernel -C lzo -a 0x60008000 -e 0x60008000 -n "linux kernel image" -d $(LINUXCOMPRESSEDIMG) $(LINUXUBOOTIMG)
 	openssl dgst -sha1 -sign $(PRIV_KEY) -out $(LINUXSIG) $(LINUXUBOOTIMG)
 	cat $(LINUXSIG) $(LINUXUBOOTIMG) > $(LINUXIMG)
 

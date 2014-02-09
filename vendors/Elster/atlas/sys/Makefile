@@ -1,4 +1,4 @@
-DIRS  = bin dev etc home lib mnt proc sys usr tmp boot root var
+DIRS  = bin dev etc home lib mnt proc sys usr tmp root var media
 DIRS += etc/config
 DIRS += etc/default_config
 DIRS += etc/rc.d
@@ -7,6 +7,7 @@ DIRS += etc/ppp
 DIRS += usr/lib
 DIRS += usr/lib/opkg
 DIRS += tmp/run
+DIRS += media/flash
 
 romfs:
 	for i in $(DIRS); do \
