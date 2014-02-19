@@ -28,6 +28,7 @@ LUASEC_DIR        := luasec
 LCRYPTO_DIR       := lcrypto
 LUATWITTER_DIR    := LuaTwitter-0.9.2
 SMSPDU_DIR        := smspdu
+LCRON_DIR         := lcron
 
 USE_SCHEDULER     := 1
 
@@ -110,6 +111,11 @@ ifdef CONFIG_LIB_LUA_SMSPDU
 	lua_libs        += smspdu
 endif
 
+ifdef CONFIG_LIB_LUA_CRON
+	CFLAGS          += -Wl,-llcron -L$(CURDIR)/$(LCRON_DIR)
+	lua_libs        += lcron
+endif
+
 .PHONY: all lua repo romfs
 
 all: lua
@@ -181,6 +187,10 @@ lcrypto: $(LCRYPTO_DIR)/Makefile
 .PHONY: smspdu
 smspdu: $(SMSPDU_DIR)/Makefile
 	$(MAKE) -C $(SMSPDU_DIR)
+	
+.PHONY: lcron
+lcron: $(LCRON_DIR)/Makefile
+	$(MAKE) -C $(LCRON_DIR)
 
 ############################################################################
 
@@ -200,6 +210,7 @@ clean:
 	-$(MAKE) -C $(LUASEC_DIR) clean
 	-$(MAKE) -C $(LCRYPTO_DIR) clean
 	-$(MAKE) -C $(SMSPDU_DIR) clean
+	-$(MAKE) -C $(LCRON_DIR) clean
 	-rm -rf $(LUA_DIR)-x86
 	-rm -rf $(LUA_DIR)-native
 
@@ -222,6 +233,7 @@ romfs:
 	$(ROMFSINST) -e CONFIG_LIB_LUA_LUASEC -d $(LUASEC_DIR)/https.lua /usr/local/share/lua/5.1/ssl/https.lua
 	$(ROMFSINST) -e CONFIG_LIB_LUA_LUATWITTER -d $(LUATWITTER_DIR)/twitter.lua /usr/local/share/lua/5.1/twitter.lua
 	$(ROMFSINST) -e CONFIG_LIB_LUA_LUATWITTER -d $(LUATWITTER_DIR)/oauth.lua /usr/local/share/lua/5.1/oauth.lua
+	$(ROMFSINST) -e CONFIG_LIB_LUA_CRON -d $(LCRON_DIR)/cron.lua /usr/local/share/lua/5.1/cron.lua
 
 repo:
 	$(REPOINST) -e CONFIG_LIB_LUA_SHELL $(LUA_DIR)/src/lua /bin/lua
@@ -242,6 +254,7 @@ repo:
 	$(REPOINST) -e CONFIG_LIB_LUA_LUASEC $(LUASEC_DIR)/https.lua /usr/local/share/lua/5.1/ssl/https.lua
 	$(REPOINST) -e CONFIG_LIB_LUA_LUATWITTER $(LUATWITTER_DIR)/twitter.lua /usr/local/share/lua/5.1/twitter.lua
 	$(REPOINST) -e CONFIG_LIB_LUA_LUATWITTER $(LUATWITTER_DIR)/oauth.lua /usr/local/share/lua/5.1/oauth.lua
+	$(REPOINST) -e CONFIG_LIB_LUA_CRON $(LCRON_DIR)/cron.lua /usr/local/share/lua/5.1/cron.lua
 	lua-compile $(CONTENT)
 
 romfs_user:
