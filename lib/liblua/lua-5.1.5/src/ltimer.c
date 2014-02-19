@@ -1,14 +1,15 @@
 #include "ltimer.h"
 #include <assert.h>
+#include <limits.h>
 
-#define BUCKET_BITS 6
-#define BUCKET_SIZE (1 << BUCKET_BITS)
-#define BUCKET_MASK (BUCKET_SIZE - 1)
-#define BUCKET_COUNT 5
-
-#define time_after(a,b)  ((long)(b) - (long)(a) < 0)
+#define time_after(a,b)     ((long)(b) - (long)(a) < 0)
 #define time_after_eq(a,b)  ((long)(b) - (long)(a) <= 0)
-#define time_before(a,b) time_after(b, a)
+#define time_before(a,b)    time_after(b, a)
+#define time_before_eq(a,b) time_after_eq(b, a)
+
+#define NEXT_TIMER_MAX_DELTA  ((1UL << 30) - 1)
+#define UPPER_LIMIT_POW2(n)   (ROOT_BUCKET_BITS + BUCKET_BITS*(n))
+#define UPPER_LIMIT(n)        (1UL << UPPER_LIMIT_POW2(n))
 
 #ifdef __GNUC__
 #define likely(x)       __builtin_expect(!!(x), 1)
@@ -18,23 +19,7 @@
 #define unlikely(x)     (x)
 #endif
 
-struct timer_bucket
-{
-  unsigned cur;
-  unsigned order;
-  struct timer_bucket *next;
-  struct list_base v[BUCKET_SIZE];
-};
-
-struct timer_context
-{
-  unsigned long base_time;
-  struct timer_bucket buckets[BUCKET_COUNT];
-};
-
-static struct timer_context ctx;
-
-static int cascade_bucket(struct timer_context *ctx, struct timer_bucket *b);
+static unsigned long cascade_bucket(struct timer_context *ctx, unsigned n, unsigned long now);
 
 static inline void list_del(struct list_base *l)
 {
@@ -51,15 +36,6 @@ static inline void list_insert(struct list_base *list, struct list_base *l)
   list->next->prev = l;
   list->next = l;
   l->prev = list;
-}
-
-static inline void list_move_and_init(struct list_base *to, struct list_base *from)
-{
-  from->next->prev = to;
-  from->prev->next = to;
-  to->next = from->next;
-  to->prev = from->prev;
-  list_init(from);
 }
 
 static inline int list_empty(struct list_base *list)
@@ -101,28 +77,49 @@ int set_timer(struct timer_list *timer, unsigned long expire, timer_callback cal
   return 0;
 }
 
-static void insert_timer(struct timer_bucket *b, struct timer_list *timer, unsigned index)
+int add_timer(struct timer_context *ctx, struct timer_list *timer)
 {
-  index = (index + b->cur) & BUCKET_MASK;
-  list_insert(&b->v[index], &timer->list);
-}
+  unsigned index;
+  struct list_base *list;
+  unsigned long timeout;
 
-int add_timer(struct timer_list *timer)
-{
-  unsigned long timeout = expire_in(timer, ctx.base_time);
+  timeout = expire_in(timer, ctx->root.base_time);
+  if (timeout < UPPER_LIMIT(0)) {
+    index = (ctx->root.cur + (unsigned)timeout) & ROOT_BUCKET_MASK;
+    list = &ctx->root.v[index];
+  }
+  else {
+  timeout = expire_in(timer, ctx->buckets[0].base_time);
+  if (timeout < UPPER_LIMIT(1)) {
 
-  if (timeout < (1 << (1 * BUCKET_BITS)))
-    insert_timer(&ctx.buckets[0], timer, (unsigned)timeout);
-  else if (timeout < (1 << (2 * BUCKET_BITS)))
-    insert_timer(&ctx.buckets[1], timer, (unsigned)((timeout >> BUCKET_BITS)));
-  else if (timeout < (1 << (3 * BUCKET_BITS)))
-    insert_timer(&ctx.buckets[2], timer, (unsigned)((timeout >> (BUCKET_BITS * 2))));
-  else if (timeout < (1 << (4 * BUCKET_BITS)))
-    insert_timer(&ctx.buckets[3], timer, (unsigned)((timeout >> (BUCKET_BITS * 3))));
-  else if (timeout < (1 << (5 * BUCKET_BITS)))
-    insert_timer(&ctx.buckets[4], timer, (unsigned)((timeout >> (BUCKET_BITS * 4))));
-  else
-      return -1;
+    index = (ctx->buckets[0].cur + (timeout >> UPPER_LIMIT_POW2(0))) & BUCKET_MASK;
+    list = &ctx->buckets[0].v[index];
+  }
+  else {
+  timeout = expire_in(timer, ctx->buckets[1].base_time);
+  if (timeout < UPPER_LIMIT(2)) {
+    index = (ctx->buckets[1].cur + (timeout >> UPPER_LIMIT_POW2(1))) & BUCKET_MASK;
+    list = &ctx->buckets[1].v[index];
+  }
+  else {
+  timeout = expire_in(timer, ctx->buckets[2].base_time);
+  if (timeout < UPPER_LIMIT(3)) {
+    index = (ctx->buckets[2].cur + (timeout >> UPPER_LIMIT_POW2(2))) & BUCKET_MASK;
+    list = &ctx->buckets[2].v[index];
+  }
+  else {
+  timeout = expire_in(timer, ctx->buckets[3].base_time);
+  if (timeout < UPPER_LIMIT(4)) {
+    index = (ctx->buckets[3].cur + (timeout >> UPPER_LIMIT_POW2(3))) & BUCKET_MASK;
+    list = &ctx->buckets[3].v[index];
+  }
+  else {
+    return -1;
+  }}}}}
+
+  list_insert(list, &timer->list);
+  if (time_before(timer->expire, ctx->next_timer))
+      ctx->next_timer = timer->expire;
 
   return 0;
 }
@@ -132,174 +129,231 @@ void del_timer(struct timer_list *timer)
   list_del(&timer->list);
 }
 
-static int bucket_empty(struct timer_bucket *b)
+static unsigned long forward_bucket(struct timer_context *ctx, unsigned n, unsigned long now, unsigned long forward)
 {
-  int i;
-  for (i = 0; i < BUCKET_SIZE; i++)
-    if (!list_empty(&b->v[i]))
-      return 0;
-  return 1;
-}
+  struct timer_bucket *b = &ctx->buckets[n];
+  unsigned long step = UPPER_LIMIT(n);
+  unsigned index;
+  unsigned long result = 0;
 
-static unsigned long fast_forward(struct timer_context *ctx, struct list_base *expired, unsigned long elapsed)
-{
-  struct timer_bucket *b = ctx->buckets;
-  unsigned long sum_forward = 0;
-  while (b && elapsed) {
-    unsigned order = b->order;
-    unsigned long forward = 1U << (order * BUCKET_BITS);
-    if (forward > elapsed) break;
-    while (elapsed >= forward) {
-      if (list_empty(&b->v[b->cur])) {
-        sum_forward += forward;
-        ctx->base_time += forward;
-        elapsed -= forward;
-      }
-      else
-        return sum_forward;
-      b->cur = (b->cur + 1) & BUCKET_MASK;
-      if (b->cur == 0) {
-        if ((b->next && cascade_bucket(ctx, b->next)) || !bucket_empty(b))
-          return sum_forward;
-        b = b->next;
-        break;
-      }
-    }
+  if (forward < step)
+    return 0;
+
+  index = b->cur;
+  do {
+      if (forward < step || time_after(b->base_time, now) || !list_empty(&b->v[b->cur])) return result;
+      b->base_time += step;
+      forward -= step;
+      result += step;
+      b->cur = (b->cur + 1) & ROOT_BUCKET_MASK;
+  } while (b->cur != index);
+
+  if (time_before(b->base_time, now)) {
+      unsigned long max_forward = now - b->base_time;
+      if (forward > max_forward)
+        forward = max_forward;
+      b->base_time += forward;
+      result += forward;
   }
-  return sum_forward;
+
+  return result;
 }
 
-static int cascade_bucket(struct timer_context *ctx, struct timer_bucket *b)
+static unsigned long cascade_bucket(struct timer_context *ctx, unsigned n, unsigned long now)
 {
-  int ret = 0;
-  if (!list_empty(&b->v[b->cur])) {
-    struct list_base timers;
-    struct list_base *item, *tmp;
-    list_move_and_init(&timers, &b->v[b->cur]);
-    list_for_each_safe(&timers, item, tmp) {
-      struct timer_list *timer = container_of(item, struct timer_list, list);
-      del_timer(timer);
-      add_timer(timer);
-    }
-    ret = 1;
-  }
-  b->cur = (b->cur + 1) & BUCKET_MASK;
-  if (b->cur == 0 && b->next)
-    ret |= cascade_bucket(ctx, b->next);
-  return ret;
-}
+  unsigned index;
+  struct timer_bucket *b;
+  unsigned long step;
+  unsigned long forward = 0;
 
-static void process_buckets(struct timer_context *ctx, struct list_base *expired, unsigned long elapsed)
-{
-  struct timer_bucket *b = ctx->buckets;
-  unsigned long forward;
-  while (1) {
+  b = &ctx->buckets[n];
+  step = UPPER_LIMIT(n);
+  index = b->cur;
+  do {
     if (!list_empty(&b->v[b->cur])) {
-      list_append_and_init(expired, &b->v[b->cur]);
-      if (!elapsed) break;
-      ctx->base_time++;
-      b->cur = (b->cur + 1) & BUCKET_MASK;
-      if (b->cur == 0 && b->next)
-        cascade_bucket(ctx, b->next);
-      elapsed--;
+      unsigned long prev_upper = step;
+      if (n == 0) {
+          struct list_base *item, *tmp;
+          list_for_each_safe(&b->v[b->cur], item, tmp) {
+            struct timer_list *timer = container_of(item, struct timer_list, list);
+            if (time_before(timer->expire, ctx->root.base_time + prev_upper)) {
+                unsigned index = (ctx->root.cur + (timer->expire - ctx->root.base_time)) & ROOT_BUCKET_MASK;
+                list_del(&timer->list);
+                list_insert(&ctx->root.v[index], &timer->list);
+            }
+          }
+      }
+      else {
+          struct list_base *item, *tmp;
+          list_for_each_safe(&b->v[b->cur], item, tmp) {
+            struct timer_list *timer = container_of(item, struct timer_list, list);
+            if (time_before(timer->expire, ctx->buckets[n-1].base_time + prev_upper)) {
+                unsigned index = (b->cur + ((timer->expire - ctx->buckets[n-1].base_time) >> UPPER_LIMIT_POW2(n-1))) & BUCKET_MASK;
+                list_del(&timer->list);
+                list_insert(&ctx->buckets[n-1].v[index], &timer->list);
+            }
+          }
+      }
+
+      if (list_empty(&b->v[b->cur])) {
+          b->base_time += step;
+          b->cur = (b->cur + 1) & BUCKET_MASK;
+          forward += step;
+          if (n < (BUCKET_COUNT-1))
+              cascade_bucket(ctx, n + 1, now);
+      }
+
+      return forward;
     }
-    else {
-      if (!elapsed) break;
-      forward = fast_forward(ctx, expired, elapsed);
-      list_append_and_init(expired, &b->v[b->cur]);
-      elapsed -= forward;
+
+    if (time_after(b->base_time + step, now))
+        return forward;
+
+    b->base_time += step;
+    b->cur = (b->cur + 1) & BUCKET_MASK;
+    forward += step;
+
+    if (n < (BUCKET_COUNT-1)) {
+      unsigned long next_forward = cascade_bucket(ctx, n + 1, now);
+      forward += forward_bucket(ctx, n, now, next_forward);
     }
+  } while (index != b->cur);
+
+  return forward;
+}
+
+static void forward_root_bucket(struct timer_root_bucket *root, unsigned long forward, unsigned long now)
+{
+  unsigned index, slot;
+  index = slot = root->cur;
+
+  do {
+      if (!forward || time_after(root->base_time, now) || !list_empty(&root->v[slot])) return;
+      slot = (slot + 1) & ROOT_BUCKET_MASK;
+      root->base_time++;
+      root->cur = slot;
+      forward--;
+  } while (index != slot);
+
+  if (time_before_eq(root->base_time, now)) {
+      unsigned long max_forward = now - root->base_time + 1;
+      if (forward > max_forward)
+        forward = max_forward;
+      root->base_time += forward;
   }
 }
 
-void process_timers_ex(struct list_base *expired, unsigned long now)
+void process_timers_ex(struct timer_context *ctx, struct list_base *expired, unsigned long now)
 {
-  unsigned long elapsed;
-  if (time_before(now, ctx.base_time))
-    return;
-  elapsed = (unsigned long)((long)now - (long)ctx.base_time);
-  process_buckets(&ctx, expired, elapsed);
+  unsigned long forward;
+  struct timer_root_bucket *root = &ctx->root;
+  while (!time_after(root->base_time, now)) {
+      if (!list_empty(&root->v[root->cur]))
+          list_append_and_init(expired, &root->v[root->cur]);
+      root->cur = (root->cur + 1) & (ROOT_BUCKET_SIZE - 1);
+      root->base_time++;
+      forward = cascade_bucket(ctx, 0, now);
+      forward_root_bucket(root, forward, now);
+  }
 }
 
-void process_timers(unsigned long now)
+void process_timers(struct timer_context *ctx, unsigned long now)
 {
   struct list_base expired;
   struct list_base *item, *tmp;
   list_init(&expired);
-  process_timers_ex(&expired, now);
+  process_timers_ex(ctx, &expired, now);
   list_for_each_safe(&expired, item, tmp) {
     struct timer_list *timer = container_of(item, struct timer_list, list);
     if (timer->callback)
-      timer->callback(timer->data);
+      timer->callback(timer, timer->data);
   }
 }
 
-/*
- * 0 - 63
- * 64 - 4096
- * 4095 - 262143
- * 262144 - 16777215
- * 16777216 - 1073741823
- */
-
-static unsigned long do_get_next_timeout()
+static unsigned long get_next_timer(struct timer_context *ctx)
 {
-  unsigned long timeout = 0;
-  struct timer_bucket *b = ctx.buckets;
-  while (b) {
-    unsigned order = b->order;
-    unsigned cur = b->cur;
-    unsigned long forward = 1 << (order * BUCKET_BITS);
-    int empty = bucket_empty(b);
-    if (empty) {
-      b = b->next;
-      timeout = (forward << BUCKET_BITS) - 1;
-    }
-    else {
-      while (1) {
-        if (list_empty(&b->v[cur]))
-          timeout += forward;
-        else
-          return timeout;
-        cur = (cur + 1) & BUCKET_MASK;
-        if (cur == 0) {
-          b = 0;
-          break;
-        }
+  unsigned index, slot;
+  unsigned i;
+  unsigned long next_timer;
+  int found = 0;
+
+  index = slot = ctx->root.cur;
+  do {
+      struct list_base *item;
+      list_for_each(&ctx->root.v[slot], item) {
+          struct timer_list *timer = container_of(item, struct timer_list, list);
+          if (time_before_eq(timer->expire, ctx->buckets[0].base_time))
+            return timer->expire;
+
+          next_timer = timer->expire;
+          found = 1;
+          goto cascade;
       }
-    }
+      slot = (slot + 1) & (ROOT_BUCKET_SIZE - 1);
+  } while (index != slot);
+
+cascade:
+  for (i = 0; i < BUCKET_COUNT; i++) {
+      struct timer_bucket *b = &ctx->buckets[i];
+      if (!found)
+          next_timer = b->base_time + NEXT_TIMER_MAX_DELTA;
+      index = slot = b->cur;
+      do {
+          struct list_base *item;
+          list_for_each(&b->v[slot], item) {
+              struct timer_list *timer = container_of(item, struct timer_list, list);
+              if (time_before(timer->expire, next_timer))
+                  next_timer = timer->expire;
+              found = 1;
+          }
+
+          if (found) {
+              if (i == 3 || time_before(next_timer, ctx->buckets[i+1].base_time))
+                  return next_timer;
+              break;
+          }
+
+          slot = (slot + 1) % BUCKET_SIZE;
+      } while (index != slot);
   }
-  return timeout;
+
+  return ctx->root.base_time + NEXT_TIMER_MAX_DELTA;
 }
 
-unsigned long get_next_timeout(unsigned long now)
+unsigned long get_next_timeout(struct timer_context *ctx, unsigned long now)
 {
-  unsigned long timeout = do_get_next_timeout();
-  if (time_before(now, ctx.base_time))
-      return timeout + (unsigned long)(ctx.base_time - now);
-  else {
-      unsigned long diff = (unsigned long)(now - ctx.base_time);
-      if (diff > timeout)
-        return 0;
-      else
-        return timeout - diff;
-  }
+  if (time_before_eq(ctx->next_timer, ctx->root.base_time))
+    ctx->next_timer = get_next_timer(ctx);
+
+  if (time_before_eq(now, ctx->next_timer))
+      return ctx->next_timer - now;
+  else
+      return 0;
 }
 
-static void init_bucket(struct timer_bucket *b, struct timer_bucket *next, unsigned order)
+static void init_root_bucket(struct timer_root_bucket *b, unsigned long now)
 {
   int i;
   b->cur = 0;
-  b->next = next;
-  b->order = order;
+  b->base_time = now;
+  for (i = 0; i < ROOT_BUCKET_SIZE; i++)
+    list_init(&b->v[i]);
+}
+
+static void init_bucket(struct timer_bucket *b, unsigned long base)
+{
+  int i;
+  b->cur = 0;
+  b->base_time = base;
   for (i = 0; i < BUCKET_SIZE; i++)
     list_init(&b->v[i]);
 }
 
-void init_timers(unsigned long now)
+void init_timers(struct timer_context *ctx, unsigned long now)
 {
   unsigned i;
-  ctx.base_time = now;
+  ctx->next_timer = now;
+  init_root_bucket(&ctx->root, now);
   for (i = 0; i < BUCKET_COUNT; i++)
-    init_bucket(&ctx.buckets[i], i < (BUCKET_COUNT - 1) ? &ctx.buckets[i+1] : 0, i);
+    init_bucket(&ctx->buckets[i], now + UPPER_LIMIT(i));
 }

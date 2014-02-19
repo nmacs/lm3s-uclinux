@@ -41,6 +41,7 @@ struct wait_ctx {
 static int epoll_fd;
 static size_t MS_PER_TICK;
 static int exit_scheduler;
+static struct timer_context timers;
 
 #if DEBUG
 static void dump_timeouts()
@@ -116,7 +117,7 @@ static void set_timeout(struct timer_list* timer, int timeout, void *data)
         unsigned long expire = (unsigned long)times(0) + ((unsigned long)timeout + (MS_PER_TICK-1)) / MS_PER_TICK;
         dprint("set_timeout: timeout:%i, expire:%lu\n", timeout, expire);
         set_timer(timer, expire, 0, data);
-        add_timer(timer);
+        add_timer(&timers, timer);
 }
 
 LUALIB_API int luaL_wait(lua_State *L, int fd, int write, int timeout)
@@ -298,7 +299,7 @@ static int l_loop(lua_State *L)
 		
 		dprint("loop: gettop:%i\n", lua_gettop(L));
 		now = (unsigned long)times(0);
-		timeout = get_next_timeout(now) * MS_PER_TICK;
+		timeout = get_next_timeout(&timers, now) * MS_PER_TICK;
 		dprint("loop: wait for events timeout:%lu\n", timeout);
 		ret = epoll_wait(epoll_fd, events, MAXEVENTS, timeout);
 		dprint("loop: wait ret:%i\n", ret);
@@ -318,12 +319,14 @@ static int l_loop(lua_State *L)
 
 		now = (unsigned long)times(0);
 		//dprint("loop: now:%lu\n", now);
-		list_init(&expired);
-		process_timers_ex(&expired, now);
-		list_for_each_safe(&expired, item, tmp) {
-		        struct timer_list *timer = container_of(item, struct timer_list, list);
-		        if (resume_thread(L, (struct wait_ctx*)timer->data, 0))
-                                lua_pop(L, 1);
+		if (get_next_timeout(&timers, now) == 0) {
+                  list_init(&expired);
+                  process_timers_ex(&timers, &expired, now);
+                  list_for_each_safe(&expired, item, tmp) {
+                          struct timer_list *timer = container_of(item, struct timer_list, list);
+                          if (resume_thread(L, (struct wait_ctx*)timer->data, 0))
+                                  lua_pop(L, 1);
+                  }
 		}
 	}
 
@@ -439,7 +442,7 @@ static int l_resume_thread(lua_State *L)
 	ctx->suspended = 0;
 
 	if (ctx->timer)
-		add_timer(ctx->timer);
+		add_timer(&timers, ctx->timer);
 
 	if (ctx->event) {
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, ctx->fd, ctx->event)) {
@@ -499,7 +502,7 @@ LUALIB_API int luaopen_scheduler (lua_State *L)
 	lua_setthis(L);
 	exit_scheduler = 0;
 	MS_PER_TICK = 1000UL / sysconf(_SC_CLK_TCK);
-	init_timers((unsigned long)times(0));
+	init_timers(&timers, (unsigned long)times(0));
 	if (init_epoll())
 		return 0;
 	luaL_register(L, LUA_SCHEDULERLIBNAME, lib);
