@@ -2,14 +2,19 @@ local base      = _G
 local core      = require("cron.core")
 local scheduler = require("scheduler")
 local coroutine = require("coroutine")
+local syslog    = require("syslog")
 
 module("cron")
 
 local function cron_main()
+	local next
 	while true do
-		local next = core.next()
+		next = core.next()
 		scheduler.msleep(next)
-		core.update()
+		next = core.next()
+		if next == 0 then
+			core.update()
+		end
 	end
 end
 local cron_thread = coroutine.create(cron_main)
