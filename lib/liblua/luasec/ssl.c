@@ -111,10 +111,10 @@ static int ssl_send(void *ctx, const char *data, size_t count, size_t *sent,
    p_timeout tm)
 {
   int err;
+  *sent = 0;
   p_ssl ssl = (p_ssl) ctx;
   if (ssl->state == ST_SSL_CLOSED)
     return IO_CLOSED;
-  *sent = 0;
   for ( ; ; ) {
     ERR_clear_error();
     err = SSL_write(ssl->ssl, data, (int) count);
@@ -140,7 +140,7 @@ static int ssl_send(void *ctx, const char *data, size_t count, size_t *sent,
       }
       if (err == 0)
         return IO_CLOSED;
-      return errno;
+      return IO_UNKNOWN;
     default:
       return IO_SSL;
     }
@@ -155,10 +155,10 @@ static int ssl_recv(void *ctx, char *data, size_t count, size_t *got,
   p_timeout tm)
 {
   int err;
+  *got = 0;
   p_ssl ssl = (p_ssl) ctx;
   if (ssl->state == ST_SSL_CLOSED)
     return IO_CLOSED;
-  *got = 0;
   for ( ; ; ) {
     ERR_clear_error();
     err = SSL_read(ssl->ssl, data, (int) count);
@@ -168,7 +168,6 @@ static int ssl_recv(void *ctx, char *data, size_t count, size_t *got,
       *got = err;
       return IO_DONE;
     case SSL_ERROR_ZERO_RETURN:
-      *got = err;
       return IO_CLOSED;
     case SSL_ERROR_WANT_READ:
       err = socket_waitfd(&ssl->sock, WAITFD_R, tm);
@@ -187,7 +186,7 @@ static int ssl_recv(void *ctx, char *data, size_t count, size_t *got,
       }
       if (err == 0)
         return IO_CLOSED;
-      return errno;
+      return IO_UNKNOWN;
     default:
       return IO_SSL;
     }
