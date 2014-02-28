@@ -11,6 +11,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#ifndef WIN32
 #include <linux/reboot.h>
 #include <sys/times.h>
 #include <sys/timex.h>
@@ -20,6 +21,7 @@
 #include <sys/socket.h>
 #include <net/if.h>
 #include <netdb.h>
+#endif
 
 #define loslib_c
 #define LUA_LIB
@@ -86,6 +88,7 @@ static int os_getenv (lua_State *L) {
 }
 
 static int os_setenv (lua_State *L) {
+#ifndef WIN32
   const char *name = luaL_checkstring(L, 1);
   int ret = 0;
   if (!lua_isnil(L, 2)) {
@@ -95,22 +98,35 @@ static int os_setenv (lua_State *L) {
   else
     ret = unsetenv(name);
   return os_pushresult(L, ret == 0, name);
+#else
+  return 0;
+#endif
 }
 
 
 static int os_clock (lua_State *L) {
+#ifndef WIN32
   size_t CLK_TCK = sysconf(_SC_CLK_TCK);
   lua_pushnumber(L, ((lua_Number)(size_t)times(0)) / CLK_TCK);
   return 1;
+#else
+  clock_t c = clock();
+  lua_pushnumber(L, ((lua_Number)c) / (lua_Number)CLOCKS_PER_SEC);
+  return 1;
+#endif
 }
 
 
 static int os_diffclock(lua_State *L) {
+#ifndef WIN32
   size_t CLK_TCK = sysconf(_SC_CLK_TCK);
   size_t t1 = (size_t)(luaL_checknumber(L, 1) * CLK_TCK);
   size_t t2 = (size_t)(luaL_checknumber(L, 2) * CLK_TCK);
   lua_pushnumber(L, ((lua_Number)((size_t)(t1 - t2))) / CLK_TCK);
   return 1;
+#else
+  return 0;
+#endif
 }
 
 static int os_gettimeofday(lua_State *L) {
@@ -123,11 +139,14 @@ static int os_gettimeofday(lua_State *L) {
 }
 
 static int os_settimeofday(lua_State *L) {
+#ifndef WIN32
   struct timeval tv;
   double t = luaL_checknumber(L, 1);
   tv.tv_sec = (time_t)t;
   tv.tv_usec = (suseconds_t)((t - tv.tv_sec) * 1000000.0);
   settimeofday(&tv, 0);
+#else
+#endif
   return 0;
 }
 
@@ -273,22 +292,33 @@ static int os_exit (lua_State *L) {
 }
 
 static int os_reboot(lua_State *L) {
+#ifndef WIN32
   reboot(LINUX_REBOOT_CMD_RESTART);
   return 0;
+#else
+  return 0;
+#endif
 }
 
 static int os_sync(lua_State *L) {
+#ifndef WIN32
   sync();
+#endif
   return 0;
 }
 
 static int os_symlink(lua_State *L) {
-	const char *fromname = luaL_checkstring(L, 1);
+#ifndef WIN32
+  const char *fromname = luaL_checkstring(L, 1);
   const char *toname = luaL_checkstring(L, 2);
   return os_pushresult(L, symlink(fromname, toname) == 0, toname);
+#else
+  return 0;
+#endif
 }
 
 static int os_getifaddr(lua_State *L) {
+#ifndef WIN32
   int fd;
   struct ifreq ifr;
   const char* if_name = luaL_checkstring(L, 1);
@@ -308,6 +338,9 @@ static int os_getifaddr(lua_State *L) {
 
   lua_pushstring(L, inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
   return 1;
+#else
+  return 0;
+#endif
 }
 
 static const luaL_Reg syslib[] = {

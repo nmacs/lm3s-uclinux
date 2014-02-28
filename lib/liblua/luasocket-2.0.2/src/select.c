@@ -76,9 +76,11 @@ static int global_select(lua_State *L) {
     } else if (ret == 0) {
         lua_pushstring(L, "timeout");
         return 3;
+#ifndef WIN32
     } else if (ret < 0 && errno == EINTR) {
         lua_pushstring(L, "signal");
         return 3;
+#endif
     } else {
         lua_pushstring(L, "error");
         return 3;

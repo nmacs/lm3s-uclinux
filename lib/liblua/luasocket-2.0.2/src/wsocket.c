@@ -7,9 +7,92 @@
 *
 * RCS ID: $Id: wsocket.c,v 1.36 2007/06/11 23:44:54 diego Exp $
 \*=========================================================================*/
+
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <mswsock.h>
+
 #include <string.h>
+#include <lauxlib.h>
 
 #include "socket.h"
+
+//#define DEBUG 1
+
+#if DEBUG
+//#  include <syslog.h>
+#  define dprint(s, ...) { fprintf(stderr, s, ##__VA_ARGS__); /*usleep(10000);*/ }
+//#  define dprint(s, ...) { fprintf(stderr, s, ##__VA_ARGS__); usleep(100000); }
+#else
+#  define dprint(...) while(0) {}
+#endif
+
+
+#ifdef SOCKET_SCHEDULER
+static void *
+get_extension_function(SOCKET s, const GUID *which_fn)
+{
+        void *ptr = NULL;
+        DWORD bytes=0;
+        WSAIoctl(s, SIO_GET_EXTENSION_FUNCTION_POINTER,
+            (GUID*)which_fn, sizeof(*which_fn),
+            &ptr, sizeof(ptr),
+            &bytes, NULL, NULL);
+
+        /* No need to detect errors here: if ptr is set, then we have a good
+           function pointer.  Otherwise, we should behave as if we had no
+           function pointer.
+        */
+        return ptr;
+}
+
+/* Mingw doesn't have these in its mswsock.h.  The values are copied from
+   wine.h.   Perhaps if we copy them exactly, the cargo will come again.
+*/
+#ifndef WSAID_ACCEPTEX
+#define WSAID_ACCEPTEX \
+        {0xb5367df1,0xcbac,0x11cf,{0x95,0xca,0x00,0x80,0x5f,0x48,0xa1,0x92}}
+#endif
+#ifndef WSAID_CONNECTEX
+#define WSAID_CONNECTEX \
+        {0x25a207b9,0xddf3,0x4660,{0x8e,0xe9,0x76,0xe5,0x8c,0x74,0x06,0x3e}}
+#endif
+
+/* Mingw's headers don't define LPFN_ACCEPTEX. */
+
+typedef BOOL (WINAPI *AcceptExPtr)(SOCKET, SOCKET, PVOID, DWORD, DWORD, DWORD, LPDWORD, LPOVERLAPPED);
+typedef BOOL (WINAPI *ConnectExPtr)(SOCKET, const struct sockaddr *, int, PVOID, DWORD, LPDWORD, LPOVERLAPPED);
+typedef void (WINAPI *GetAcceptExSockaddrsPtr)(PVOID, DWORD, DWORD, DWORD, LPSOCKADDR *, LPINT, LPSOCKADDR *, LPINT);
+
+/** Internal use only. Holds pointers to functions that only some versions of
+Windows provide.
+*/
+struct win32_extension_fns {
+        AcceptExPtr AcceptEx;
+        ConnectExPtr ConnectEx;
+        GetAcceptExSockaddrsPtr GetAcceptExSockaddrs;
+};
+
+static void
+init_extension_functions(struct win32_extension_fns *ext)
+{
+        const GUID acceptex = WSAID_ACCEPTEX;
+        const GUID connectex = WSAID_CONNECTEX;
+        const GUID getacceptexsockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
+        SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
+        if (s == INVALID_SOCKET)
+                return;
+        ext->AcceptEx = get_extension_function(s, &acceptex);
+        ext->ConnectEx = get_extension_function(s, &connectex);
+        ext->GetAcceptExSockaddrs = get_extension_function(s,
+            &getacceptexsockaddrs);
+        closesocket(s);
+}
+
+static struct win32_extension_fns ext;
+
+#endif
 
 /* WinSock doesn't have a strerror... */
 static const char *wstrerror(int err);
@@ -27,6 +110,9 @@ int socket_open(void) {
         WSACleanup();
         return 0; 
     }
+#ifdef SOCKET_SCHEDULER
+    init_extension_functions(&ext);
+#endif
     return 1;
 }
 
@@ -119,29 +205,62 @@ int socket_create(p_socket ps, int domain, int type, int protocol) {
 * Connects or returns error message
 \*-------------------------------------------------------------------------*/
 int socket_connect(p_socket ps, SA *addr, socklen_t len, p_timeout tm) {
-    int err;
-    /* don't call on closed socket */
-    if (*ps == SOCKET_INVALID) return IO_CLOSED;
-    /* ask system to connect */
-    if (connect(*ps, addr, len) == 0) return IO_DONE;
-    /* make sure the system is trying to connect */
-    err = WSAGetLastError();
-    if (err != WSAEWOULDBLOCK && err != WSAEINPROGRESS) return err;
-    /* zero timeout case optimization */
-    if (timeout_iszero(tm)) return IO_TIMEOUT;
-    /* we wait until something happens */
-    err = socket_waitfd(ps, WAITFD_C, tm);
-    if (err == IO_CLOSED) {
-        int len = sizeof(err);
-        /* give windows time to set the error (yes, disgusting) */
-        Sleep(10);
-        /* find out why we failed */
-        getsockopt(*ps, SOL_SOCKET, SO_ERROR, (char *)&err, &len); 
-        /* we KNOW there was an error. if 'why' is 0, we will return
-        * "unknown error", but it's not really our fault */
-        return err > 0? err: IO_UNKNOWN; 
-    } else return err;
-
+#ifdef SOCKET_SCHEDULER
+  lua_State *L;
+  BOOL r;
+  struct wait_ctx ctx;
+  int t;
+  int ret;
+#endif
+  int err;
+  /* don't call on closed socket */
+  if (*ps == SOCKET_INVALID) return IO_CLOSED;
+#ifdef SOCKET_SCHEDULER
+  L = lua_this();
+  luaL_addfd(L, *ps);
+  memset(&ctx, 0, sizeof(ctx));
+  dprint("connect ov:%p\n", &ctx.ov);
+  if (!ext.ConnectEx(*ps, addr, len, NULL, 0, NULL, &ctx.ov)) {
+      err = WSAGetLastError();
+      if (err != WSA_IO_PENDING)
+          return err > 0 ? err: IO_UNKNOWN;
+  }
+  t = (int)(timeout_getretry(tm)*1e3);
+  ret = luaL_wait(L, *ps, 1, t, &ctx);
+  if (ret == -1) {
+      int len = sizeof(err);
+      /* find out why we failed */
+      getsockopt(*ps, SOL_SOCKET, SO_ERROR, (char *)&err, &len);
+      /* we KNOW there was an error. if 'why' is 0, we will return
+      * "unknown error", but it's not really our fault */
+      return err > 0 ? err: IO_UNKNOWN;
+  }
+  if (ret == 0) {
+      socket_destroy(ps);
+      return IO_TIMEOUT;
+  }
+  return IO_DONE;
+#else
+  /* ask system to connect */
+  if (connect(*ps, addr, len) == 0) return IO_DONE;
+  /* make sure the system is trying to connect */
+  err = WSAGetLastError();
+  if (err != WSAEWOULDBLOCK && err != WSAEINPROGRESS) return err;
+  /* zero timeout case optimization */
+  if (timeout_iszero(tm)) return IO_TIMEOUT;
+  /* we wait until something happens */
+  err = socket_waitfd(ps, WAITFD_C, tm);
+  if (err == IO_CLOSED) {
+      int len = sizeof(err);
+      /* give windows time to set the error (yes, disgusting) */
+      Sleep(10);
+      /* find out why we failed */
+      getsockopt(*ps, SOL_SOCKET, SO_ERROR, (char *)&err, &len);
+      /* we KNOW there was an error. if 'why' is 0, we will return
+      * "unknown error", but it's not really our fault */
+      return err > 0? err: IO_UNKNOWN;
+  } else return err;
+#endif
 }
 
 /*-------------------------------------------------------------------------*\
@@ -171,6 +290,70 @@ int socket_listen(p_socket ps, int backlog) {
 \*-------------------------------------------------------------------------*/
 int socket_accept(p_socket ps, p_socket pa, SA *addr, socklen_t *len, 
         p_timeout tm) {
+#ifdef SOCKET_SCHEDULER
+    struct wait_ctx ctx;
+    BOOL r;
+    SOCKET s;
+    char lpOutputBuf[1024];
+    int outBufLen = 1024;
+    int t, ret;
+    DWORD dwBytes;
+    int err;
+    lua_State *L = lua_this();
+
+    s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (s == INVALID_SOCKET)
+      return IO_UNKNOWN;
+
+    luaL_addfd(L, *ps);
+
+    memset(&ctx, 0, sizeof(ctx));
+
+    dprint("accept: ps:%u, pa:%u, ov:%p\n", *ps, s, &ctx.ov);
+
+    r = ext.AcceptEx(*ps, s, lpOutputBuf,
+                 0,
+                 sizeof (struct sockaddr_in) + 16, sizeof (struct sockaddr_in) + 16,
+                 &dwBytes, &ctx.ov);
+
+    if (r) return IO_DONE;
+
+    err = WSAGetLastError();
+    if (err != WSA_IO_PENDING) {
+          dprint("accept: error 1\n");
+          closesocket(s);
+          return err > 0 ? err : IO_UNKNOWN;
+    }
+
+    t = (int)(timeout_getretry(tm)*1e3);
+    ret = luaL_wait(L, *ps, 0, t, &ctx);
+
+    if (ret == -1) {
+        int len = sizeof(err);
+        /* find out why we failed */
+        getsockopt(*ps, SOL_SOCKET, SO_ERROR, (char *)&err, &len);
+        /* we KNOW there was an error. if 'why' is 0, we will return
+        * "unknown error", but it's not really our fault */
+        dprint("accept: error 2\n");
+        closesocket(s);
+        return err > 0? err: IO_UNKNOWN;
+    }
+
+    if (ret == 0) {
+        dprint("accept: error 3\n");
+        closesocket(s);
+        socket_destroy(ps);
+        return IO_TIMEOUT;
+    }
+
+    setsockopt( s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)ps, sizeof(*ps) );
+
+    dprint("accept OK\n");
+    *pa = s;
+
+    return IO_DONE;
+
+#else
     SA daddr;
     socklen_t dlen = sizeof(daddr);
     if (*ps == SOCKET_INVALID) return IO_CLOSED;
@@ -189,6 +372,7 @@ int socket_accept(p_socket ps, p_socket pa, SA *addr, socklen_t *len,
     } 
     /* can't reach here */
     return IO_UNKNOWN; 
+#endif
 }
 
 /*-------------------------------------------------------------------------*\
@@ -200,6 +384,55 @@ int socket_accept(p_socket ps, p_socket pa, SA *addr, socklen_t *len,
 int socket_send(p_socket ps, const char *data, size_t count, 
         size_t *sent, p_timeout tm)
 {
+#ifdef SOCKET_SCHEDULER
+    DWORD bytes;
+    WSABUF buf;
+    int ret, t;
+    struct wait_ctx ctx;
+    lua_State *L = lua_this();
+
+    *sent = 0;
+    if (*ps == SOCKET_INVALID) return IO_CLOSED;
+
+    luaL_addfd(L, *ps);
+
+    buf.buf = (char*)data;
+    buf.len = count;
+
+    memset(&ctx, 0, sizeof(ctx));
+
+    if (WSASend(*ps, &buf, 1, &bytes, 0, (LPWSAOVERLAPPED)&ctx.ov, NULL)) {
+          int err = WSAGetLastError();
+          if (err != WSA_IO_PENDING) {
+                dprint("send: error 1\n");
+                socket_destroy(ps);
+                return err > 0 ? err : IO_UNKNOWN;
+          }
+    }
+
+    t = (int)(timeout_getretry(tm)*1e3);
+    ret = luaL_wait(L, *ps, 0, t, &ctx);
+
+    if (ret < 0) {
+        int err;
+        GetOverlappedResult((HANDLE)*ps, &ctx.ov, &bytes, FALSE);
+        err = WSAGetLastError();
+        dprint("send: error 2\n");
+        socket_destroy(ps);
+        return err > 0 ? err : IO_UNKNOWN;
+    }
+    if (ret == 0) {
+        dprint("send: error 3\n");
+        socket_destroy(ps);
+        return IO_TIMEOUT;
+    }
+
+    GetOverlappedResult((HANDLE)*ps, &ctx.ov, &bytes, FALSE);
+    dprint("send: bytes:%u\n", bytes);
+    *sent = (size_t)bytes;
+
+    return IO_DONE;
+#else
     int err;
     *sent = 0;
     /* avoid making system calls on closed sockets */
@@ -222,6 +455,7 @@ int socket_send(p_socket ps, const char *data, size_t count,
     } 
     /* can't reach here */
     return IO_UNKNOWN;
+#endif
 }
 
 /*-------------------------------------------------------------------------*\
@@ -250,6 +484,62 @@ int socket_sendto(p_socket ps, const char *data, size_t count, size_t *sent,
 * Receive with timeout
 \*-------------------------------------------------------------------------*/
 int socket_recv(p_socket ps, char *data, size_t count, size_t *got, p_timeout tm) {
+#if defined(SOCKET_SCHEDULER)
+    WSABUF buf;
+    DWORD flags = 0;
+    DWORD taken;
+    int err;
+    int ret, t;
+    struct wait_ctx ctx;
+    lua_State *L = lua_this();
+
+    *got = 0;
+    if (*ps == SOCKET_INVALID) return IO_CLOSED;
+
+    dprint("recv: ov:%p\n", &ctx.ov);
+
+    luaL_addfd(L, *ps);
+
+    buf.buf = data;
+    buf.len = count;
+
+    memset(&ctx, 0, sizeof(ctx));
+
+    if (WSARecv(*ps, &buf, 1, &taken, &flags, (LPWSAOVERLAPPED)&ctx.ov, NULL)) {
+            err = WSAGetLastError();
+            if (err != WSA_IO_PENDING) {
+              dprint("recv: error 1 err:%i\n", err);
+              socket_destroy(ps);
+              return err > 0 ? err : IO_UNKNOWN;
+            }
+    }
+
+    t = (int)(timeout_getretry(tm)*1e3);
+    ret = luaL_wait(L, *ps, 0, t, &ctx);
+
+    if (ret < 0) {
+        int err;
+        DWORD bytes;
+        GetOverlappedResult((HANDLE)*ps, &ctx.ov, &bytes, FALSE);
+        err = WSAGetLastError();
+        dprint("recv: error 2\n");
+        socket_destroy(ps);
+        return err > 0 ? err : IO_UNKNOWN;
+    }
+    if (ret == 0) {
+        dprint("recv: error 3\n");
+        socket_destroy(ps);
+        return IO_TIMEOUT;
+    }
+
+    GetOverlappedResult((HANDLE)*ps, &ctx.ov, &taken, FALSE);
+    dprint("recv: taken:%u\n", taken);
+    if (taken == 0)
+      return IO_CLOSED;
+    *got = (size_t)taken;
+
+    return IO_DONE;
+#else
     int err;
     *got = 0;
     if (*ps == SOCKET_INVALID) return IO_CLOSED;
@@ -265,6 +555,7 @@ int socket_recv(p_socket ps, char *data, size_t count, size_t *got, p_timeout tm
         if ((err = socket_waitfd(ps, WAITFD_R, tm)) != IO_DONE) return err;
     }
     return IO_UNKNOWN;
+#endif
 }
 
 /*-------------------------------------------------------------------------*\

@@ -497,8 +497,12 @@ static int f_flush (lua_State *L) {
 }
 
 static int f_sync(lua_State *L) {
+#ifndef WIN32
   FILE *f = tofile(L);
   return pushresult(L, fflush(f) == 0 && fsync(fileno(f)) == 0, NULL);
+#else
+  return 0;
+#endif
 }
 
 static int f_getfd(lua_State *L) {

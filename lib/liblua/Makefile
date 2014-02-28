@@ -35,7 +35,10 @@ USE_SCHEDULER     := 1
 LUA_INC           := "-I$(CURDIR)/$(LUA_DIR)/src"
 CFLAGS            += $(LUA_INC) -DAUTOCONF -DLUA_STATIC_MODULES -DCOCO_MIN_CSTACKSIZE=1024
 ifdef HOSTBUILD
-CFLAGS            += -DUSE_VALGRIND=1 -g
+ifndef FOR_WINDOWS
+CFLAGS            += -DUSE_VALGRIND=1
+endif
+CFLAGS            += -g
 endif
 
 lua_libs =
@@ -51,6 +54,9 @@ ifdef CONFIG_LIB_LUA_LUASOCKET
 	endif
 	CFLAGS          += -Wl,-lsocket -Wl,-lmime -L$(CURDIR)/$(LUASOCKET_DIR)/src
 	lua_libs        += luasocket
+	ifdef FOR_WINDOWS
+		CFLAGS      += -Wl,-lws2_32
+	endif
 endif
 
 ifdef CONFIG_LIB_LUA_SQLITE

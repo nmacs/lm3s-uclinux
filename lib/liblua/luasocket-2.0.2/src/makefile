@@ -24,8 +24,13 @@ SOCKET_OBJS:= \
 	tcp.o \
 	udp.o \
 	except.o \
-	select.o \
-	usocket.o
+	select.o
+	
+ifdef FOR_WINDOWS
+	SOCKET_OBJS += wsocket.o
+else
+	SOCKET_OBJS += usocket.o
+endif
 
 #------
 # Modules belonging mime-core

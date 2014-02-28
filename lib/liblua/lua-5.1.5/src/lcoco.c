@@ -36,10 +36,12 @@
 #include "ldo.h"
 #include "lvm.h"
 #include "lgc.h"
+#ifndef WIN32
 #include <sys/mman.h>
 #include <errno.h>
 #include <syslog.h>
 #include <unistd.h>
+#endif
 
 
 /*

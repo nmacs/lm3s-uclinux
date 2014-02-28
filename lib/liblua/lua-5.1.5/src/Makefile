@@ -158,7 +158,7 @@ lauxlib.o: lauxlib.c lua.h luaconf.h lauxlib.h
 lbaselib.o: lbaselib.c lua.h luaconf.h lauxlib.h lualib.h lcoco.h
 lcoco.o: lcoco.c lua.h luaconf.h lobject.h llimits.h lstate.h ltm.h \
   lzio.h lmem.h lcoco.h ldo.h lvm.h lgc.h
-lscheduler.o: lscheduler.c lua.h lauxlib.h lualib.h ltimer.h
+lscheduler.o: lscheduler.c lscheduler.h lua.h lauxlib.h lualib.h ltimer.h
 lcron.o: lcron.c lua.h lauxlib.h lualib.h ltimer.h
 ltimer.o: ltimer.c ltimer.h
 lthis.o: lthis.c lua.h luaconf.h lobject.h llimits.h lstate.h ltm.h \
