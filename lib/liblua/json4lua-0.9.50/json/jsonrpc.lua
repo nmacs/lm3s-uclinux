@@ -82,17 +82,20 @@ function handle_http(request, response, cap)
 	response.headers ["Cache-Control"] = "no-cache, no-store, must-revalidate"
 	if request.cmd_mth ~= "POST" then
 		send_error_response("Request must use POST method.", ERR_INVALID_REQUEST, nil, response)
+		response.headers["Connection"] = "close"
 		return
 	end
 
 	local len = base.tonumber(request.headers["content-length"])
 	if len == nil then
 		send_error_response("Header content-length must present.", ERR_INVALID_REQUEST, nil, response)
+		response.headers["Connection"] = "close"
 		return
 	end
 
 	if len > MAX_REQUEST_LENGTH then
 		send_error_response("Request is too long. Max size " .. MAX_REQUEST_LENGTH, ERR_INVALID_REQUEST, nil, response)
+		response.headers["Connection"] = "close"
 		return
 	end
 
@@ -108,5 +111,6 @@ function handle_http(request, response, cap)
 		end
 	else
 		send_error_response("Request parsing error. " .. data, ERR_PARSE_ERROR, nil, response)
+		response.headers["Connection"] = "close"
 	end
 end

@@ -180,11 +180,13 @@ end
 function read_method (req)
 	local err
 	req.cmdline, err = req.socket:receive ()
-
+	
 	if not req.cmdline then return nil end
 	req.cmd_mth, req.cmd_url, req.cmd_version = unpack (strsplit (req.cmdline))
 	req.cmd_mth = string.upper (req.cmd_mth or 'GET')
 	req.cmd_url = req.cmd_url or '/'
+	
+	if req.cmd_mth ~= "GET" and req.cmd_mth ~= "POST" then return nil end
 
 	return true
 end
@@ -357,7 +359,7 @@ function send_response (req, res)
         res:add_header ("Transfer-Encoding", "chunked")
     end
 
-	if res.chunked or ((res.headers ["Content-Length"]))
+	if res.chunked or ((res.headers ["Content-Length"] and res.headers ["Connection"] ~= "close"))
 	then
 		--and req.headers ["connection"] == "Keep-Alive"
 		--res.headers ["Connection"] = "Keep-Alive"
