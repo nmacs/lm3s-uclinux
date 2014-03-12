@@ -310,7 +310,6 @@ static int do_resume_thread(lua_State *L, lua_State *co, int nargs)
 {
 	int ret;
 	dprint("do_resume_thread L:%p, co:%p, nargs:%i\n", L, co, nargs);
-	lua_xmove(L, co, nargs);
 	lua_setthis(co);
 	dprint("do_resume_thread SP:%p\n", &ret);
 	ret = lua_resume(co, nargs);
@@ -319,16 +318,14 @@ static int do_resume_thread(lua_State *L, lua_State *co, int nargs)
 	dprint("do_resume_thread 1\n");
 	if (ret == LUA_YIELD) {
 		dprint("do_resume_thread 2 top:%i\n", lua_gettop(co));
-		//lua_pop(co, lua_gettop(co));
+		lua_pop(co, lua_gettop(co));
 		dprint("do_resume_thread 3\n");
 		return 0;
 	}
 
 	if (ret != 0) {
-	        const char *error;
 		dprint("do_resume_thread 4\n");
-		lua_xmove(co, L, 1);
-		on_thread_error(L, co, lua_tostring(L, -1));
+		on_thread_error(L, co, lua_tostring(co, -1));
 	}
 
 	return -1;
@@ -345,7 +342,7 @@ static int resume_thread(lua_State *L, struct wait_ctx *ctx, int status)
 		ctx->timeout = 0;
 	  del_timer(&ctx->timer);
 	}
-	lua_pushinteger(L, status);
+	lua_pushinteger(co, status);
 	return do_resume_thread(L, co, 1);
 }
 
@@ -376,8 +373,7 @@ static int l_loop(lua_State *L)
 			for (i = 0; i < ret; i++) {
 				struct wait_ctx *ctx = events[i].data.ptr;
 				int status = events[i].events & (EPOLLHUP | EPOLLERR) ? -1 : 1;
-				if (resume_thread(L, ctx, status))
-					lua_pop(L, 1);
+				resume_thread(L, ctx, status);
 			}
 		}
 		else if (ret < 0 && errno != EINTR) {
@@ -392,8 +388,7 @@ static int l_loop(lua_State *L)
                   process_timers_ex(&timers, &expired, now);
                   list_for_each_safe(&expired, item, tmp) {
                           struct timer_list *timer = container_of(item, struct timer_list, list);
-                          if (resume_thread(L, (struct wait_ctx*)timer->data, 0))
-                                  lua_pop(L, 1);
+                          resume_thread(L, (struct wait_ctx*)timer->data, 0);
                   }
 		}
 	}
@@ -433,8 +428,7 @@ static int l_loop(lua_State *L)
 										dprint("loop: 3\n");
 										status = r ? 1 : -1;
 										dprint("loop: resume on io status:%i\n", status);
-										if (resume_thread(L, ctx, status))
-														lua_pop(L, 1);
+										resume_thread(L, ctx, status);
 										dprint("loop: resume on io done\n");
 						}
 						dprint("loop: 4\n");
@@ -452,8 +446,7 @@ static int l_loop(lua_State *L)
 							struct timer_list *timer = container_of(item, struct timer_list, list);
 							dprint("loop: resume on timeout status:0 ctx:%p co:%p\n",
 										 (struct wait_ctx*)timer->data, ((struct wait_ctx*)timer->data)->L_thread);
-							if (resume_thread(L, (struct wait_ctx*)timer->data, 0))
-											lua_pop(L, 1);
+							resume_thread(L, (struct wait_ctx*)timer->data, 0);
 							dprint("loop: resume on timeout done\n");
 			}
 		}
@@ -481,7 +474,9 @@ static int l_run(lua_State *L)
 {
 	lua_State *co = lua_tothread(L, 1);
 	luaL_argcheck(L, co, 1, "coroutine expected");
-	if (do_resume_thread(L, co, lua_gettop(L) - 1)) {
+	int nargs = lua_gettop(L) - 1;
+	lua_xmove(L, co, nargs);
+	if (do_resume_thread(L, co, nargs)) {
 		lua_pushnil(L);
 		lua_pushvalue(L, -2);
 		return 2;
