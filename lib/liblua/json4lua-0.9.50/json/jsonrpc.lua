@@ -19,6 +19,10 @@ function add_method(name, fn)
 	methods[name] = fn
 end
 
+function del_method(name)
+	methods[name] = nil
+end
+
 local function find_method(name)
 	return methods[name]
 end
