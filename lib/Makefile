@@ -30,6 +30,10 @@ dir_$(CONFIG_LIB_LIBSSL)+= libssl
 lib_libssl = build/*.so* build/*.a
 inc_libssl = build/include/*,.
 
+dir_$(CONFIG_LIB_SQLITE_SQLITE) += libsqlite
+lib_libsqlite = output/lib/libsqlite3.a
+inc_libsqlite = output/include/*.h,.
+
 dir_$(CONFIG_LIB_LUA) += liblua
 lib_liblua_y += lua-5.1.5/src/liblua.a
 inc_liblua = lua-5.1.5/src/lua.h,. \
@@ -68,10 +72,6 @@ inc_libtommath = output/include/*.h,.
 dir_$(CONFIG_LIB_TOMCRYPT) += libtomcrypt
 lib_libtomcrypt = output/lib/libtomcrypt.a
 inc_libtomcrypt = output/include/*.h,.
-
-dir_$(CONFIG_LIB_SQLITE_SQLITE) += libsqlite
-lib_libsqlite = output/lib/libsqlite3.a
-inc_libsqlite = output/include/*.h,.
 
 dir_$(CONFIG_LIB_ADNS) += adns
 lib_adns = src/libadns.a
