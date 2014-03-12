@@ -21,6 +21,7 @@ if [ "$answer" == "y" ]; then
 
 	mkdir -p /mnt/boot
 	mkdir -p /mnt/opt
+	mkdir -p /mnt/opt/apps
 	mkdir -p /mnt/etc/config
 	mkdir -p /mnt/var/log
 	mkdir -p /mnt/var/upgrade
