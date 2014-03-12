@@ -365,7 +365,7 @@
 */
 #define LUA_COMPAT_OPENLIB
 
-
+#define LUA_USE_APICHECK
 
 /*
 @@ luai_apicheck is the assert macro used by the Lua-C API.
@@ -375,8 +375,10 @@
 ** with Lua. A useful redefinition is to use assert.h.
 */
 #if defined(LUA_USE_APICHECK)
-#include <assert.h>
-#define luai_apicheck(L,o)	{ (void)L; assert(o); }
+
+//#include <assert.h>
+#include <syslog.h>
+#define luai_apicheck(L,o)	{ (void)L; if (!(o)) syslog(LOG_ERR, "!!! Accertion Failed !!! At %s:%i\n", __FILE__, __LINE__); /*assert(o);*/ }
 #else
 #define luai_apicheck(L,o)	{ (void)L; }
 #endif
