@@ -170,7 +170,7 @@
 // STDC_HEADERS is defined to 1 on sane systems.
 #if defined(HAVE_ASSERT_H) && defined(HAVE_CTYPE_H) &&\
     defined(HAVE_ERRNO_H) && defined(HAVE_FLOAT_H) &&\
-    defined(HAVE_LIMITS_H) && defined(HAVE_LOCALE_H) &&\
+    defined(HAVE_LIMITS_H) && (defined(HAVE_LOCALE_H) || defined(__nuttx__)) &&\
     defined(HAVE_MATH_H) && defined(HAVE_SIGNAL_H) &&\
     defined(HAVE_STDARG_H) && defined(HAVE_STDDEF_H) &&\
     defined(HAVE_STDIO_H) && defined(HAVE_STDLIB_H) &&\

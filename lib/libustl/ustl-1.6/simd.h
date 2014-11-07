@@ -101,6 +101,9 @@ STD_UNARY_FUNCTOR (fprecipsqrt,	T, (reset_mmx(), 1 / T(sqrt (a))))
 STD_UNARY_FUNCTOR (fsin,	T, (reset_mmx(), T (sin (a))))
 STD_UNARY_FUNCTOR (fcos,	T, (reset_mmx(), T (cos (a))))
 STD_UNARY_FUNCTOR (ftan,	T, (reset_mmx(), T (tan (a))))
+#ifdef __nuttx__
+extern double rint(double x);
+#endif
 #if HAVE_RINTF
 STD_CONVERSION_FUNCTOR (fround, (reset_mmx(), D(rintf(a))))
 #else

@@ -244,8 +244,13 @@ void fstream::munmap (memlink& l)
 /// Synchronizes a memory-mapped area.
 void fstream::msync (memlink& l)
 {
+#ifndef __nuttx__
     if (::msync (l.data(), l.size(), MS_ASYNC | MS_INVALIDATE))
 	set_and_throw (failbit, "msync");
+#else
+	#warning "fstream::msync is not implemented on nuttx platform"
+	assert(0);
+#endif
 }
 
 void fstream::set_nonblock (bool v)
