@@ -6,6 +6,7 @@ mount -t ubifs /dev/ubi0_0 /media/flash
 
 mount -t cramfs /dev/mtdblock0 /etc/romdisk || reboot
 insert-passphrase /etc/romdisk/key || reboot
+mkdir -p /media/flash/etc/config
 mount -t ecryptfs /media/flash/etc/config /etc/config -o rw,ecryptfs_sig=0000000000000001,ecryptfs_key_bytes=16,ecryptfs_cipher=aes,ecryptfs_no_symlinks || reboot
 
 rm -rf /var/tmp/*
