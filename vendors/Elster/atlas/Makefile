@@ -103,6 +103,10 @@ firmware: initramfs
 flash_mcu: uboot romdisk
 	openocd -f $(PRODUCTDIR)/jtag.cfg -c "flash_mcu $(UBOOT_IMG) $(ROMDISK_IMG)"
 
+.PHONY: flash_mcu_only
+flash_mcu_only:
+	openocd -f $(PRODUCTDIR)/jtag.cfg -c "flash_mcu $(UBOOT_IMG) $(ROMDISK_IMG)"
+
 modules.dep:
 ifdef CONFIG_MODULES
 	( \

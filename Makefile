@@ -261,6 +261,10 @@ romdisk:
 flash_mcu:
 	$(MAKE) -C $(PRODUCTDIR) flash_mcu
 
+.PHONY: flash_mcu_only
+flash_mcu_only:
+	$(MAKE) -C $(PRODUCTDIR) flash_mcu_only
+
 .PHONY: host-build
 host-build:
 	$(MAKE) -C $(ROOTDIR) HOSTBUILD=1 subdirs
