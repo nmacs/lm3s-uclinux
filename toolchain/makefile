@@ -1,20 +1,19 @@
 OUTPUT        := $(CURDIR)/output
 
-BINUTILS_DIR  := $(CURDIR)/src/binutils-2011.03
-GCC_DIR       := $(CURDIR)/src/gcc-4.5-2011.03
+BINUTILS_DIR  := $(CURDIR)/src/binutils-2.25
+GCC_DIR       := $(CURDIR)/src/gcc-4.9.2
 LIBELF_DIR    := $(CURDIR)/src/libelf-2011.03
-LIBGMP_DIR    := $(CURDIR)/src/gmp-2011.03
+LIBGMP_DIR    := $(CURDIR)/src/gmp-6.0.0
 LIBMPFR_DIR   := $(CURDIR)/src/mpfr-2011.03
 LIBMPC_DIR    := $(CURDIR)/src/mpc-0.8.1
-LIBPPL_DIR    := $(CURDIR)/src/ppl-0.10.2
-LIBCLOOG_DIR  := $(CURDIR)/src/cloog-0.15
+LIBPPL_DIR    := $(CURDIR)/src/ppl-1.1
+LIBCLOOG_DIR  := $(CURDIR)/src/cloog-0.18.1
 UCLIBC_DIR    := $(CURDIR)/src/uClibc-0.9.33.2
 ELF2FLT_DIR   := $(CURDIR)/src/elf2flt-2006q1
 ZLIB_DIR      := $(CURDIR)/src/zlib-1.2.3
 
 BINUTILS_CONFIG_OPTS   := --prefix=$(OUTPUT) --target=arm-uclinuxeabi --enable-install-libbfd --disable-nls --disable-werror \
-                          '--with-pkgversion=Sourcery G++ Lite 2011.03-46' --with-bugurl=https://support.codesourcery.com/GNUToolchain/ \
-                          --with-sysroot=$(OUTPUT)/arm-uclinuxeabi/libc
+                          --with-sysroot=$(OUTPUT)/arm-uclinuxeabi/libc --disable-shared --enable-static
 
 LIBELF_CONFIG_OPTS     := --prefix=$(OUTPUT) --target=arm-uclinuxeabi --disable-shared --disable-nls
 LIBGMP_CONFIG_OPTS     := --prefix=$(OUTPUT) --disable-shared --enable-cxx --disable-nls
@@ -25,38 +24,39 @@ LIBPPL_CONFIG_OPTS     := --prefix=$(OUTPUT) --target=arm-uclinuxeabi --disable-
                           CPPFLAGS=-fpermissive
 LIBCLOOG_CONFIG_OPTS   := --prefix=$(OUTPUT) --target=arm-uclinuxeabi --disable-shared --disable-nls \
                           --with-ppl=$(OUTPUT) --with-gmp=$(OUTPUT)
-GCC_CONFIG_OPTS        := --target=arm-uclinuxeabi --disable-threads --disable-libmudflap --disable-libssp \
+GCC_CONFIG_OPTS        := --target=arm-uclinuxeabi --enable-threads --disable-libmudflap --disable-libssp \
                           --disable-libstdcxx-pch --with-gnu-as \
                           --disable-multilib --with-cpu=cortex-m3 --with-mode=thumb --with-arch=armv7-m --with-tune=cortex-m3 \
-                          --with-gnu-ld '--with-specs=%{save-temps: -fverbose-asm} -D__CS_SOURCERYGXX_MAJ__=2011 -D__CS_SOURCERYGXX_MIN__=3 -D__CS_SOURCERYGXX_REV__=46 %{O2:%{!fno-remove-local-statics: -fremove-local-statics}} %{O*:%{O|O0|O1|O2|Os:;:%{!fno-remove-local-statics: -fremove-local-statics}}}' \
-                          --enable-languages=c,c++ --disable-shared --enable-lto '--with-pkgversion=Sourcery G++ Lite 2011.03-46' \
-                          --with-bugurl=https://support.codesourcery.com/GNUToolchain/ --disable-nls --prefix=$(OUTPUT) \
-                          --disable-shared --disable-threads --disable-libssp --disable-libgomp --without-headers \
+                          --with-gnu-ld '--with-specs=%{save-temps: -fverbose-asm}' \
+                          --enable-languages=c,c++ --disable-shared --enable-lto \
+                          --disable-nls --prefix=$(OUTPUT) \
+                          --disable-shared --disable-libssp --disable-libgomp --without-headers \
                           --disable-decimal-float --disable-libffi --disable-libquadmath --enable-languages=c,c++ \
                           --with-sysroot=$(OUTPUT)/arm-uclinuxeabi/libc --with-build-sysroot=$(OUTPUT)/arm-uclinuxeabi/libc \
                           --enable-poison-system-directories \
-                          --with-gmp=$(OUTPUT) \
-                          --with-mpfr=$(OUTPUT) \
-                          --with-mpc=$(OUTPUT) \
-                          --with-ppl=$(OUTPUT) \
                           '--with-host-libstdcxx=-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm' \
-                          --with-cloog=$(OUTPUT) \
-                          --with-libelf=$(OUTPUT) \
                           --disable-libgomp \
                           --with-build-time-tools=$(OUTPUT)/bin \
                           --disable-wchar_t \
+                          --disable-dlopen \
                           CFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" CXXFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" \
                           TARGET_CFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections" TARGET_CXXFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections"
 
+#                          --with-gmp=$(OUTPUT) \
+#                          --with-mpfr=$(OUTPUT) \
+#                          --with-mpc=$(OUTPUT) \
+#                          --with-ppl=$(OUTPUT) \
+#                          --with-cloog=$(OUTPUT) \
+#                          --with-libelf=$(OUTPUT) \
+
 ELF2FLT_CONFIG_OPTS    := --prefix=$(OUTPUT) --target=arm-uclinuxeabi \
-                          '--with-pkgversion=Sourcery G++ Lite 2011.03-46' \
-                          --with-bugurl=https://support.codesourcery.com/GNUToolchain/ \
                           --disable-nls \
                           --with-bfd-include-dir=$(OUTPUT)/`$(GCC_DIR)/config.guess`/arm-uclinuxeabi/include \
                           --with-libbfd=$(OUTPUT)/`$(GCC_DIR)/config.guess`/arm-uclinuxeabi/lib/libbfd.a \
                           --with-binutils-include-dir=$(BINUTILS_DIR)/include \
                           --with-zlib-prefix=$(OUTPUT) \
-                          --with-libiberty=$(OUTPUT)/lib/libiberty.a
+                          --with-libiberty=$(BINUTILS_DIR)/build/libiberty/libiberty.a \
+                          LIBS="-ldl"
 
 ZLIB_CONFIG_OPTS       := --prefix=$(OUTPUT)
 
@@ -114,29 +114,30 @@ libppl: libppl_config
 libppl_config:
 	mkdir -p $(LIBPPL_DIR)/build; cd $(LIBPPL_DIR)/build; ../configure $(LIBPPL_CONFIG_OPTS) || exit 1
 
-libcloog: patch_cloog-s libcloog_config
+libcloog: libcloog_config
 	$(MAKE) -j4 -C $(LIBCLOOG_DIR)/build
 	$(MAKE) -C $(LIBCLOOG_DIR)/build install
 
 libcloog_config:
 	mkdir -p $(LIBCLOOG_DIR)/build; cd $(LIBCLOOG_DIR)/build; ../configure $(LIBCLOOG_CONFIG_OPTS) || exit 1
 
-patch_cloog-s:
-	cd $(LIBCLOOG_DIR); patch -p1 < $(CURDIR)/cloog-patch-01
-	touch patch_cloog-s
+#patch_cloog-s:
+#	cd $(LIBCLOOG_DIR); patch -p1 < $(CURDIR)/cloog-patch-01
+#	touch patch_cloog-s
 
 gcc: gcc_stage_1 elf2flt libc
 	AR_FOR_TARGET=arm-uclinuxeabi-ar NM_FOR_TARGET=arm-uclinuxeabi-nm OBJDUMP_FOR_TARGET=arm-uclinuxeabi-objdump STRIP_FOR_TARGET=arm-uclinuxeabi-strip $(MAKE) -j4 -C $(GCC_DIR)/build LDFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc CPPFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc build_tooldir=$(OUTPUT)/arm-uclinuxeabi all
 	$(MAKE) -C $(GCC_DIR)/build install
 
-gcc_stage_1: linux-headers patch_gcc-s binutils libelf libgmp libmpfr libmpc libppl libcloog gcc_config
+#libelf libgmp libmpfr libmpc libppl libcloog
+gcc_stage_1: linux-headers binutils gcc_config
 	AR_FOR_TARGET=arm-uclinuxeabi-ar NM_FOR_TARGET=arm-uclinuxeabi-nm OBJDUMP_FOR_TARGET=arm-uclinuxeabi-objdump STRIP_FOR_TARGET=arm-uclinuxeabi-strip $(MAKE) -j4 -C $(GCC_DIR)/build LDFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc CPPFLAGS_FOR_TARGET=--sysroot=$(OUTPUT)/arm-uclinuxeabi/libc build_tooldir=$(OUTPUT)/arm-uclinuxeabi all-gcc
 	$(MAKE) -C $(GCC_DIR)/build install-gcc
 
-patch_gcc-s:
-	cd $(GCC_DIR); patch -p1 < $(CURDIR)/gcc-patch-01
-	cd $(GCC_DIR); patch -p1 < $(CURDIR)/gcc-patch-02
-	touch patch_gcc-s
+#patch_gcc-s:
+#	cd $(GCC_DIR); patch -p1 < $(CURDIR)/gcc-patch-01
+#	cd $(GCC_DIR); patch -p1 < $(CURDIR)/gcc-patch-02
+#	touch patch_gcc-s
 
 libc: patch_uclibc-s
 	cp $(PRODUCTDIR)/config.uClibc $(UCLIBC_DIR)/.config

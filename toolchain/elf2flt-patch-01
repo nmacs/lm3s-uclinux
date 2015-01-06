@@ -1,11 +1,54 @@
 --- a/elf2flt.c
 +++ b/elf2flt.c
-@@ -2291,7 +2291,7 @@
+@@ -140,7 +140,7 @@
+ int pic_with_got = 0; /* do elf/got processing with PIC code */
+ int load_to_ram = 0;  /* instruct loader to allocate everything into RAM */
+ int ktrace = 0;       /* instruct loader output kernel trace on load */
+-int compress = 0;     /* 1 = compress everything, 2 = compress data only */
++int docompress = 0;   /* 1 = compress everything, 2 = compress data only */
+ int use_resolved = 0; /* If true, get the value of symbol references from */
+ 		      /* the program contents, not from the relocation table. */
+ 		      /* In this case, the input ELF file must be already */
+@@ -2080,10 +2080,10 @@
+       ktrace++;
+       break;
+     case 'z':
+-      compress = 1;
++      docompress = 1;
+       break;
+     case 'd':
+-      compress = 2;
++      docompress = 2;
+       break;
+     case 'p':
+       pfile = optarg;
+@@ -2289,9 +2289,9 @@
+ 	  | (load_to_ram ? FLAT_FLAG_RAM : 0)
+ 	  | (ktrace ? FLAT_FLAG_KTRACE : 0)
  	  | (pic_with_got ? FLAT_FLAG_GOTPIC : 0)
- 	  | (compress ? (compress == 2 ? FLAT_FLAG_GZDATA : FLAT_FLAG_GZIP) : 0)
+-	  | (compress ? (compress == 2 ? FLAT_FLAG_GZDATA : FLAT_FLAG_GZIP) : 0)
++	  | (docompress ? (docompress == 2 ? FLAT_FLAG_GZDATA : FLAT_FLAG_GZIP) : 0)
  	  );
 -  hdr.build_date = htonl((unsigned long)time(NULL));
 +  hdr.build_date = 0;
    bzero(hdr.filler, sizeof(hdr.filler));
  
    for (i=0; i<reloc_len; i++) reloc[i] = htonl(reloc[i]);
+@@ -2342,7 +2342,7 @@
+ 	exit(4);
+   }
+ 
+-  if (compress == 1)
++  if (docompress == 1)
+   	START_COMPRESSOR;
+ 
+   /* Fill in any hole at the beginning of the text segment.  */
+@@ -2353,7 +2353,7 @@
+   /* Write the text segment.  */
+   fwrite(text, text_len, 1, gf);
+ 
+-  if (compress == 2)
++  if (docompress == 2)
+   	START_COMPRESSOR;
+ 
+   /* Write the data segment.  */

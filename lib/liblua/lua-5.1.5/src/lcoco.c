@@ -681,6 +681,8 @@ void luaCOCO_free(lua_State *L)
 #if defined(__UCLIBC__)
 # if __GNUC__ == 4 && __GNUC_MINOR__ == 5 && __GNUC_PATCHLEVEL__ == 2
 #  define RESUME_YEILD_WORKARAUND 1
+# elif __GNUC__ == 4 && __GNUC_MINOR__ == 9 && __GNUC_PATCHLEVEL__ == 2
+#  define RESUME_YEILD_WORKARAUND 1
 # else
 #  error "Untested GCC version"
 # endif

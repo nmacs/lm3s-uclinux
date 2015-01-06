@@ -88,7 +88,7 @@ struct c {
 };
 
 static struct p peer;
-static struct c clock;
+static struct c sclock;
 static int      tc_counter;
 
 static int gettime(void)
@@ -96,7 +96,7 @@ static int gettime(void)
 	struct timeval tv;
 	if (gettimeofday(&tv, 0))
 		return NTP_ERR_SYS;
-	clock.now = (double)tv.tv_sec + (double)tv.tv_usec / USEC_IN_SEC;
+	sclock.now = (double)tv.tv_sec + (double)tv.tv_usec / USEC_IN_SEC;
 	return NTP_OK;
 }
 
@@ -107,7 +107,7 @@ static int settime(double t)
 	tv.tv_usec = (suseconds_t)((t - tv.tv_sec) * USEC_IN_SEC);
 	if (settimeofday(&tv, 0))
 		return NTP_ERR_SYS;
-	clock.now = t;
+	sclock.now = t;
 	dprint("settime: t:%f\n", t);
 	return NTP_OK;
 }
@@ -124,7 +124,7 @@ static int movetime(double offset)
 	if (ret)
 		return ret;
 #endif
-	new_time = clock.now + offset;
+	new_time = sclock.now + offset;
 	ret = settime(new_time);
 	if (ret != NTP_OK)
 		return ret;
@@ -135,7 +135,7 @@ static void peer_clear(struct p *p)
 {
 	int i;
 	memset(p, 0, sizeof(struct p));
-	p->update = clock.now;
+	p->update = sclock.now;
 	for (i = 0; i < NSTAGE; i++) {
 		p->f[i].disp = MAXDISPERSE;
 		p->ff.disp[i] = MAXDISPERSE;
@@ -155,7 +155,7 @@ static int freq_adjust(struct p *p)
 	dprint("freq_adjust: p->offset:%f\n", p->offset);
 
 	if (p->ff.update == 0) {
-		p->ff.update = clock.now;
+		p->ff.update = sclock.now;
 		return NTP_OK;
 	}
 
@@ -169,7 +169,7 @@ static int freq_adjust(struct p *p)
 		disp += p->ff.disp[i];
 	disp /= NSTAGE;
 
-	period = clock.now - p->ff.update;
+	period = sclock.now - p->ff.update;
         drift = p->ff.offset / period * PPM_SCALE;
 
 	if (disp > MAXDISTANCE)
@@ -194,14 +194,14 @@ static int freq_adjust(struct p *p)
 	dprint("freq_adjust: freq_adj:%li\n", freq_adj);
 	
 	p->ff.offset = 0;
-	p->ff.update = clock.now;
+	p->ff.update = sclock.now;
 	
 	memset(&tx, 0, sizeof(tx));
 	tx.modes = ADJ_FREQUENCY;
-	tx.freq = clock.freq + freq_adj;
+	tx.freq = sclock.freq + freq_adj;
 	if (adjtimex(&tx) >= 0) {
 		dprint("freq_adjust: adjtimex freq:%li\n", tx.freq);
-		clock.freq = tx.freq;
+		sclock.freq = tx.freq;
 		return NTP_OK;
 	}
 	else
@@ -281,12 +281,12 @@ static int clock_filter(struct p *p, double offset, double delay, double disp)
 	p->f[j].offset = offset;
 	p->f[j].delay = delay;
 	p->f[j].disp = disp;
-	p->f[j].t = clock.now;
+	p->f[j].t = sclock.now;
 	j = (j + 1) % NSTAGE;
 	p->nextf = j;
 
-	dtemp = PHI * (clock.now - p->update);
-	p->update = clock.now;
+	dtemp = PHI * (sclock.now - p->update);
+	p->update = sclock.now;
 	for (i = NSTAGE - 1; i >= 0; i--) {
 		if (i != 0)
 			p->f[j].disp += dtemp;
@@ -499,8 +499,8 @@ static int l_get_clock(lua_State *L)
 {
 	lua_newtable(L);
 	gettime();
-	lua_pushnumber(L, clock.now);    lua_setfield(L, -2, "now");
-	lua_pushnumber(L, clock.freq);   lua_setfield(L, -2, "freq");
+	lua_pushnumber(L, sclock.now);    lua_setfield(L, -2, "now");
+	lua_pushnumber(L, sclock.freq);   lua_setfield(L, -2, "freq");
 	return 1;
 }
 
@@ -517,7 +517,7 @@ static int l_set_clock(lua_State *L)
 	lua_getfield(L, 1, "freq");
 	value = luaL_checknumber(L, -1);
 	lua_pop(L, 1);
-	clock.freq = (long)value;
+	sclock.freq = (long)value;
 
 	return 0;
 }
