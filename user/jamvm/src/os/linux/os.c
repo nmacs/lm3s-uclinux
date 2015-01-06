@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <dlfcn.h>
+//#include <dlfcn.h>
 #include <sys/sysinfo.h>
 #include <pthread.h>
 
@@ -56,15 +56,17 @@ char *nativeLibPath() {
 }
 
 void *nativeLibOpen(char *path) {
-    return dlopen(path, RTLD_LAZY);
+    //return dlopen(path, RTLD_LAZY);
+	return 0;
 }
 
 void nativeLibClose(void *handle) {
-    dlclose(handle);
+    //dlclose(handle);
 }
 
 void *nativeLibSym(void *handle, char *symbol) {
-    return dlsym(handle, symbol);
+	return 0;
+    //return dlsym(handle, symbol);
 }
 
 char *nativeLibMapName(char *name) {

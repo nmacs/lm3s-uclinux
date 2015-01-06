@@ -73,6 +73,8 @@ initramfs:
 		$(MAKE) -C $(REPODIR)/$$p content; \
 		cp -rd $(REPODIR)/$$p/.content/* $(IMAGEDIR)/initramfs; \
 	done
+	mkdir -p $(IMAGEDIR)/initramfs/java
+	cp $(ROMFSDIR)/bin/jamvm $(IMAGEDIR)/initramfs/bin/jamvm
 	cp upgrade.sh $(IMAGEDIR)/initramfs/bin/upgrade
 	cd $(IMAGEDIR)/initramfs; ln -s bin/init init
 	mkinitramfs $(IMAGEDIR)/initramfs $(IMAGEDIR)/initramfs.cpio.lzo
@@ -129,9 +131,9 @@ $(LINUXIMG): $(LINUXBOOTDIR)/Image
 
 image:
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	genext2fs -b 5120 -D $(PRODUCTDIR)/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
+#	genext2fs -b 51200 -D $(PRODUCTDIR)/dev.txt -d $(ROMFSDIR) $(EXT2IMG)
 #	mkfs.cramfs -v $(ROMFSDIR) $(IMAGEDIR)/Image.cramfs
-	$(UBIFS) -r $(ROMFSDIR) -o $(UBIFSIMG)
+#	$(UBIFS) -r $(ROMFSDIR) -o $(UBIFSIMG)
 
 .PHONY: host-%
 host-%:

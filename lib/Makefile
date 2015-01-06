@@ -232,7 +232,7 @@ lib_libffi = \
 	install/lib/*.la \
 	install/lib/pkgconfig/*.pc
 inc_libffi = \
-	install/include/libffi,.
+	install/include/libffi/*.h,.
 
 dir_$(CONFIG_LIB_BITVECTOR) += bitvector
 lib_bitvector = *.so

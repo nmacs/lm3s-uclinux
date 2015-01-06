@@ -80,7 +80,8 @@
 #  define __INTERWORKING__
 # endif
 #else
-# define call_reg(x)	mov	lr, pc ; mov	pc, x
+//# define call_reg(x)	mov	lr, pc ; mov	pc, x
+# define call_reg(x)	blx	x
 #endif
 
 /* Conditionally compile unwinder directives.  */
@@ -90,7 +91,6 @@
 #define UNWIND @
 #endif	
 
-	
 #if defined(__thumb__) && !defined(__THUMB_INTERWORK__)
 .macro	ARM_FUNC_START name
 	.text
@@ -110,7 +110,9 @@ _L__\name:
 .macro	ARM_FUNC_START name
 	.text
 	.align 0
+#if !defined(__ARM_ARCH_7M__) && !defined(__ARM_ARCH_7EM__) /* not cortex-m3/m4 */
 	.arm
+#endif
 	ENTRY(\name)
 	UNWIND .fnstart
 .endm
@@ -133,6 +135,7 @@ _L__\name:
 #endif
 .endm
 
+.syntax unified
 
 	@ r0:   ffi_prep_args
 	@ r1:   &ecif
@@ -151,7 +154,11 @@ ARM_FUNC_START ffi_call_SYSV
 	UNWIND .setfp	fp, sp
 
 	@ Make room for all of the new args.
+#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__) /* cortex-m3/m4 */
+	sub	sp, sp, r2
+#else
 	sub	sp, fp, r2
+#endif
 
 	@ Place all of the ffi_prep_args in position
 	mov	ip, r0
@@ -167,6 +174,9 @@ ARM_FUNC_START ffi_call_SYSV
 	@ and adjust stack
 	ldr	ip, [fp, #8]
         cmp	ip, #16
+#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__) /* cortex-m3/m4 */
+	it	hs
+#endif
 	movhs	ip, #16
         add	sp, sp, ip
 
@@ -190,7 +200,13 @@ ARM_FUNC_START ffi_call_SYSV
 @ return INT
 	cmp	r3, #FFI_TYPE_INT
 #ifdef __SOFTFP__
+#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__) /* cortex-m3/m4 */
+	it	ne
+#endif
 	cmpne	r3, #FFI_TYPE_FLOAT
+#endif
+#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__) /* cortex-m3/m4 */
+	it	eq
 #endif
 	streq	r0, [r2]
 	beq	LSYM(Lepilogue)
@@ -198,7 +214,13 @@ ARM_FUNC_START ffi_call_SYSV
 	@ return INT64
 	cmp	r3, #FFI_TYPE_SINT64
 #ifdef __SOFTFP__
+#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__) /* cortex-m3/m4 */
+	it	ne
+#endif
 	cmpne	r3, #FFI_TYPE_DOUBLE
+#endif
+#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__) /* cortex-m3/m4 */
+	it	eq
 #endif
 	stmeqia	r2, {r0, r1}
 
@@ -269,7 +291,13 @@ ARM_FUNC_START ffi_closure_SYSV
 	beq	.Lretlonglong
 .Lclosure_epilogue:
 	add	sp, sp, #16
+#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__) /* cortex-m3/m4 */
+	ldr	ip, [sp, #4]
+	ldr	sp, [sp]
+	mov	pc, ip
+#else
 	ldmfd	sp, {sp, pc}
+#endif
 .Lretint:
 	ldr	r0, [sp]
 	b	.Lclosure_epilogue

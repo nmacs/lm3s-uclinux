@@ -1,4 +1,4 @@
-CONFOPTS = --prefix= --disable-gtk-peer --disable-gconf-peer --disable-plugin
+CONFOPTS = --prefix= --disable-gtk-peer --disable-gconf-peer --disable-plugin --disable-shared --enable-static --disable-Werror --disable-load-library
 DESTDIR=$(shell pwd)/install
 
 all: build/build

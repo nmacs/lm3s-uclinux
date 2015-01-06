@@ -558,8 +558,8 @@ public final class Formatter
 	  arg = arg.toUpperCase(fmtLocale);
       }
 
-    if (precision >= 0 && arg.length() > precision)
-      arg = arg.substring(0, precision);
+    //if (precision >= 0 && arg.length() > precision)
+    //  arg = arg.substring(0, precision);
 
     boolean leftJustify = (flags & FormattableFlags.LEFT_JUSTIFY) != 0;
     if (leftJustify && width == -1)
@@ -786,6 +786,86 @@ public final class Formatter
 	     && ! (arg instanceof Float)
 	     && ! (arg instanceof Double))
       {
+	noPrecision(precision);
+	checkFlags(flags, basicFlags, conversion);
+	long value = ((Number) arg).longValue ();
+	if (radix == 8)
+	  result = Long.toOctalString(value);
+	else if (radix == 16)
+	  result = Long.toHexString(value);
+	else
+	  result = Long.toString(value);
+      }
+    else
+      throw new IllegalFormatConversionException(conversion, arg.getClass());
+
+    return new StringBuilder(result);
+  }
+
+  /**
+   * Helper method to do initial formatting and checking for float
+   * conversions.
+   *
+   * @param arg the formatted argument.
+   * @param flags the formatting flags to use.
+   * @param width the width to use.
+   * @param precision the precision to use.
+   * @param radix the radix of the number.
+   * @param conversion the conversion character.
+   * @return the result.
+   */
+  private StringBuilder basicFloatConversion(Object arg, int flags,
+						int width, int precision,
+						int radix, char conversion)
+  {
+    assert radix == 8 || radix == 10 || radix == 16;
+
+    // Some error checking.
+    if ((flags & FormattableFlags.PLUS) != 0
+	&& (flags & FormattableFlags.SPACE) != 0)
+      throw new IllegalFormatFlagsException(getName(flags));
+
+    if ((flags & FormattableFlags.LEFT_JUSTIFY) != 0 && width == -1)
+      throw new MissingFormatWidthException("fixme");
+
+    // Do the base translation of the value to a string.
+    String result;
+    int basicFlags = (FormattableFlags.LEFT_JUSTIFY
+		      // We already handled any possible error when
+		      // parsing.
+		      | FormattableFlags.UPPERCASE
+		      | FormattableFlags.ZERO);
+
+      basicFlags |= (FormattableFlags.PLUS
+		     | FormattableFlags.SPACE
+		     | FormattableFlags.COMMA
+		     | FormattableFlags.PAREN);
+
+    if (arg instanceof BigInteger)
+      {
+	checkFlags(flags,
+		   (basicFlags
+		    | FormattableFlags.PLUS
+		    | FormattableFlags.SPACE
+		    | FormattableFlags.PAREN),
+		   conversion);
+	BigInteger bi = (BigInteger) arg;
+	result = bi.toString(radix);
+      }
+    else if (arg instanceof Float)
+      {
+	checkFlags(flags, basicFlags, conversion);
+	float value = ((Number) arg).floatValue ();
+	result = Float.toString(value);
+      }
+    else if (arg instanceof Double)
+      {
+	checkFlags(flags, basicFlags, conversion);
+	double value = ((Number) arg).doubleValue ();
+	result = Double.toString(value);
+      }
+    else if (arg instanceof Number)
+      {
 	checkFlags(flags, basicFlags, conversion);
 	long value = ((Number) arg).longValue ();
 	if (radix == 8)
@@ -900,6 +980,35 @@ public final class Formatter
     StringBuilder builder = basicIntegralConversion(arg, flags, width,
 						    precision, 10,
 						    conversion);
+    boolean isNegative = false;
+    if (builder.charAt(0) == '-')
+      {
+	// Sign handling is done during localization.
+	builder.deleteCharAt(0);
+	isNegative = true;
+      }
+
+    applyLocalization(builder, flags, width, isNegative);
+    genericFormat(builder.toString(), flags, width, precision);
+  }
+
+  /** 
+   * Emit a floating point value.  
+   * 
+   * @param arg the hexadecimal or octal value.
+   * @param flags the formatting flags to use.
+   * @param width the width to use.
+   * @param precision the precision to use.
+   * @param conversion the conversion character.
+   * @throws IOException if the output stream throws an I/O error.
+   */
+  private void floatingDecimalConversion(Object arg, int flags, int width,
+				         int precision, char conversion)
+    throws IOException
+  {
+    StringBuilder builder = basicFloatConversion(arg, flags, width,
+						 precision, 10,
+						 conversion);
     boolean isNegative = false;
     if (builder.charAt(0) == '-')
       {
@@ -1391,7 +1500,9 @@ public final class Formatter
 		// scientificNotationConversion();
 		break;
 	      case 'f':
-		// floatingDecimalConversion();
+		checkFlags(flags & FormattableFlags.UPPERCASE, 0, 'f');
+		floatingDecimalConversion(argument, flags, width, precision,
+				          origConversion);
 		break;
 	      case 'g':
 		// smartFloatingConversion();

@@ -53,18 +53,26 @@
 
 #define LOCKWORD_COMPARE_AND_SWAP(addr, old_val, new_val) \
 ({                                                        \
-    int result, read_val;                                 \
+    int result, read_val, lock;                           \
     __asm__ __volatile__ ("                               \
-                mvn %1, #1;                               \
-        1:      swp %1, %1, [%2];                         \
+                mvn %2, #1;                               \
+        1:      ldrex %1, [%3];                           \
                 cmn %1, #2;                               \
+                it ne;                                    \
+                strexne %0, %2, [%3];                     \
+                it ne;                                    \
+                cmpne %0, #1;                             \
                 beq 1b;                                   \
-                cmp %3, %1;                               \
-                strne %1, [%2];                           \
+                cmp %4, %1;                               \
+                it ne;                                    \
+                strne %1, [%3];                           \
+                it ne;                                    \
                 movne %0, #0;                             \
-                streq %4, [%2];                           \
+                it eq;                                    \
+                streq %5, [%3];                           \
+                it eq;                                    \
                 moveq %0, #1;"                            \
-    : "=&r" (result), "=&r" (read_val)                    \
+    : "=&r" (result), "=&r" (read_val), "=&r" (lock)      \
     : "r" (addr), "r" (old_val), "r" (new_val)            \
     : "cc", "memory");                                    \
     result;                                               \
@@ -83,14 +91,18 @@
 
 #define LOCKWORD_WRITE(addr, new_val)                     \
 do {                                                      \
-    int read_val;                                         \
+    int read_val, lock;                                   \
     __asm__ __volatile__ ("                               \
-                mvn %0, #1;                               \
-        1:      swp %0, %0, [%1];                         \
+                mvn %1, #1;                               \
+        1:      ldrex %0, [%2];                           \
                 cmn %0, #2;                               \
+                it ne;                                    \
+                strexne %0, %1, [%2];                     \
+                it ne;                                    \
+                cmpne %0, #1;                             \
                 beq 1b;                                   \
-                str %2, [%1];"                            \
-    : "=&r" (read_val)                                    \
+                str %3, [%2];"                            \
+    : "=&r" (read_val), "=&r" (lock)                      \
     : "r" (addr), "r" (new_val)                           \
     : "cc", "memory");                                    \
 } while(0)

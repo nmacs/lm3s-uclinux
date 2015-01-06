@@ -1,4 +1,4 @@
-CONFOPTS = --prefix=
+CONFOPTS = --prefix= --disable-shared
 DESTDIR=$(shell pwd)/install
 
 all: build/build
@@ -15,4 +15,4 @@ clean:
 	rm -rf build install
 
 romfs:
-	$(ROMFSINST) $(DESTDIR)/lib/libffi.so.5 /lib/libffi.so.5
+#	$(ROMFSINST) $(DESTDIR)/lib/libffi.so.5 /lib/libffi.so.5

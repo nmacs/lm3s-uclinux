@@ -197,7 +197,7 @@ void *resolveNativeMethod(MethodBlock *mb) {
 #endif
 
     if(verbose)
-        jam_printf("]\n");
+        jam_printf("] func:%p\n", func);
 
     return func;
 }
@@ -236,10 +236,17 @@ int dllNameHash(char *name) {
     return hash;
 }
 
+extern jint JNICALL
+JNI_OnLoad (JavaVM *vm, void *reserved __attribute__((unused)));
+
 int resolveDll(char *name, Object *loader) {
     DllEntry *dll;
 
     TRACE("<DLL: Attempting to resolve library %s>\n", name);
+    
+    return TRUE;
+    
+#if 0
 
 #define HASH(ptr) dllNameHash(ptr)
 #define COMPARE(ptr1, ptr2, hash1, hash2) \
@@ -298,6 +305,7 @@ int resolveDll(char *name, Object *loader) {
             return FALSE;
 
     return TRUE;
+#endif
 }
 
 char *getDllPath() {
@@ -409,6 +417,12 @@ uintptr_t *callJNIWrapper(Class *class, MethodBlock *mb, uintptr_t *ostack) {
                          mb->type, mb->native_extra_arg, ostack, mb->code, mb->args_count);
 }
 
+#define HAVE_STATIC_JNI
+
+#ifdef HAVE_STATIC_JNI
+static void *lookupStaticJNI(char *mangled);
+#endif
+
 void *lookupLoadedDlls(MethodBlock *mb) {
     Object *loader = (CLASS_CB(mb->class))->class_loader;
     char *mangled = mangleClassAndMethodName(mb);
@@ -422,6 +436,16 @@ void *lookupLoadedDlls(MethodBlock *mb) {
 
         sprintf(fullyMangled, "%s__%s", mangled, mangledSig);
         func = lookupLoadedDlls0(fullyMangled, loader);
+
+#ifdef HAVE_STATIC_JNI
+        if(func == NULL) {
+            func = lookupStaticJNI(mangled);
+        }
+
+        if(func == NULL) {
+            func = lookupStaticJNI(fullyMangled);
+        }
+#endif
 
         sysFree(fullyMangled);
         sysFree(mangledSig);
@@ -442,3 +466,23 @@ void *lookupLoadedDlls(MethodBlock *mb) {
 }
 #endif
 
+#ifdef HAVE_STATIC_JNI
+#undef STATIC_JNI_METHOD
+
+#define S(x) #x
+#define SX(x) S(x)
+
+#define STATIC_JNI_METHOD(name) void name(void);
+#include "static_jni.h"
+#undef STATIC_JNI_METHOD
+
+static void *lookupStaticJNI(char *mangled)
+{
+    if (verbose)
+        jam_printf("<DLL: looking static JNI method: %s>\n", mangled);
+#define STATIC_JNI_METHOD(name) if (strcmp(SX(name), mangled) == 0) return (void*)name;
+#include "static_jni.h"
+#undef STATIC_JNI_METHOD
+    return NULL;
+}
+#endif

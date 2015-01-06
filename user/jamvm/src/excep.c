@@ -162,6 +162,31 @@ void printException() {
     }
 }
 
+#if 0
+void printExceptionSafe() {
+    ExecEnv *ee = getExecEnv();
+    Object *exception = ee->exception;
+
+    if(exception != NULL) {
+        MethodBlock *mb = lookupMethod(exception->class, SYMBOL(printStackTrace),
+                                                         SYMBOL(___V));
+        clearException();
+        executeMethod(exception, mb);
+
+        /* If we're really low on memory we might have been able to throw
+         * OutOfMemory, but then been unable to print any part of it!  In
+         * this case the VM just seems to stop... */
+        if(ee->exception) {
+            jam_fprintf(stderr, "Exception occurred while printing exception (%s)...\n",
+                            CLASS_CB(ee->exception->class)->name);
+            jam_fprintf(stderr, "Original exception was %s\n", CLASS_CB(exception->class)->name);
+        }
+
+        ee->exception = exception;
+    }
+}
+#endif
+
 CodePntr findCatchBlockInMethod(MethodBlock *mb, Class *exception, CodePntr pc_pntr) {
     ExceptionTableEntry *table = mb->exception_table;
     int size = mb->exception_table_size;

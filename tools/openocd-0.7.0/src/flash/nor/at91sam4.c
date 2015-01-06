@@ -360,6 +360,39 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 		},
 	},
+	/*atsam4cmp16c - LQFP64/QFN64*/
+	{
+		.chipid_cidr    = 0xA64C0CE0,
+		.name           = "at91sam4cmp16c",
+		.total_flash_size     = 1024 * 1024,
+		.total_sram_size      = 128 * 1024,
+		.n_gpnvms       = 2,
+		.n_banks        = 1,
+		{
+/*		.bank[0] = {*/
+		  {
+			.probed = 0,
+			.pChip  = NULL,
+			.pBank  = NULL,
+			.bank_number = 0,
+			.base_address = FLASH_BANK_BASE_S,
+			.controller_address = 0x400e0a00,
+			.flash_wait_states = 6,	/* workaround silicon bug */
+			.present = 1,
+			.size_bytes =  1024 * 1024,
+			.nsectors   =  128,
+			.sector_size = 8192,
+			.page_size   = 512,
+		  },
+/*		.bank[1] = {*/
+		  {
+			.present = 0,
+			.probed = 0,
+			.bank_number = 1,
+
+		  },
+		},
+	},
 	/*atsam4s8c - LQFP100/BGA100*/
 	{
 		.chipid_cidr    = 0x28AC0AE0,

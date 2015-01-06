@@ -73,7 +73,7 @@
 #define AMISC	1
 #define PMISC	2
 
-#define AMASK	1
+#define AMASK	(1|1<<11|1<<13)
 #define PMASK	2
 
 /* Flash Controller Command bits */
@@ -664,7 +664,7 @@ static int stellaris_read_part_info(struct flash_bank *bank)
 	target_read_u32(target, SCB_BASE | DID1, &did1);
 	target_read_u32(target, SCB_BASE | DC0, &stellaris_info->dc0);
 	target_read_u32(target, SCB_BASE | DC1, &stellaris_info->dc1);
-	LOG_DEBUG("did0 0x%" PRIx32 ", did1 0x%" PRIx32 ", dc0 0x%" PRIx32 ", dc1 0x%" PRIx32 "",
+	/*LOG_DEBUG*/printf("did0 0x%" PRIx32 ", did1 0x%" PRIx32 ", dc0 0x%" PRIx32 ", dc1 0x%" PRIx32 "",
 		  did0, did1, stellaris_info->dc0, stellaris_info->dc1);
 
 	ver = did0 >> 28;
@@ -733,10 +733,10 @@ static int stellaris_read_part_info(struct flash_bank *bank)
 			stellaris_info->xtal_mask = 0x1f;
 			break;
 		case 10:
-			stellaris_info->dc0 = 0x1ff;
-
+			stellaris_info->dc0 = 0x1f;
+			break;
 		default:
-			LOG_WARNING("Unknown did0 class");
+			LOG_WARNING("Unknown did0 class:%x", stellaris_info->target_class);
 	}
 
 	for (i = 0; StellarisParts[i].partno; i++) {
@@ -752,7 +752,7 @@ static int stellaris_read_part_info(struct flash_bank *bank)
 
 	stellaris_info->num_lockbits = 1 + (stellaris_info->dc0 & 0xFFFF);
 	stellaris_info->num_pages = 2 * (1 + (stellaris_info->dc0 & 0xFFFF));
-	stellaris_info->pagesize = 1024;
+	stellaris_info->pagesize = 16 * 1024;
 	stellaris_info->pages_in_lockregion = 2;
 
 	/* REVISIT for at least Tempest parts, read NVMSTAT.FWB too.
@@ -819,6 +819,8 @@ static int stellaris_erase(struct flash_bank *bank, int first, int last)
 	uint32_t flash_fmc, flash_cris;
 	struct stellaris_flash_bank *stellaris_info = bank->driver_priv;
 	struct target *target = bank->target;
+	
+	printf("stellaris_erase first:%i, last:%i\n", first, last);
 
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -847,6 +849,7 @@ static int stellaris_erase(struct flash_bank *bank, int first, int last)
 	 */
 
 	for (banknr = first; banknr <= last; banknr++) {
+		//printf("Erase block at %x\n", banknr * stellaris_info->pagesize);
 		/* Address is first word in page */
 		target_write_u32(target, FLASH_FMA, banknr * stellaris_info->pagesize);
 		/* Write erase command */
@@ -867,7 +870,26 @@ static int stellaris_erase(struct flash_bank *bank, int first, int last)
 
 		bank->sectors[banknr].is_erased = 1;
 	}
-
+	
+	/*unsigned int i;
+	uint32_t address = 0x00000000;
+	//address = 0x0005FFF0;
+	
+	printf("Validate FLASH at %x\n", address);
+	
+	for (i = 0; i < last * stellaris_info->pagesize ; i++)
+	{
+			uint32_t value;
+			target_read_u32(target, address, &value);
+			if (value != 0xFFFFFFFF) {
+				printf("Bad %x at %x\n", value, address);
+				//return ERROR_FLASH_OPERATION_FAILED;
+			}
+			address += 4;
+	}
+	
+	printf("Validation OK\n");*/
+	
 	return ERROR_OK;
 }
 
@@ -999,6 +1021,7 @@ static const uint8_t stellaris_write_code[] = {
 	/* FLASHWRITECMD: */
 	0x01, 0x00, 0x42, 0xA4	/* .word	0xA4420001 */
 };
+#if 1
 static int stellaris_write_block(struct flash_bank *bank,
 		uint8_t *buffer, uint32_t offset, uint32_t wcount)
 {
@@ -1080,7 +1103,7 @@ static int stellaris_write_block(struct flash_bank *bank,
 
 	return retval;
 }
-
+#endif
 static int stellaris_write(struct flash_bank *bank, uint8_t *buffer,
 		uint32_t offset, uint32_t count)
 {
@@ -1123,7 +1146,7 @@ static int stellaris_write(struct flash_bank *bank, uint8_t *buffer,
 	/* REVISIT this clobbers state set by any halted firmware ...
 	 * it might want to process those IRQs.
 	 */
-
+#if 1
 	/* multiple words to be programmed? */
 	if (words_remaining > 0) {
 		/* try using a block write */
@@ -1145,7 +1168,7 @@ static int stellaris_write(struct flash_bank *bank, uint8_t *buffer,
 			words_remaining = 0;
 		}
 	}
-
+#endif
 	while (words_remaining > 0) {
 		if (!(address & 0xff))
 			LOG_DEBUG("0x%" PRIx32 "", address);
@@ -1219,7 +1242,7 @@ static int stellaris_probe(struct flash_bank *bank)
 	}
 
 	/* provide this for the benefit of the NOR flash framework */
-	bank->size = 1024 * stellaris_info->num_pages;
+	bank->size = stellaris_info->pagesize * stellaris_info->num_pages;
 	bank->num_sectors = stellaris_info->num_pages;
 	bank->sectors = calloc(bank->num_sectors, sizeof(struct flash_sector));
 	for (int i = 0; i < bank->num_sectors; i++) {
@@ -1237,6 +1260,8 @@ static int stellaris_mass_erase(struct flash_bank *bank)
 	struct target *target = NULL;
 	struct stellaris_flash_bank *stellaris_info = NULL;
 	uint32_t flash_fmc;
+	
+	printf("!!!!!!!!!!!!! stellaris_mass_erase !!!!!!!!!!!!!!\n");
 
 	stellaris_info = bank->driver_priv;
 	target = bank->target;
@@ -1264,10 +1289,13 @@ static int stellaris_mass_erase(struct flash_bank *bank)
 	target_write_u32(target, FLASH_FMA, 0);
 	target_write_u32(target, FLASH_FMC, FMC_WRKEY | FMC_MERASE);
 	/* Wait until erase complete */
+	printf("!!!!!!!!!!!!! stellaris_mass_erase: done wait for complete !!!!!!!!!!!!!!\n");
 	do {
 		target_read_u32(target, FLASH_FMC, &flash_fmc);
 	} while (flash_fmc & FMC_MERASE);
+	printf("!!!!!!!!!!!!! stellaris_mass_erase: done !!!!!!!!!!!!!!\n");
 
+#if 0
 	/* if device has > 128k, then second erase cycle is needed
 	 * this is only valid for older devices, but will not hurt */
 	if (stellaris_info->num_pages * stellaris_info->pagesize > 0x20000) {
@@ -1278,6 +1306,38 @@ static int stellaris_mass_erase(struct flash_bank *bank)
 			target_read_u32(target, FLASH_FMC, &flash_fmc);
 		} while (flash_fmc & FMC_MERASE);
 	}
+#endif
+
+	printf("Dump FLASH protection\n");
+	int i = 0;
+	for (i = 0; i < 16; i++)
+	{
+		uint32_t value = 0;
+		uint32_t address = SCB_BASE | (0x200 + i*4);
+		target_read_u32(target, address, &value);
+		printf("FMPRE%i(%x): %X\n", i, address, value);
+		
+	}
+
+	uint32_t address = 0x00000000;
+	//address = 0x0005FFF0;
+	
+	//printf("Validate FLASH at %x\n", address);
+	
+	for (i = 0; i < (1024*1024/4); i++)
+	{
+			uint32_t value;
+			target_read_u32(target, address, &value);
+			if (value != 0xFFFFFFFF) {
+				printf("Bad %x at %x\n", value, address);
+				//return ERROR_FLASH_OPERATION_FAILED;
+			}
+			address += 4;
+	}
+	
+
+	
+	printf("Validation OK\n");
 
 	return ERROR_OK;
 }

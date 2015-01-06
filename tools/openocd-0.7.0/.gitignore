@@ -57,20 +57,20 @@ src/openocd
 src/openocd.exe
 
 # configure/autotools output
-aclocal.m4
-autom4te.cache
-compile
-config.*
-doxygen
-doxygen.log
-Doxyfile
-install-sh
-libtool
-ltmain.sh
-Makefile
-mdate-sh
-stamp-h1
-stamp-vti
+#aclocal.m4
+#autom4te.cache
+#compile
+#config.*
+#doxygen
+#doxygen.log
+#Doxyfile
+#install-sh
+#libtool
+#ltmain.sh
+#Makefile
+#mdate-sh
+#stamp-h1
+#stamp-vti
 
 # coexist with quilt
 patches

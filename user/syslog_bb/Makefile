@@ -14,7 +14,7 @@ romfs:
 	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_SYSLOGD -s /etc/init.d/syslogd /etc/rc.d/S20syslogd
 	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_KLOGD -s syslog_bb /bin/klogd
 	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_KLOGD etc/init.d/klogd /etc/init.d/klogd
-	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_KLOGD -s /etc/init.d/klogd /etc/rc.d/S21klogd
+#	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_KLOGD -s /etc/init.d/klogd /etc/rc.d/S21klogd
 	$(ROMFSINST) -d -e CONFIG_USER_SYSLOG_BB_LOGGER -s syslog_bb /bin/logger
 
 repo:
@@ -24,7 +24,7 @@ repo:
 	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_SYSLOGD -s /etc/init.d/syslogd /etc/rc.d/S20syslogd
 	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_KLOGD -s syslog_bb /bin/klogd
 	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_KLOGD etc/init.d/klogd /etc/init.d/klogd
-	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_KLOGD -s /etc/init.d/klogd /etc/rc.d/S21klogd
+#	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_KLOGD -s /etc/init.d/klogd /etc/rc.d/S21klogd
 	$(REPOINST) -e CONFIG_USER_SYSLOG_BB_LOGGER -s syslog_bb /bin/logger
 
 clean:

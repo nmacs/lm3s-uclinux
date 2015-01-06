@@ -15,4 +15,6 @@ mount $ROOT/images/Image.ext2 /tmp/uwic-image
 cp -r /tmp/uwic-image/dev /nfsroot/
 umount /tmp/uwic-image
 
+cp $ROOT/java/*.zip /tftpboot/
+
 

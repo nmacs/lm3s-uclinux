@@ -21,7 +21,7 @@ DEFINES+= -DNO_SHARED_LIBS
 endif
 
 #options if you have a bind>=4.9.4 libresolv (or, maybe, glibc)
-LDLIBS := -lresolv $(LDLIBS)
+LDLIBS := $(LDLIBS)
 ADDLIB=
 
 #options for decnet
@@ -42,7 +42,7 @@ ifdef not_defined
 CC = gcc
 HOSTCC = gcc
 endif
-CCOPTS = -D_GNU_SOURCE -O2 -Wstrict-prototypes -Wall
+CCOPTS = -D_GNU_SOURCE -Os -Wstrict-prototypes -Wall
 ifdef not_defined
 CFLAGS = $(CCOPTS) -I../include $(DEFINES)
 else
