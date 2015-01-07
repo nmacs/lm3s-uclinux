@@ -26,7 +26,7 @@ LIBCLOOG_CONFIG_OPTS   := --prefix=$(OUTPUT) --target=arm-uclinuxeabi --disable-
                           --with-ppl=$(OUTPUT) --with-gmp=$(OUTPUT)
 GCC_CONFIG_OPTS        := --target=arm-uclinuxeabi --enable-threads --disable-libmudflap --disable-libssp \
                           --disable-libstdcxx-pch --with-gnu-as \
-                          --disable-multilib --with-cpu=cortex-m3 --with-mode=thumb --with-arch=armv7-m --with-tune=cortex-m3 \
+                          --disable-multilib --with-cpu=cortex-m4 --with-mode=thumb --with-arch=armv7e-m --with-tune=cortex-m4 \
                           --with-gnu-ld '--with-specs=%{save-temps: -fverbose-asm}' \
                           --enable-languages=c,c++ --disable-shared --enable-lto \
                           --disable-nls --prefix=$(OUTPUT) \
@@ -40,7 +40,7 @@ GCC_CONFIG_OPTS        := --target=arm-uclinuxeabi --enable-threads --disable-li
                           --disable-wchar_t \
                           --disable-dlopen \
                           CFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" CXXFLAGS="-Os -ffunction-sections -fdata-sections -Wl,--gc-sections" \
-                          TARGET_CFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections" TARGET_CXXFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections"
+                          TARGET_CFLAGS="-mtune=cortex-m4 -march=armv7e-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections" TARGET_CXXFLAGS="-mtune=cortex-m4 -march=armv7e-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections"
 
 #                          --with-gmp=$(OUTPUT) \
 #                          --with-mpfr=$(OUTPUT) \
@@ -142,7 +142,7 @@ gcc_stage_1: linux-headers binutils gcc_config
 libc: patch_uclibc-s
 	cp $(PRODUCTDIR)/config.uClibc $(UCLIBC_DIR)/.config
 	yes "" | $(MAKE) -C $(UCLIBC_DIR) oldconfig
-	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" CFLAGS="-mtune=cortex-m3 -march=armv7-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections -D__thumb2__" $(MAKE) -C $(UCLIBC_DIR) V=1
+	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" CFLAGS="-mtune=cortex-m4 -march=armv7e-m -mthumb -Os -ffunction-sections -fdata-sections -Wl,--gc-sections -D__thumb2__" $(MAKE) -C $(UCLIBC_DIR) V=1
 	STAGEDIR="$(OUTPUT)/arm-uclinuxeabi/libc" CROSS="$(OUTPUT)/bin/arm-uclinuxeabi-" PREFIX=$(OUTPUT)/arm-uclinuxeabi/libc $(MAKE) -C $(UCLIBC_DIR) V=1 install
 	mkdir -p $(OUTPUT)/arm-uclinuxeabi/libc/usr/local; ln -f -s ../include $(OUTPUT)/arm-uclinuxeabi/libc/usr/local/include
 
