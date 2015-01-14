@@ -179,6 +179,16 @@ index fdc05b8..0807168 100644
  #if defined(__USE_BX__)
  	bxne	lr
  #else
+--- a/libc/sysdeps/linux/arm/clone.S
++++ b/libc/sysdeps/linux/arm/clone.S
+@@ -120,6 +120,7 @@
+ #else
+ 	movne	pc, lr
+ #endif
++	sub sp, sp, #4
+ 
+ 	@ pick the function arg and call address off the stack and execute
+ 	ldr	r0, [sp, #4]
 diff --git a/libc/sysdeps/linux/arm/mmap64.S b/libc/sysdeps/linux/arm/mmap64.S
 index 7071541..583f04b 100644
 --- a/libc/sysdeps/linux/arm/mmap64.S
