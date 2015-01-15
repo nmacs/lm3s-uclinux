@@ -15,6 +15,6 @@ cp $ROOT/images/initrd.bin /tftpboot/
 #cp -r /tmp/uwic-image/dev /nfsroot/
 #umount /tmp/uwic-image
 
-cp $ROOT/java/*.zip /tftpboot/
+cp $ROOT/user/elster/mgate/java/output/*.zip /tftpboot/
 
 
